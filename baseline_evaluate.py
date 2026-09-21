@@ -616,10 +616,46 @@ def proposal_runtime_config(
     checkpoint: Mapping[str, Any],
 ) -> RuntimeConfig:
     values = checkpoint_config_values(checkpoint)
+    config = checkpoint.get("config", {})
+    if not isinstance(config, Mapping):
+        config = {}
+    resolved = config.get("resolved", {})
+    if not isinstance(resolved, Mapping):
+        resolved = {}
 
     default_grid = build_quarter_allocation_grid(scenario)
-    checkpoint_grid = values.get("ALLOCATION_GRID", default_grid)
+    # This grid determines supported allocations AND running_pwr indices.
+    # Do not expand it to the architecture grid for a specialist.
+    checkpoint_grid = values.get(
+        "ALLOCATION_GRID",
+        values.get("GAMMA_GRID", config.get("allocations", default_grid)),
+    )
     grid = tuple(tuple(map(int, allocation)) for allocation in checkpoint_grid)
+    if not grid:
+        raise ValueError("Proposal checkpoint has no supported allocations.")
+
+    # Training retains maximum-width layers even for a single allocation.
+    # Prefer saved dimensions, then the saved full grid, then the scenario grid.
+    architecture_grid = values.get(
+        "FULL_ALLOCATION_GRID", config.get("full_allocation_grid", default_grid)
+    )
+    architecture_grid = tuple(tuple(map(int, a)) for a in architecture_grid)
+    if not architecture_grid:
+        raise ValueError("Proposal checkpoint has an empty architecture grid.")
+    for allocation in grid + architecture_grid:
+        validate_allocation(allocation, scenario)
+    dimensions: Dict[str, int] = {}
+    for key, saved_key, axis in (
+        ("D_F_MAX_PER_USER", "d_f_max_per_user", 0),
+        ("D_A_MAX_SHARED", "d_a_max_shared", 1),
+    ):
+        saved = values.get(key)
+        if saved is None:
+            saved = resolved.get(saved_key, config.get(saved_key))
+        width = int(saved) if saved is not None else max(a[axis] for a in architecture_grid)
+        if width < max(a[axis] for a in grid) or width % scenario.num_subbands:
+            raise ValueError(f"Invalid proposal architecture dimension {key}={width}.")
+        dimensions[key] = width
 
     defaults: Dict[str, Any] = {
         "K_USERS": scenario.k_users,
@@ -640,8 +676,7 @@ def proposal_runtime_config(
         "GNN_AGG_DIM": 48,
         "GAMMA_GRID": list(grid),
         "ALLOCATION_GRID": list(grid),
-        "D_F_MAX_PER_USER": max(d_f for d_f, _ in grid),
-        "D_A_MAX_SHARED": max(d_a for _, d_a in grid),
+        **dimensions,
     }
 
     defaults.update(values)
@@ -659,8 +694,8 @@ def proposal_runtime_config(
             "NUM_SUBBANDS": scenario.num_subbands,
             "GAMMA_GRID": list(grid),
             "ALLOCATION_GRID": list(grid),
-            "D_F_MAX_PER_USER": max(d_f for d_f, _ in grid),
-            "D_A_MAX_SHARED": max(d_a for _, d_a in grid),
+            "FULL_ALLOCATION_GRID": list(architecture_grid),
+            **dimensions,
         }
     )
     return RuntimeConfig(**defaults)
@@ -771,6 +806,11 @@ def build_proposed_method(
     model = AdaptiveHybridPrecoder(cfg).to(device)
     model.load_state_dict(checkpoint["state"], strict=True)
     model.eval()
+    print(
+        f"[Proposal architecture] D_f_max={cfg.D_F_MAX_PER_USER}, "
+        f"D_a_max={cfg.D_A_MAX_SHARED}; "
+        f"supported allocations={list(available)}; strict=True"
+    )
 
     return LoadedMethod(
         model_key="proposed",
