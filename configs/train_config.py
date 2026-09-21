@@ -20,7 +20,7 @@ Typical commands are defined in main_train.py, for example:
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from fractions import Fraction
 from pathlib import Path
 from typing import Dict, Iterable, Literal, Mapping, Sequence, Tuple
@@ -307,6 +307,12 @@ TRAINING_RECIPES: Dict[str, TrainingRecipe] = {
         best_metric="mean_all",
     ),
 }
+
+
+# Low-load diagnostic: reuse the K=4/Nsc=128 recipe without changing old suites.
+TRAINING_RECIPES['k2_n128_screen'] = replace(
+    TRAINING_RECIPES['k4_n128_standard'], name='k2_n128_screen'
+)
 
 
 # =============================================================================
@@ -854,6 +860,12 @@ def _baseline_specs(model_name: Literal["csinet_plus", "swin_cfnet"]) -> list[Ex
 
 
 EXPERIMENT_SUITES: Mapping[str, Tuple[ExperimentSpec, ...]] = {
+    'proposal_k2_screen': (
+        ExperimentSpec(
+            model_name='proposal', train_mode='adaptive', k_users=2,
+            subcarriers=128, feedback_budget=128, recipe_name='k2_n128_screen',
+        ),
+    ),
     "proposal_adaptive": tuple(_proposal_adaptive_specs()),
     "proposal_specialists": tuple(_proposal_specialist_specs()),
     "proposal_all": tuple(_proposal_adaptive_specs() + _proposal_specialist_specs()),

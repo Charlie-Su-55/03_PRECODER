@@ -18,6 +18,7 @@ class ScenarioSpec:
 
 
 SCENARIOS: Dict[str, ScenarioSpec] = {
+    'k2_n128_d128': ScenarioSpec('k2_n128_d128', 2, 128, 128),
     "k4_n128_d128": ScenarioSpec("k4_n128_d128", 4, 128, 128),
     "k8_n128_d128": ScenarioSpec("k8_n128_d128", 8, 128, 128),
     "k4_n256_d256": ScenarioSpec("k4_n256_d256", 4, 256, 256),
@@ -178,7 +179,7 @@ def make_config(
             f"FDMA allocation uses {spec.k_users*d_f} subcarriers, but Nsc={spec.subcarriers}."
         )
 
-    if spec.k_users == 4:
+    if spec.k_users in {2, 4}:
         total_steps, batch_size, val_batch = 50_000, 48, 64
         val_interval, warmup_pct, grad_clip = 500, 0.35, 1.0
     elif spec.k_users == 8:
