@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Checkpoints / weights
+ckp/
+checkpoints/
+*.pth
+*.pt
+*.ckpt
+
+# Experiment outputs
+logs/
+results/
+paper_results/
+terminal_logs/
+outputs/
+wandb/
+
+# Large generated data
+*.npz
+*.npy
+
+# Local backup files
+*.bak
+*.bak_*
+*.save
+*.tmp
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Generated root figures
+/hybrid_gnn_adaptive_*.pdf
+/hybrid_gnn_adaptive_*.png
+
+# LaTeX temporary files
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
+
+# Training checkpoints and experiment outputs
+ckp/
+runs/
+runs_*/
+runs_evaluation/
+results/
+paper_results/
+terminal_logs/
+
+# Model weights
+*.pth
+*.pt
+*.ckpt
+
+# Python cache
+__pycache__/
+*.pyc
