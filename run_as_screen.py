@@ -3,6 +3,9 @@
 
 check: inspect paths and print a plan without importing torch or loading weights.
 run: require CUDA, reuse checkpoints, train missing models, then evaluate.
+train-specialists-k4: train only missing K4 specialists, preserving existing runs.
+preflight-specialists-k4: load all eight checkpoints and evaluate one shared batch.
+eval-specialists-k4: evaluate the full specialist envelope on 1600 shared samples.
 """
 from __future__ import annotations
 
@@ -232,8 +235,19 @@ def write_comparison(summary_path, output_path, args):
 
 
 def main():
+    specialist_commands = {
+        'train-specialists-k4': ['train_proposal_specialist.py', '--remaining-k4'],
+        'preflight-specialists-k4': ['evaluate_specialist_envelope.py', '--preflight'],
+        'eval-specialists-k4': ['evaluate_specialist_envelope.py'],
+    }
+    if len(sys.argv) > 1 and sys.argv[1] in specialist_commands:
+        run_command([
+            sys.executable, '-u', *specialist_commands[sys.argv[1]], *sys.argv[2:],
+        ])
+        return 0
+
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('check', 'run'))
+    parser.add_argument('action', choices=('check', 'run', *specialist_commands))
     parser.add_argument('--case', choices=tuple(CASES), default='k4_n256_d256')
     parser.add_argument('--proposal-root', default='runs_deployzf_v1')
     parser.add_argument('--baseline-root', default='runs_baselines')

@@ -1720,15 +1720,15 @@ def write_gzip_csv(
 def print_summary(
     summary_rows: Sequence[Mapping[str, Any]],
 ) -> None:
-    print("\n" + "=" * 132)
+    print("\n" + "=" * 152)
     print("Unified evaluation summary")
-    print("=" * 132)
+    print("=" * 152)
     print(
         f"{'scenario':<20} | {'method':<28} | "
         f"{'allocation':>12} | {'FB SNR':>7} | {'DL SNR':>7} | "
-        f"{'rate':>9} | {'SE':>7} | {'NMSE dB':>9}"
+        f"{'rate':>9} | {'SE':>7} | {'Raw representation NMSE (dB)':>28}"
     )
-    print("-" * 132)
+    print("-" * 152)
 
     for row in summary_rows:
         if row["model_key"] == "proposed_best":
@@ -1754,7 +1754,7 @@ def print_summary(
             f"{row['downlink_snr_db']:>7.1f} | "
             f"{row['sum_rate_mean']:>9.3f} | "
             f"{row['sum_rate_se']:>7.3f} | "
-            f"{nmse_text:>9}"
+            f"{nmse_text:>28}"
         )
 
 
