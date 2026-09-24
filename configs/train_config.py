@@ -22,6 +22,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, replace
 from fractions import Fraction
+import math
 from pathlib import Path
 from typing import Dict, Iterable, Literal, Mapping, Sequence, Tuple
 
@@ -117,8 +118,12 @@ class TrainingRecipe:
     data_cache_size: int = 1 # 30
     log_interval: int = 100
     best_metric: Literal["mean_all", "snr_25"] = "mean_all"
+    # None preserves the historical matched feedback/downlink SNR protocol.
+    downlink_snr_db: float | None = None
 
     def __post_init__(self) -> None:
+        if self.downlink_snr_db is not None and not math.isfinite(self.downlink_snr_db):
+            raise ValueError("downlink_snr_db must be finite or None.")
         if self.total_steps <= 0:
             raise ValueError("total_steps must be positive.")
         if self.batch_size <= 0 or self.val_batch <= 0:
@@ -183,6 +188,36 @@ TRAINING_RECIPES: Dict[str, TrainingRecipe] = {
         snr_stage2_pct=0.70,
         ph2_w_dir=5.0,
         ph2_w_mse=0.0,
+        data_cache_size=1,
+        log_interval=100,
+        best_metric="mean_all",
+    ),
+
+    # ============================================================
+    # Protocol-aligned pure-AS fine-tuning; deliberately NOT added to old suites.
+    # The phase boundaries have no effect on auxiliary weights or SNR ranges here.
+    "k4_n256_fb_robust_ft": TrainingRecipe(
+        name="k4_n256_fb_robust_ft",
+        total_steps=20_000,
+        batch_size=48,
+        lr=2e-5,
+        val_interval=500,
+        val_batch=64,
+        warmup_pct=0.10,
+        grad_clip=0.5,
+        phase1_pct=0.40,
+        snr_stage1_pct=0.30,
+        snr_stage2_pct=0.70,
+        stage1_snr=(0.0, 25.0),
+        stage2_snr=(0.0, 25.0),
+        stage3_snr=(0.0, 25.0),
+        val_snr_list=(0, 5, 10, 15, 20, 25),
+        downlink_snr_db=25.0,
+        ph1_w_dir=0.0,
+        ph1_w_mse=0.0,
+        ph2_w_dir=0.0,
+        ph2_w_mse=0.0,
+        weight_decay=1e-5,
         data_cache_size=1,
         log_interval=100,
         best_metric="mean_all",
@@ -688,6 +723,10 @@ class TrainConfig:
         return list(self.recipe.val_snr_list)
 
     @property
+    def DOWNLINK_SNR_DB(self) -> float | None:
+        return self.recipe.downlink_snr_db
+
+    @property
     def DIR_MODE(self) -> str:
         return self.recipe.dir_mode
 
@@ -759,11 +798,16 @@ class TrainConfig:
     def to_dict(self) -> dict:
         """JSON-serializable configuration snapshot."""
 
+        recipe_snapshot = asdict(self.recipe)
+        if self.DOWNLINK_SNR_DB is None:
+            # Preserve old config.json/checkpoint fingerprints and safe resume.
+            # Fixed-DL recipes still serialize the new field explicitly.
+            recipe_snapshot.pop("downlink_snr_db")
         return {
             "experiment": asdict(self.spec),
             "allocations": [list(a) for a in self.allocations],
             "full_allocation_grid": [list(a) for a in self.full_allocation_grid],
-            "training_recipe": asdict(self.recipe),
+            "training_recipe": recipe_snapshot,
             "physical": asdict(self.physical),
             "proposal_model": asdict(self.proposal),
             "baseline_model": asdict(self.baselines),

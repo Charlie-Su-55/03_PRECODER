@@ -205,6 +205,11 @@ def get_snr(step: int, cfg: TrainConfig) -> float:
     return float(np.random.uniform(low, high))
 
 
+def get_downlink_snr(feedback_snr_db: float, cfg: TrainConfig) -> float:
+    """Return the historical matched SNR unless a recipe explicitly fixes DL SNR."""
+    return feedback_snr_db if cfg.DOWNLINK_SNR_DB is None else cfg.DOWNLINK_SNR_DB
+
+
 # =============================================================================
 # 2. Losses and validation
 # =============================================================================
@@ -287,20 +292,21 @@ def validate_proposal(
     cfg: TrainConfig,
     device: torch.device,
 ) -> Dict[Tuple[int, int], float]:
-    """Return {(allocation_index, snr_db): sum_rate}."""
+    """Return {(allocation_index, feedback_snr_db): sum_rate}."""
 
     model.eval()
     table: Dict[Tuple[int, int], float] = {}
     for cfg_idx, (d_f, d_a) in enumerate(cfg.ALLOCATION_GRID):
-        for snr_db in cfg.VAL_SNR_LIST:
+        for fb_snr_db in cfg.VAL_SNR_LIST:
+            dl_snr_db = get_downlink_snr(fb_snr_db, cfg)
             # Fix both channel set and feedback-noise realization across steps.
-            val_seed = cfg.SEED + 1_000_000 + cfg_idx * 10_000 + int(snr_db) * 10
+            val_seed = cfg.SEED + 1_000_000 + cfg_idx * 10_000 + int(fb_snr_db) * 10
             with temporary_seed(val_seed):
-                snr_t = torch.tensor(float(snr_db), device=device)
+                snr_t = torch.tensor(float(fb_snr_db), device=device)
                 output = model(H_dl_val, H_ul_val, snr_t, d_f, d_a, cfg_idx)
                 W = extract_precoder(output)
-            _, rate = criterion(W, H_dl_val, 10.0 ** (-float(snr_db) / 10.0))
-            table[(cfg_idx, int(snr_db))] = rate
+            _, rate = criterion(W, H_dl_val, 10.0 ** (-float(dl_snr_db) / 10.0))
+            table[(cfg_idx, int(fb_snr_db))] = rate
     return table
 
 
@@ -321,6 +327,11 @@ def format_val_table(
     table: Mapping[Tuple[int, int], float], step: int, cfg: TrainConfig
 ) -> Tuple[str, float]:
     lines = [f"Step {step} | Validation matrix (bps/Hz)"]
+    if cfg.DOWNLINK_SNR_DB is not None:
+        lines.append(
+            f"    validation FB SNRs = {cfg.VAL_SNR_LIST}; "
+            f"fixed DL SNR = {cfg.DOWNLINK_SNR_DB:g} dB"
+        )
     header = "    allocation     " + " | ".join(
         f"{snr:>4}dB" for snr in cfg.VAL_SNR_LIST
     ) + " | mean"
@@ -527,6 +538,11 @@ def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
         f"snr_stages=({cfg.STAGE1_STEPS}, {cfg.STAGE2_STEPS}, {cfg.TOTAL_STEPS})"
     )
     print(f"[Checkpoint] {cfg.SAVE_DIR}")
+    if cfg.DOWNLINK_SNR_DB is not None:
+        print(
+            f"[SNR protocol] FB stages={cfg.STAGE1_SNR}, {cfg.STAGE2_SNR}, {cfg.STAGE3_SNR}; "
+            f"fixed DL SNR={cfg.DOWNLINK_SNR_DB:g} dB"
+        )
 
     model = build_proposal_model(cfg, device)
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -608,7 +624,7 @@ def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
         )
 
         source_config = checkpoint.get("config", {})
-        print(f"[Initialize] model weights loaded from: {init_path}")
+        print(f"[Initialize] strict=True model weights loaded from: {init_path}")
         print(
             "[Initialize] fresh AdamW optimizer and OneCycleLR schedule "
             "will be used."
@@ -694,9 +710,10 @@ def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
         model.train()
         optimizer.zero_grad(set_to_none=True)
 
-        snr = get_snr(step, cfg)
-        noise_power = 10.0 ** (-snr / 10.0)
-        snr_tensor = torch.tensor(snr, device=device, dtype=torch.float32)
+        fb_snr = get_snr(step, cfg)
+        dl_snr = get_downlink_snr(fb_snr, cfg)
+        noise_power = 10.0 ** (-dl_snr / 10.0)
+        snr_tensor = torch.tensor(fb_snr, device=device, dtype=torch.float32)
 
         output = model(
             H_dl_batch,
@@ -761,7 +778,8 @@ def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
         loss = sum_rate_loss + w_dir * dir_loss + w_mse * mse_loss
         if not torch.isfinite(loss):
             raise FloatingPointError(
-                f"Non-finite loss at step={step}, allocation={(d_f, d_a)}, snr={snr:.2f}."
+                f"Non-finite loss at step={step}, allocation={(d_f, d_a)}, "
+                f"FB_SNR={fb_snr:.2f}, DL_SNR={dl_snr:.2f}."
             )
 
         loss.backward()
@@ -779,10 +797,17 @@ def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
                     "SR": f"{train_rate:.2f}",
                     "cos": f"{float(cos_sim.detach()):.3f}",
                     "MSE": f"{float(mse_loss.detach()):.4f}",
-                    "SNR": f"{snr:.1f}",
+                    "FB_SNR": f"{fb_snr:.1f}",
+                    "DL_SNR": f"{dl_snr:.1f}",
                     "lr": f"{scheduler.get_last_lr()[0]:.2e}",
                 }
             )
+
+            if cfg.DOWNLINK_SNR_DB is not None:
+                append_jsonl(cfg.METRICS_PATH, {
+                    "event": "train_snr", "step": step,
+                    "feedback_snr_db": fb_snr, "downlink_snr_db": dl_snr,
+                })
 
         if step % cfg.VAL_INTERVAL == 0 or step == end_step:
             val_table = validate_proposal(
@@ -801,6 +826,12 @@ def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
                     for (idx, snr), value in val_table.items()
                 },
             }
+            if cfg.DOWNLINK_SNR_DB is not None:
+                metrics_record.update({
+                    "event": "validation",
+                    "feedback_snr_db": cfg.VAL_SNR_LIST,
+                    "downlink_snr_db": cfg.DOWNLINK_SNR_DB,
+                })
             append_jsonl(cfg.METRICS_PATH, metrics_record)
 
             if current_metric > best_metric:
