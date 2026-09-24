@@ -1,0 +1,13 @@
+method_type,method_label,df,da,as_fraction,sum_rate_mean,sum_rate_se,nmse_db_mean,nmse_db_se
+universal,Proposed universal,64,0,0.00,20.689602,0.082648,-6.780282,0.029860
+universal,Proposed universal,48,64,0.25,24.901457,0.072408,-6.735737,0.027037
+universal,Proposed universal,32,128,0.50,26.262201,0.074164,-6.829967,0.027202
+universal,Proposed universal,16,192,0.75,27.239868,0.076551,-7.131680,0.028079
+universal,Proposed universal,0,256,1.00,27.398174,0.077358,-6.679683,0.025096
+specialist,Allocation-specific specialist,64,0,0.00,28.545357,0.084395,-4.410121,0.014152
+specialist,Allocation-specific specialist,48,64,0.25,27.486000,0.077264,-12.669973,0.070129
+specialist,Allocation-specific specialist,32,128,0.50,27.729412,0.075761,-10.282223,0.048069
+specialist,Allocation-specific specialist,16,192,0.75,28.429844,0.077590,-8.758924,0.024666
+specialist,Allocation-specific specialist,0,256,1.00,29.295837,0.082519,-13.023555,0.061412
+swin,Swin-CFNet,64,0,0.00,28.948175,0.089848,0.219264,0.001383
+csinet,CsiNet+,64,0,0.00,21.517427,0.108795,0.870283,0.014390
