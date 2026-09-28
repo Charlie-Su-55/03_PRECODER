@@ -1,0 +1,102 @@
+{
+  "created_utc": "20260928T155425_739097Z",
+  "preflight": false,
+  "seed": 20260921,
+  "batch_size": 8,
+  "num_batches": 200,
+  "num_samples": 1600,
+  "feedback_snr_db": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25
+  ],
+  "downlink_snr_db": 25,
+  "strict_loading": true,
+  "methods": [
+    {
+      "method_key": "universal",
+      "model_key": "proposed",
+      "method_type": "universal",
+      "label": "Proposed universal",
+      "path": "/home/r50037942/project/03_PRECODER/runs_deployzf_v1/checkpoints/hybrid_gnn_adaptive_K4_Nsc256_Dfb256_grid5_f100_a000-f075_a025-f050_a050-f025_a075-f000_a100_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          0,
+          256
+        ]
+      ],
+      "curve": "Universal Proposed",
+      "training_status": "completed",
+      "checkpoint_step": 48000
+    },
+    {
+      "method_key": "specialist_df0_da256",
+      "model_key": "proposed",
+      "method_type": "original_specialist",
+      "label": "Original pure-AS specialist",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          0,
+          256
+        ]
+      ],
+      "curve": "Allocation-specific specialist",
+      "training_status": "completed",
+      "checkpoint_step": 50000
+    },
+    {
+      "method_key": "robust_specialist",
+      "model_key": "proposed",
+      "method_type": "robust_specialist",
+      "label": "FB-SNR-robust specialist",
+      "curve": "Feedback-SNR-robust specialist",
+      "allocations": [
+        [
+          0,
+          256
+        ]
+      ],
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_snr_robust/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_fb_robust_ft_seed42/best.pth",
+      "training_status": "completed",
+      "checkpoint_step": 20000
+    },
+    {
+      "method_key": "swin",
+      "model_key": "swin",
+      "method_type": "Swin",
+      "label": "Swin-based FDMA",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "curve": "Swin-CFNet",
+      "training_status": "completed",
+      "checkpoint_step": 49000
+    },
+    {
+      "method_key": "csinet",
+      "model_key": "csinet",
+      "method_type": "CsiNet+",
+      "label": "CsiNet+-based FDMA",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "curve": "CsiNet+",
+      "training_status": "completed",
+      "checkpoint_step": 49500
+    }
+  ],
+  "sampling": "Same H_dl/H_ul tensors for all five curves; original evaluator noise convention unchanged.",
+  "reference_csv": "/home/r50037942/project/03_PRECODER/paper/data/k4_pure_as_feedback_snr.csv"
+}

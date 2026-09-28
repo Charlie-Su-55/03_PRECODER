@@ -1,0 +1,56 @@
+{
+  "tag": "specialist_envelope",
+  "scenarios": [
+    {
+      "scenario_id": "K4_Nsc256_Dfb256",
+      "k_users": 4,
+      "antennas": 32,
+      "subcarriers": 256,
+      "feedback_budget": 256,
+      "carrier_freq": 3500000000.0,
+      "speed": 1.0,
+      "total_power": 1.0,
+      "num_subbands": 4
+    }
+  ],
+  "models": [
+    "universal",
+    "specialist_df64_da0",
+    "specialist_df48_da64",
+    "specialist_df32_da128",
+    "specialist_df16_da192",
+    "specialist_df0_da256",
+    "swin",
+    "csinet"
+  ],
+  "snr_points": [
+    {
+      "feedback_snr_db": 25.0,
+      "downlink_snr_db": 25.0
+    }
+  ],
+  "checkpoint": "best",
+  "baseline_objective": "task",
+  "proposal_root": "/home/r50037942/project/03_PRECODER/runs_deployzf_v1",
+  "baseline_root": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines",
+  "batch_size": 8,
+  "num_batches": 200,
+  "num_samples_per_condition": 1600,
+  "allocations": "all",
+  "rzf_lambdas": [
+    0.0001
+  ],
+  "rzf_reg": 0.001,
+  "extra_metrics": "basic",
+  "seed": 20260921,
+  "summary_schema": {
+    "sum_rate_mean": "Mean downlink sum rate in bps/Hz.",
+    "sum_rate_se": "Standard error over channel samples.",
+    "sum_rate_ci95_low": "Lower normal-approximation 95% CI.",
+    "sum_rate_ci95_high": "Upper normal-approximation 95% CI.",
+    "feedback_snr_db": "SNR used inside the feedback channel.",
+    "downlink_snr_db": "SNR used in the downlink rate metric.",
+    "allocation_df": "Per-user complex FDMA feedback dimension.",
+    "allocation_da": "Shared complex AirComp feedback dimension."
+  }
+}

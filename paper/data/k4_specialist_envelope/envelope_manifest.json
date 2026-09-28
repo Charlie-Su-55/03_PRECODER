@@ -1,0 +1,155 @@
+{
+  "created_utc": "20260924T082031_379978Z",
+  "preflight": false,
+  "scenario": "k4_n256_d256",
+  "seed": 20260921,
+  "batch_size": 8,
+  "num_batches": 200,
+  "num_samples": 1600,
+  "feedback_snr_db": 25,
+  "downlink_snr_db": 25,
+  "strict_loading": true,
+  "methods": [
+    {
+      "method_key": "universal",
+      "model_key": "proposed",
+      "method_type": "universal",
+      "label": "Proposed universal",
+      "path": "/home/r50037942/project/03_PRECODER/runs_deployzf_v1/checkpoints/hybrid_gnn_adaptive_K4_Nsc256_Dfb256_grid5_f100_a000-f075_a025-f050_a050-f025_a075-f000_a100_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ],
+        [
+          48,
+          64
+        ],
+        [
+          32,
+          128
+        ],
+        [
+          16,
+          192
+        ],
+        [
+          0,
+          256
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 48000
+    },
+    {
+      "method_key": "specialist_df64_da0",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (64,0)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f100_a000_df64_da0_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 49000
+    },
+    {
+      "method_key": "specialist_df48_da64",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (48,64)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f075_a025_df48_da64_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          48,
+          64
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 47500
+    },
+    {
+      "method_key": "specialist_df32_da128",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (32,128)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f050_a050_df32_da128_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          32,
+          128
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 46500
+    },
+    {
+      "method_key": "specialist_df16_da192",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (16,192)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f025_a075_df16_da192_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          16,
+          192
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 47000
+    },
+    {
+      "method_key": "specialist_df0_da256",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (0,256)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          0,
+          256
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 50000
+    },
+    {
+      "method_key": "swin",
+      "model_key": "swin",
+      "method_type": "Swin",
+      "label": "Swin-based FDMA",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 49000
+    },
+    {
+      "method_key": "csinet",
+      "model_key": "csinet",
+      "method_type": "CsiNet+",
+      "label": "CsiNet+-based FDMA",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_step": 49500
+    }
+  ],
+  "nmse_definition": "Mean of per-sample dB errors of raw antenna-frequency representations against H_dl.",
+  "nmse_role": "Secondary reconstruction diagnostic; training objectives differ.",
+  "sampling": "One channel batch shared by all methods inside evaluate_scenario.",
+  "noise": "Existing relative-noise convention and per-condition seeding unchanged.",
+  "envelope": "One fixed specialist per split; no maximization over test outcomes."
+}
