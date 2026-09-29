@@ -43,7 +43,7 @@ def build_parser():
     parser.add_argument('--print-plan', action='store_true', help='No file checks, torch import or writes.')
     parser.add_argument('--dry-run', action='store_true', help='Check checkpoint paths/status only; no weights loaded.')
     parser.add_argument('--preflight', action='store_true',
-                        help='First 8 cached validation samples; also compare probed vs original evaluation.')
+                        help='Isolated Plain A / Plain B / Probed C replays on the same first 8 cached samples.')
     parser.set_defaults(universal_checkpoint=None)
     return parser
 
@@ -188,30 +188,295 @@ def cached_channels(ev, scenario, device):
 
 
 class CachedBatchSource:
-    def __init__(self, channels, device, state):
+    def __init__(self, channels, device, state, inspect_inputs=False):
         self.channels, self.device, self.state = channels, device, state
         self.batch = 0
+        self.inspect_inputs = inspect_inputs
+        self.input_snapshots = []
 
     def generate_batch_data(self, size):
         if size != BATCH_SIZE or (self.batch+1)*size > SAMPLE_COUNT:
             raise RuntimeError('Unexpected channel batch request.')
         begin = self.batch * size
         dl, ul = (x[begin:begin+size].to(self.device) for x in self.channels)
+        if self.inspect_inputs:
+            from feedback_link_diagnostics import tensor_record
+            self.input_snapshots.append((dict(H_dl=tensor_record(dl), H_ul=tensor_record(ul)), (dl, ul)))
         self.state.update(batch_index=self.batch, H_dl=dl, H_ul=ul)
         self.batch += 1
         return dl, ul
 
 
-def compare_probe_results(probed, plain):
-    if len(probed) != len(plain):
-        raise RuntimeError('Probe changed the sample count.')
-    for a, b in zip(probed, plain):
-        for field in ('method_key', 'allocation_df', 'allocation_da', 'feedback_snr_db', 'sample_index'):
-            if a[field] != b[field]:
-                raise RuntimeError('Probe changed evaluation ordering.')
-        for field in ('sum_rate', 'nmse_db', 'precoder_power'):
-            if not math.isclose(a[field], b[field], rel_tol=1e-6, abs_tol=1e-6):
-                raise RuntimeError('Probe changed '+field)
+SAMPLE_KEY_FIELDS = (
+    'scenario_id', 'method_key', 'allocation_df', 'allocation_da',
+    'feedback_snr_db', 'downlink_snr_db', 'sample_index',
+)
+METRIC_FIELDS = ('sum_rate', 'nmse_db', 'precoder_power')
+REL_TOL = ABS_TOL = 1e-6
+
+
+def _json_value(value):
+    if isinstance(value, float) and not math.isfinite(value):
+        return repr(value)
+    return value
+
+
+def index_samples(rows):
+    indexed, issues = {}, []
+    for position, row in enumerate(rows):
+        try:
+            key = tuple(row[name] for name in SAMPLE_KEY_FIELDS)
+            if not all(isinstance(v, (str, int, float)) for v in key):
+                raise ValueError('Non-scalar key')
+            if not all(math.isfinite(float(row[name])) for name in SAMPLE_KEY_FIELDS[2:]):
+                raise ValueError('Non-finite key')
+        except (KeyError, ValueError, TypeError) as exc:
+            issues.append(dict(row=position, error=str(exc), key={
+                k: _json_value(row.get(k)) for k in SAMPLE_KEY_FIELDS}))
+            continue
+        if key in indexed:
+            issues.append(dict(error='duplicate sample key', key=dict(zip(SAMPLE_KEY_FIELDS, key))))
+        else:
+            indexed[key] = row
+        for field in METRIC_FIELDS:
+            try:
+                finite = math.isfinite(float(row[field]))
+            except (KeyError, TypeError, ValueError):
+                finite = False
+            if not finite:
+                issues.append(dict(error='missing/non-finite metric', field=field,
+                                   value=_json_value(row.get(field)), key=dict(zip(SAMPLE_KEY_FIELDS, key))))
+    return indexed, issues
+
+
+def compare_probe_results(left, right, *, labels=('A', 'C'), all_runs=None, expected_keys=None):
+    """Return all evidence. Never raise early on a metric mismatch."""
+    lhs, lhs_issues = index_samples(left)
+    rhs, rhs_issues = index_samples(right)
+    expected = set(expected_keys) if expected_keys is not None else set(lhs) | set(rhs)
+    all_runs = all_runs or {labels[0]: left, labels[1]: right}
+    indexed_runs = {label: index_samples(rows)[0] for label, rows in all_runs.items()}
+    def key_dict(key):
+        return dict(zip(SAMPLE_KEY_FIELDS, key))
+    def detail(key, field, a, b):
+        delta = abs(a-b)
+        denominator = max(abs(a), abs(b))
+        return dict(key=key_dict(key), field=field, absolute_difference=delta,
+                    relative_difference=delta/denominator if denominator else 0.0,
+                    values={label: _json_value(indexed_runs.get(label, {}).get(key, {}).get(field))
+                            for label in ('A', 'B', 'C')})
+    paired_keys = sorted(set(lhs) & set(rhs), key=repr)
+    result = dict(
+        labels=list(labels), rel_tol=REL_TOL, abs_tol=ABS_TOL,
+        structural_issues={labels[0]: lhs_issues, labels[1]: rhs_issues},
+        missing={labels[0]: [key_dict(k) for k in sorted(expected-set(lhs), key=repr)],
+                 labels[1]: [key_dict(k) for k in sorted(expected-set(rhs), key=repr)]},
+        unexpected={labels[0]: [key_dict(k) for k in sorted(set(lhs)-expected, key=repr)],
+                    labels[1]: [key_dict(k) for k in sorted(set(rhs)-expected, key=repr)]},
+        fields={},
+    )
+    failing_keys = set()
+    for field in METRIC_FIELDS:
+        records, failures = [], []
+        for key in paired_keys:
+            try:
+                a, b = float(lhs[key][field]), float(rhs[key][field])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not (math.isfinite(a) and math.isfinite(b)):
+                continue
+            record = detail(key, field, a, b)
+            records.append(record)
+            if not math.isclose(a, b, rel_tol=REL_TOL, abs_tol=ABS_TOL):
+                failures.append(record)
+                failing_keys.add(key)
+        max_abs = max(records, key=lambda r: r['absolute_difference']) if records else None
+        max_rel = max(records, key=lambda r: r['relative_difference']) if records else None
+        result['fields'][field] = dict(
+            compared_records=len(records), over_tolerance_count=len(failures),
+            max_absolute_difference=max_abs['absolute_difference'] if max_abs else None,
+            max_relative_difference=max_rel['relative_difference'] if max_rel else None,
+            first_failure=failures[0] if failures else None,
+            maximum_absolute_difference_record=max_abs,
+            maximum_relative_difference_record=max_rel,
+            failures=failures,
+        )
+    result['over_tolerance_records'] = len(failing_keys)
+    result['passed'] = (
+        bool(expected) and not failing_keys and not lhs_issues and not rhs_issues
+        and all(not values for group in ('missing', 'unexpected') for values in result[group].values())
+    )
+    return result
+
+
+def save_transparency_report(output, trials, expected_keys, backend, initial, final_restore):
+    """Finish RNG/state/cleanup diagnostics and persist JSON BEFORE failing."""
+    from feedback_link_diagnostics import rng_comparison
+    rows = {name: trial.get('samples', []) for name, trial in trials.items()}
+    comparisons = {
+        'plain_vs_plain': compare_probe_results(rows.get('A', []), rows.get('B', []),
+            labels=('A', 'B'), all_runs=rows, expected_keys=expected_keys),
+        'plain_vs_probed': compare_probe_results(rows.get('A', []), rows.get('C', []),
+            labels=('A', 'C'), all_runs=rows, expected_keys=expected_keys),
+    }
+    rng = {name: rng_comparison(trials.get('A', {}).get('rng_end'), trials.get(label, {}).get('rng_end'))
+           for name, label in (('plain_vs_plain', 'B'), ('plain_vs_probed', 'C'))}
+    def clean_trial(label):
+        trial = trials.get(label, {})
+        return (not trial.get('error', 'not run')
+                and trial.get('initial_restore', {}).get('passed', False)
+                and trial.get('state_changes', {}).get('passed', False)
+                and trial.get('batch_inputs', {}).get('passed', False)
+                and trial.get('probe_cleanup', {}).get('passed', False)
+                and trial.get('backend_unchanged', False)
+                and not trial.get('evidence_errors'))
+    plain_ok = comparisons['plain_vs_plain']['passed'] and rng['plain_vs_plain']['passed'] and all(
+        clean_trial(label) for label in ('A', 'B'))
+    probe_ok = comparisons['plain_vs_probed']['passed'] and rng['plain_vs_probed']['passed'] and all(
+        clean_trial(label) for label in ('A', 'C'))
+    if not plain_ok:
+        status = 'baseline replay not reproducible'
+    elif not probe_ok:
+        status = 'plain replay passed; probe-associated difference requires localization'
+    elif not final_restore.get('passed'):
+        status = 'final state restoration failed; no probe attribution'
+    else:
+        status = 'passed'
+    operator_paths = {}
+    for field in comparisons['plain_vs_probed']['fields'].values():
+        for item in field['failures']:
+            method = item['key']['method_key']
+            operator_paths[method] = (
+                ['forward pre-hook', 'AdaptiveHybridPrecoder.transmit wrapper',
+                 'AdaptiveHybridPrecoder.add_noise wrapper', 'unchanged learned decoder/RZF']
+                if method not in ('swin', 'csinet') else
+                ['forward pre-hook', 'baseline_common.add_relative_awgn wrapper',
+                 'fdma_feedback_mrc wrapper', 'unchanged baseline decoder/RZF'])
+    report = dict(
+        status=status, passed=plain_ok and probe_ok and final_restore.get('passed', False),
+        plain_vs_plain_passed=plain_ok, plain_vs_probed_passed=probe_ok,
+        comparisons=comparisons, rng_comparisons=rng,
+        initial_state=initial, final_restore=final_restore, numerical_backend=backend,
+        runs={label: {k: v for k, v in trial.items() if k not in ('samples', 'summary', 'physical_rows')}
+              for label, trial in trials.items()},
+        affected_wrapper_operator_paths=operator_paths,
+        interpretation=[
+            'RNG end-state equality alone does not establish identical noise at every operation.',
+            'No cause is assigned from a failed plain-vs-probed metric check alone.',
+            'State mutations are reported before restoration and make the check fail.',
+            'Wrapper/operator paths are localization candidates, not confirmed causes.',
+            'Native CUDA/library algorithm caches are not reset; backend settings are observed, not modified.',
+        ],
+    )
+    path = output / 'probe_transparency_report.json'
+    write_json_new(path, report)
+    print('[Transparency] '+status)
+    for name, comparison in comparisons.items():
+        print(f"  {name}: metrics={'PASS' if comparison['passed'] else 'FAIL'}; "
+              f"RNG={'PASS' if rng[name]['passed'] else 'FAIL'}; "
+              f"over-tolerance sample records={comparison['over_tolerance_records']}")
+        for field, metric in comparison['fields'].items():
+            print(f"    {field}: max_abs={metric['max_absolute_difference']}, "
+                  f"max_rel={metric['max_relative_difference']}, n_fail={metric['over_tolerance_count']}")
+            if metric['first_failure']:
+                print('    first: '+json.dumps(metric['first_failure']))
+    print('[Transparency report] '+str(path))
+    if not report['passed']:
+        raise RuntimeError(status+'; see '+str(path))
+    return report
+
+
+def run_preflight(ev, scenario, methods, snr_points, evaluation_args, device, channels, output):
+    """Sequential A/B/C replays; only CPU snapshots, never three GPU model sets."""
+    import traceback
+    import torch
+    from feedback_link_diagnostics import (
+        FeedbackLinkProbe, ModelMemorySnapshot, ProbeInstallationSnapshot, RNGSnapshot,
+        changed_records, numerical_backend_settings, tensor_record,
+    )
+    # All model initialization/loading and channel-cache loading precede this point.
+    ev.set_seed(SEED)
+    memory = ModelMemorySnapshot(methods, channels)
+    common_rng = RNGSnapshot(methods, ev)
+    common_installation = ProbeInstallationSnapshot(methods)
+    backend = numerical_backend_settings()
+    initial = dict(
+        rng=common_rng.fingerprints(), memory_entry_counts={k: len(v) for k, v in memory.before.items()},
+        independent_generators=list(common_rng.independent),
+        generator_audit='Cached replay bypasses Sionna; physical noise uses global Torch RNG. Model attributes/evaluator globals also scanned.',
+    )
+    trials = {}
+    for label in ('A', 'B', 'C'):
+        batch_state, sources = {}, []
+        trial = dict(error=None, samples=[], summary=[], physical_rows=[], evidence_errors=[])
+        trials[label] = trial
+        installation = ProbeInstallationSnapshot(methods)
+        probe = None
+        def evidence(name, action, fallback):
+            try:
+                return action()
+            except Exception as exc:
+                trial['evidence_errors'].append(dict(
+                    stage=name, type=type(exc).__name__, message=str(exc), traceback=traceback.format_exc()))
+                return fallback
+        def source(*_args):
+            obj = CachedBatchSource(channels, device, batch_state, inspect_inputs=True)
+            sources.append(obj)
+            return obj
+        try:
+            state_restored = memory.restore()
+            rng_restored = common_rng.restore()
+            hooks_restored = common_installation.report()
+            trial['initial_restore'] = dict(passed=state_restored['passed'] and rng_restored and hooks_restored['passed'],
+                                           model=state_restored, rng=rng_restored, hooks_functions=hooks_restored)
+            trial['rng_start'] = RNGSnapshot(methods, ev).fingerprints()
+            if not trial['initial_restore']['passed']:
+                raise RuntimeError('Common initial state could not be restored.')
+            with torch.no_grad(), patch.object(ev, 'build_channel_generator', source):
+                if label == 'C':
+                    probe = FeedbackLinkProbe(methods, batch_state)
+                    with probe:
+                        summary, samples = ev.evaluate_scenario(scenario, methods, snr_points, evaluation_args, device)
+                    probe.verify_coverage(evaluation_args.num_batches, FB_SNRS)
+                    trial['physical_rows'] = probe.rows
+                else:
+                    summary, samples = ev.evaluate_scenario(scenario, methods, snr_points, evaluation_args, device)
+            trial.update(summary=summary, samples=samples)
+        except BaseException as exc:
+            trial['error'] = dict(type=type(exc).__name__, message=str(exc), traceback=traceback.format_exc())
+        finally:
+            # Metrics are compared later, after ALL of this evidence is collected.
+            trial['rng_end'] = evidence('rng_end', lambda: RNGSnapshot(methods, ev).fingerprints(), None)
+            trial['state_changes'] = evidence('state_changes', memory.report, dict(passed=False))
+            trial['probe_cleanup'] = evidence('probe_cleanup', installation.report, dict(passed=False))
+            trial['probe_context_cleanup'] = probe.cleanup_report if probe is not None else None
+            trial['last_probe_context'] = probe.context if probe is not None else None
+            def inspect_batches():
+                input_changes = []
+                for obj in sources:
+                    for before, tensors in obj.input_snapshots:
+                        after = {name: tensor_record(tensor) for name, tensor in zip(('H_dl', 'H_ul'), tensors)}
+                        input_changes.extend(changed_records(before, after))
+                cursors = [obj.batch for obj in sources]
+                return dict(passed=not input_changes and cursors == [evaluation_args.num_batches],
+                            changed=input_changes, source_instances=len(sources), batch_cursors=cursors)
+            trial['batch_inputs'] = evidence('batch_inputs', inspect_batches, dict(passed=False))
+            trial['backend_end'] = evidence('backend', numerical_backend_settings, None)
+            trial['backend_unchanged'] = trial['backend_end'] == backend
+        if trial['error'] and trial['error']['type'] in ('KeyboardInterrupt', 'SystemExit'):
+            break
+    try:
+        restored_model, restored_rng = memory.restore(), common_rng.restore()
+        restored_hooks = common_installation.report()
+        final_restore = dict(passed=restored_model['passed'] and restored_rng and restored_hooks['passed'],
+                             model=restored_model, rng=restored_rng, hooks_functions=restored_hooks)
+    except Exception as exc:
+        final_restore = dict(passed=False, error=str(exc), traceback=traceback.format_exc())
+    expected = {(scenario.scenario_id, m.method_key, df, da, float(snr), 25.0, i)
+                for m in methods for df, da in m.allocations for snr in FB_SNRS
+                for i in range(evaluation_args.num_batches * BATCH_SIZE)}
+    save_transparency_report(output, trials, expected, backend, initial, final_restore)
+    return trials['C']['summary'], trials['C']['samples'], trials['C']['physical_rows']
 
 
 def main():
@@ -314,29 +579,24 @@ def main():
         for i in range(count)
     ])
     snr_points = [(float(snr), 25.0) for snr in FB_SNRS]
-    batch_state = {}
-
-    def source(*_args):
-        return CachedBatchSource(channels, device, batch_state)
-
-    ev.set_seed(SEED)
-    with torch.no_grad(), patch.object(ev, 'build_channel_generator', source):
-        with FeedbackLinkProbe(methods, batch_state) as probe:
-            summary, samples = ev.evaluate_scenario(scenario, methods, snr_points, evaluation_args, device)
+    if args.preflight:
+        summary, samples, physical_rows = run_preflight(
+            ev, scenario, methods, snr_points, evaluation_args, device, channels, output,
+        )
+    else:
+        batch_state = {}
+        def source(*_args):
+            return CachedBatchSource(channels, device, batch_state)
+        ev.set_seed(SEED)
+        with torch.no_grad(), patch.object(ev, 'build_channel_generator', source):
+            with FeedbackLinkProbe(methods, batch_state) as probe:
+                summary, samples = ev.evaluate_scenario(scenario, methods, snr_points, evaluation_args, device)
         probe.verify_coverage(num_batches, FB_SNRS)
-        if args.preflight:
-            cpu_rng, gpu_rng = torch.get_rng_state().clone(), torch.cuda.get_rng_state_all()
-            ev.set_seed(SEED)
-            _, plain_samples = ev.evaluate_scenario(scenario, methods, snr_points, evaluation_args, device)
-            compare_probe_results(samples, plain_samples)
-            if not torch.equal(cpu_rng, torch.get_rng_state()) or any(
-                not torch.equal(a, b) for a, b in zip(gpu_rng, torch.cuda.get_rng_state_all())
-            ):
-                raise RuntimeError('Probes changed RNG consumption.')
+        physical_rows = probe.rows
     verify_results(summary, samples, plan, count, SEED)
     low_rows = low_snr_rows(samples, plan, count)
     by_key = {e['method_key']: e for e in plan}
-    for row in summary + samples + probe.rows:
+    for row in summary + samples + physical_rows:
         entry = by_key[row['method_key']]
         row.update(dataset_role=ROLE, seed=SEED, method_type=entry['method_type'],
                    training_mode=entry['training_mode'], preflight=args.preflight)
@@ -347,13 +607,13 @@ def main():
             raise RuntimeError('A protected checkpoint changed during evaluation: '+str(entry['path']))
     ev.print_summary(summary)
     ev.save_outputs(summary, samples, [scenario], [m.method_key for m in methods], snr_points, evaluation_args)
-    ev.write_csv(output / 'physical_link_batches.csv', probe.rows)
+    ev.write_csv(output / 'physical_link_batches.csv', physical_rows)
     ev.write_csv(output / 'low_snr_validation.csv', low_rows)
     write_json_new(output / 'diagnostic_complete.json', dict(
         status='complete', dataset_role=ROLE, preflight=args.preflight,
         summary_rows=len(summary), num_samples_per_point=count,
-        physical_rows=len(probe.rows), checkpoint_hashes_unchanged=True,
-        probe_transparency='passed (metrics and RNG)' if args.preflight else 'run --preflight separately',
+        physical_rows=len(physical_rows), checkpoint_hashes_unchanged=True,
+        probe_transparency='passed (A/B/C metrics, RNG, memory and cleanup)' if args.preflight else 'run --preflight separately',
     ))
     print('\n[Validation only] 0/5/10 dB mean +/- SE, signed delta vs Swin:')
     for row in low_rows:

@@ -71,11 +71,16 @@ python -u diagnose_low_feedback_snr.py
 ~~~
 
 --dry-run reads only checkpoint existence/completion metadata; it does not load
-weights. The last two commands **require the GPU server**. Preflight includes all
-48 method/SNR conditions on eight channels, then reruns them with probes removed
-and checks rate/NMSE/precoder-power agreement (1e-6 tolerance) and RNG-state
-identity. If this check fails, do not run the full 256-sample diagnostic.
+weights. The last two commands require the GPU server. Preflight now runs all
+48 method/SNR conditions on eight channels in three sequential trials: Plain A,
+Plain B, Probed C. Each gets a fresh CachedBatchSource/cursor/batch_state and the
+same initialized model/RNG state. It checks the plain replay control BEFORE
+interpreting a probed difference. Both tolerances remain 1e-6.
 
+The existing channels.npz/channels.json are read and hash-checked, never deleted,
+recreated or overwritten by this fix. Every attempt gets a new timestamped
+output directory, including failed attempts. If preflight fails, stop; send back
+probe_transparency_report.json before running the 256-sample diagnostic.
 No training command is part of this workflow. No new checkpoint is produced.
 --print-plan is a CPU-only preview without checkpoint checks or torch imports.
 Each evaluation uses a new timestamped directory; existing outputs are refused.
@@ -99,6 +104,8 @@ Inside the printed result directory:
   and channel-cache hash.
 - diagnostic_manifest.json: checkpoint paths, steps, hashes, actual saved
   training modes/configs, seed, dataset role, source hashes and metric definitions.
+- probe_transparency_report.json: preflight A/B/C comparisons, RNG/memory/cleanup
+  evidence and backend settings, saved even when metric comparison fails.
 - diagnostic_complete.json: success marker; absent means the run is incomplete.
 
 All result CSVs are marked as validation/preflight as appropriate. This script
@@ -144,3 +151,73 @@ These data can test whether a different fixed allocation is a better low-SNR
 validation candidate, whether input-noise power scales with coherent AS power,
 and how much noise MRC removes for FDMA baselines. They do not by themselves
 prove a causal architectural bottleneck or a formal test/SOTA advantage.
+
+
+## Preflight transparency report (2026-09-29 repair)
+
+The previous checker compared only Probed versus Plain, zipped row order, and
+raised at the first metric mismatch. Consequently its subsequent RNG comparison
+was never reached. A disk checkpoint hash could not detect in-memory buffer
+changes. The supplied RTX 5090 log establishes that both evaluations completed,
+but contains no failed sample key, difference magnitude or RNG/state evidence.
+It therefore does NOT establish a GPU root cause.
+
+Read-only call-chain findings:
+
+- baseline_evaluate.set_seed seeds Python random, NumPy global state, Torch CPU
+  and all CUDA devices. evaluate_scenario resets condition seeds and reuses
+  the channel batch; cached replay bypasses CDL/Sionna generation entirely.
+- The proposal writes running_pwr only inside its training branch. Eval reads
+  frozen running power. DFT matrices are registered buffers; no explicit
+  persistent forward cache was found in the inspected application code.
+- Baseline BatchNorm modules use eval mode. CsiNet+ has in-place ReLU on internal
+  activations, not a normalization-state update or demonstrated cache mutation.
+  normalize_complex_symbols is stateless, returns a new divided tensor, and
+  does not modify its symbol input in place.
+- The noise functions draw via torch.randn_like without an explicit generator.
+  No independent generator was found in the cached evaluator/model call path.
+  The unused pilot-estimation path accepts an explicit generator, but is not
+  called here. Runtime discovery also checks model attributes and evaluator
+  globals for Torch generators, NumPy Generator/RandomState and random.Random.
+- The evaluator's h_estimator forward hook is removed in a finally block. Probe
+  wrappers already used ExitStack, but cleanup was not previously verified.
+  Normal and exceptional exits are now checked for exact wrapped-callable and
+  hook restoration, including absence of newly shadowed instance attributes.
+- utils.__init__ calls setup_gpu at import and the diagnostic calls it again;
+  this explains two setup banners, not the numerical discrepancy. Snapshots
+  are taken after all imports, model loading and channel-cache initialization.
+
+What the repaired preflight records:
+
+- Python/NumPy/Torch CPU/all CUDA RNG snapshots and supported independent
+  generator states. Initial states are restored for each trial. End-state
+  fingerprints are compared by RNG family/device; equality is evidence, NOT
+  proof that identical noise was drawn at every location.
+- Model parameters and all registered buffers, including non-persistent ones,
+  module identities/training flags, unregistered tensor/cache attributes, the
+  in-memory channel cache and the actual supplied batch tensors.
+  Opaque application-cache objects are listed as unverified and fail the state
+  coverage check rather than being silently accepted as unchanged.
+- Changes are captured BEFORE any restore. A changed buffer/mode/input causes
+  failure even if restoring it makes the next replay numerically match.
+  Snapshots are CPU copies; there remains only one set of GPU model objects.
+- Complete sample keys: scenario_id, method_key, allocation_df, allocation_da,
+  feedback_snr_db, downlink_snr_db, sample_index. Reordering is allowed; missing,
+  unexpected, duplicate and non-finite entries are failures.
+- For rate/NMSE/precoder power: maximum absolute/relative differences, counts
+  exceeding tolerance, first and maximum-difference keys, and A/B/C values.
+- Hook/callable restoration, evidence-collection errors, runtime exceptions,
+  and numerical backend settings (TF32, matmul precision, cuDNN, SDPA,
+  deterministic flags and relevant environment variables).
+
+The JSON is written before raising on failed comparisons. Plain A/B failure is
+labelled "baseline replay not reproducible", not "probe changed sum_rate".
+If A/B passes but A/C fails, affected method/SNR/sample keys and wrapper/operator
+paths are provided as localization candidates, not as an asserted cause.
+
+No new deterministic/precision mode is enabled. The existing "high" matmul
+setting is retained; native CUDA/library algorithm caches are not reset.
+Unknown backend state cannot be ruled out by application-state snapshots alone.
+The tiny CPU regression tests cover replay controls, RNG/buffer side effects,
+report-on-failure, sample pairing and exceptional probe cleanup. They do not
+replace the real-checkpoint GPU preflight, which still needs to run on the server.
