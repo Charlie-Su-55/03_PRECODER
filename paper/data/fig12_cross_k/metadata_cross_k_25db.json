@@ -1,0 +1,71 @@
+{
+  "tag": "cross_k_25db",
+  "scenarios": [
+    {
+      "scenario_id": "K4_Nsc256_Dfb256",
+      "k_users": 4,
+      "antennas": 32,
+      "subcarriers": 256,
+      "feedback_budget": 256,
+      "carrier_freq": 3500000000.0,
+      "speed": 1.0,
+      "total_power": 1.0,
+      "num_subbands": 4
+    },
+    {
+      "scenario_id": "K8_Nsc256_Dfb256",
+      "k_users": 8,
+      "antennas": 32,
+      "subcarriers": 256,
+      "feedback_budget": 256,
+      "carrier_freq": 3500000000.0,
+      "speed": 1.0,
+      "total_power": 1.0,
+      "num_subbands": 4
+    },
+    {
+      "scenario_id": "K16_Nsc256_Dfb256",
+      "k_users": 16,
+      "antennas": 32,
+      "subcarriers": 256,
+      "feedback_budget": 256,
+      "carrier_freq": 3500000000.0,
+      "speed": 1.0,
+      "total_power": 1.0,
+      "num_subbands": 4
+    }
+  ],
+  "models": [
+    "proposed"
+  ],
+  "snr_points": [
+    {
+      "feedback_snr_db": 25.0,
+      "downlink_snr_db": 25.0
+    }
+  ],
+  "checkpoint": "best",
+  "baseline_objective": "task",
+  "proposal_root": "runs_deployzf_v1",
+  "baseline_root": "runs_baselines",
+  "batch_size": 8,
+  "num_batches": 50,
+  "num_samples_per_condition": 400,
+  "allocations": "all",
+  "rzf_lambdas": [
+    0.0001
+  ],
+  "rzf_reg": 0.001,
+  "extra_metrics": "basic",
+  "seed": 20260729,
+  "summary_schema": {
+    "sum_rate_mean": "Mean downlink sum rate in bps/Hz.",
+    "sum_rate_se": "Standard error over channel samples.",
+    "sum_rate_ci95_low": "Lower normal-approximation 95% CI.",
+    "sum_rate_ci95_high": "Upper normal-approximation 95% CI.",
+    "feedback_snr_db": "SNR used inside the feedback channel.",
+    "downlink_snr_db": "SNR used in the downlink rate metric.",
+    "allocation_df": "Per-user complex FDMA feedback dimension.",
+    "allocation_da": "Shared complex AirComp feedback dimension."
+  }
+}
