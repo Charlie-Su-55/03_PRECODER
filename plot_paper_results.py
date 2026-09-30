@@ -10,6 +10,10 @@ Create vector PDF figures from the CSV files produced by:
 No GPU or checkpoint loading is required. Each figure is also saved as a PNG
 preview next to the PDF.
 
+The k16-baseline (including --k 8) and cross-k commands save *_as_labels
+outputs, preserving the original figures. Their data selection and confidence
+intervals are unchanged; only the displayed AS terminology is updated.
+
 Examples
 --------
 python plot_paper_results.py k16-snr \
@@ -211,14 +215,14 @@ def plot_cross_k(
             fontsize=7,
         )
 
-    ax.set_xlabel("AirComp resource fraction (%)")
+    ax.set_xlabel("AS resource fraction (%)")
     ax.set_ylabel("Average sum rate (bps/Hz)")
     ax.set_xticks([0, 25, 50, 75, 100])
     ax.set_ylim(13, 28.4)
     ax.grid(True, linestyle="--", alpha=0.35)
     ax.legend(frameon=False)
     fig.tight_layout()
-    save_figure(fig, output_dir, f"fig_allocation_cross_k_{operating_snr:g}db")
+    save_figure(fig, output_dir, f"fig_allocation_cross_k_{operating_snr:g}db_as_labels")
 
 
 def first_row(rows: Iterable[dict[str, str]], message: str) -> dict[str, str]:
@@ -253,7 +257,7 @@ def plot_k16_baseline(
     )
     pure_aircomp = first_row(
         (row for row in proposed if i(row, "allocation_df") == 0),
-        "Missing proposed pure-AirComp row.",
+        "Missing proposed pure-AS row.",
     )
     hybrid_rows = [
         row for row in proposed
@@ -276,7 +280,7 @@ def plot_k16_baseline(
     labels = [
         f"Proposed\nFDMA {allocation_label(pure_fdma)}",
         "CsiNet+\nFDMA",
-        f"Proposed\nAirComp {allocation_label(pure_aircomp)}",
+        f"Proposed\nPure AS {allocation_label(pure_aircomp)}",
         f"Proposed\nHybrid {allocation_label(best_hybrid)}",
         "Swin-CFNet\nFDMA",
     ]
@@ -301,7 +305,7 @@ def plot_k16_baseline(
         )
 
     fig.tight_layout()
-    save_figure(fig, output_dir, f"fig_k{k_users}_baseline_{operating_snr:g}db")
+    save_figure(fig, output_dir, f"fig_k{k_users}_baseline_{operating_snr:g}db_as_labels")
 
 
 
