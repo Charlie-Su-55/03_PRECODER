@@ -46,7 +46,7 @@ import traceback
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, Mapping, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, Mapping, Sequence, Tuple
 
 import numpy as np
 import torch
@@ -485,7 +485,12 @@ class RunOptions:
 #     stop_after: int | None = None
 
 
-def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
+def train_proposal(
+    cfg: TrainConfig,
+    options: RunOptions,
+    *,
+    model_factory: Callable[[TrainConfig, torch.device], nn.Module] | None = None,
+) -> None:
     torch.set_float32_matmul_precision("high")
     set_seed(cfg.SEED)
     from utils import setup_gpu
@@ -544,7 +549,11 @@ def train_proposal(cfg: TrainConfig, options: RunOptions) -> None:
             f"fixed DL SNR={cfg.DOWNLINK_SNR_DB:g} dB"
         )
 
-    model = build_proposal_model(cfg, device)
+    model = (
+        build_proposal_model(cfg, device)
+        if model_factory is None
+        else model_factory(cfg, device)
+    )
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"[Model]      trainable parameters={n_params / 1e6:.3f} M")
 
