@@ -1,0 +1,5 @@
+method_key,full_parameters,encoder_plus_condition_parameters,counting_note,dataset_role,preflight
+original,20209115,10877090,"Parameter counts only; not MACs, latency or speedup; shared condition counted with UE, also used by BS",independent_held_out_test,False
+lite1024,16006619,6674594,"Parameter counts only; not MACs, latency or speedup; shared condition counted with UE, also used by BS",independent_held_out_test,False
+swin,2676768,,"Parameter counts only; not MACs, latency or speedup",independent_held_out_test,False
+csinet,539816,,"Parameter counts only; not MACs, latency or speedup",independent_held_out_test,False

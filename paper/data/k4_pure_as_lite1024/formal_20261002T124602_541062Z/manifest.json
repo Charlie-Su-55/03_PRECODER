@@ -1,0 +1,3477 @@
+{
+  "preflight": false,
+  "dataset_role": "independent_held_out_test",
+  "created_utc": "20261002T124602_541062Z",
+  "status": "completed",
+  "scenario": {
+    "k_users": 4,
+    "antennas": 32,
+    "subcarriers": 256,
+    "feedback_budget": 256,
+    "num_subbands": 4
+  },
+  "feedback_snr_db": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25
+  ],
+  "downlink_snr_db": 25,
+  "seed": 20261002,
+  "batch_size": 8,
+  "num_batches": 200,
+  "num_samples_per_condition": 1600,
+  "methods": {
+    "original": {
+      "checkpoint_step": 50000,
+      "completion_step": 50000,
+      "training_status": {
+        "state": "completed",
+        "experiment": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+        "step": 50000,
+        "best_metric_name": "mean_all",
+        "best_metric": 18.519832491874695,
+        "best_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth",
+        "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/latest.pth"
+      },
+      "config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_standard",
+          "seed": 42,
+          "allocation": [
+            0,
+            256
+          ],
+          "variant": ""
+        },
+        "allocations": [
+          [
+            0,
+            256
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_standard",
+          "total_steps": 50000,
+          "batch_size": 48,
+          "lr": 0.0001,
+          "val_interval": 500,
+          "val_batch": 32,
+          "warmup_pct": 0.35,
+          "grad_clip": 1.0,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            20.0,
+            25.0
+          ],
+          "stage2_snr": [
+            10.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 50.0,
+          "ph1_w_mse": 100.0,
+          "ph2_w_dir": 5.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 0.0001,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all"
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+          "phase1_steps": 20000,
+          "stage1_steps": 15000,
+          "stage2_steps": 35000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        }
+      },
+      "checkpoint_allocation_grid": [
+        [
+          0,
+          256
+        ]
+      ],
+      "config_fingerprint": "61307ce3570eca4c",
+      "sidecars": {
+        "paths": {
+          "config": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/config.json",
+          "status": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/status.json"
+        },
+        "all_paths": [
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/config.json",
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/status.json"
+        ],
+        "config": {
+          "experiment": {
+            "model_name": "proposal",
+            "train_mode": "specialist",
+            "k_users": 4,
+            "subcarriers": 256,
+            "feedback_budget": 256,
+            "recipe_name": "k4_n256_standard",
+            "seed": 42,
+            "allocation": [
+              0,
+              256
+            ],
+            "variant": ""
+          },
+          "allocations": [
+            [
+              0,
+              256
+            ]
+          ],
+          "full_allocation_grid": [
+            [
+              64,
+              0
+            ],
+            [
+              48,
+              64
+            ],
+            [
+              32,
+              128
+            ],
+            [
+              16,
+              192
+            ],
+            [
+              0,
+              256
+            ]
+          ],
+          "training_recipe": {
+            "name": "k4_n256_standard",
+            "total_steps": 50000,
+            "batch_size": 48,
+            "lr": 0.0001,
+            "val_interval": 500,
+            "val_batch": 32,
+            "warmup_pct": 0.35,
+            "grad_clip": 1.0,
+            "phase1_pct": 0.4,
+            "snr_stage1_pct": 0.3,
+            "snr_stage2_pct": 0.7,
+            "stage1_snr": [
+              20.0,
+              25.0
+            ],
+            "stage2_snr": [
+              10.0,
+              25.0
+            ],
+            "stage3_snr": [
+              0.0,
+              25.0
+            ],
+            "val_snr_list": [
+              0,
+              10,
+              20,
+              25
+            ],
+            "dir_mode": "real",
+            "ph1_w_dir": 50.0,
+            "ph1_w_mse": 100.0,
+            "ph2_w_dir": 5.0,
+            "ph2_w_mse": 0.0,
+            "weight_decay": 0.0001,
+            "data_cache_size": 1,
+            "log_interval": 100,
+            "best_metric": "mean_all"
+          },
+          "physical": {
+            "ANTENNAS": 32,
+            "CARRIER_FREQ": 3500000000.0,
+            "SPEED": 1.0,
+            "TOTAL_POWER": 1.0,
+            "NUM_SUBBANDS": 4
+          },
+          "proposal_model": {
+            "D_MODEL": 256,
+            "NUM_HEADS": 8,
+            "NUM_ENCODER_LAYERS": 4,
+            "DROPOUT": 0.1,
+            "NUM_UNFOLD_LAYERS": 5,
+            "GNN_AGG_DIM": 48,
+            "NUM_DECODER_LAYERS": 4,
+            "NUM_ITERATIONS": 5
+          },
+          "baseline_model": {
+            "SWIN_NC": 32,
+            "SWIN_PATCH_SIZE": 4,
+            "SWIN_EMBED_DIMS": [
+              128
+            ],
+            "SWIN_NUM_HEADS": [
+              4
+            ],
+            "SWIN_NUM_BLOCKS": [
+              4
+            ],
+            "SWIN_WINDOW_SIZE": 4,
+            "SWIN_MLP_RATIO": 4.0,
+            "CSINET_NC": 32,
+            "CSINET_ENC_CHANNELS": [
+              16,
+              8,
+              4,
+              2
+            ],
+            "CSINET_DEC_CHANNELS": [
+              2,
+              4,
+              8,
+              16
+            ]
+          },
+          "resolved": {
+            "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+            "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+            "phase1_steps": 20000,
+            "stage1_steps": 15000,
+            "stage2_steps": 35000,
+            "d_f_max_per_user": 64,
+            "d_a_max_shared": 256
+          },
+          "config_fingerprint": "61307ce3570eca4c"
+        },
+        "status": {
+          "state": "completed",
+          "experiment": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+          "step": 50000,
+          "best_metric_name": "mean_all",
+          "best_metric": 18.519832491874695,
+          "best_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth",
+          "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/latest.pth"
+        }
+      },
+      "provenance_limit": "Saved configuration/completion verified; not a reconstruction of historical execution source or all initialization events.",
+      "model_class": "AdaptiveHybridPrecoder",
+      "checkpoint_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth",
+      "checkpoint_sha256": "6c0a43998caca585c12091bb51a2b8d9862ae3fde82741d0b82c04db3cc2ae6f",
+      "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/latest.pth",
+      "latest_sha256": "e77dd1e1a61f31000ac97dffcd595a3e22251cb8734faa792f66a8e856de6dc1",
+      "strict_loading": true,
+      "method_key": "original",
+      "model_key": "proposed",
+      "allocation": [
+        0,
+        256
+      ],
+      "rzf_regularization": 0.001,
+      "structure_widths": {
+        "fdma_backbone": [
+          2048,
+          2048,
+          2048,
+          2048
+        ],
+        "aircomp_backbone": [
+          2048,
+          2048,
+          2048,
+          2048
+        ],
+        "bs_cross_subband": [
+          2048
+        ],
+        "bs_refinement": [
+          512,
+          512,
+          512,
+          512,
+          512
+        ]
+      },
+      "cfg_idx": 0,
+      "max_dimensions": [
+        64,
+        256
+      ]
+    },
+    "lite1024": {
+      "checkpoint_step": 49500,
+      "completion_step": 50000,
+      "training_status": {
+        "state": "completed",
+        "experiment": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42",
+        "step": 50000,
+        "best_metric_name": "mean_all",
+        "best_metric": 18.583319306373596,
+        "best_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/best.pth",
+        "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/latest.pth"
+      },
+      "config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_standard",
+          "seed": 42,
+          "allocation": [
+            0,
+            256
+          ],
+          "variant": "ueffn1024"
+        },
+        "allocations": [
+          [
+            0,
+            256
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_standard",
+          "total_steps": 50000,
+          "batch_size": 48,
+          "lr": 0.0001,
+          "val_interval": 500,
+          "val_batch": 32,
+          "warmup_pct": 0.35,
+          "grad_clip": 1.0,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            20.0,
+            25.0
+          ],
+          "stage2_snr": [
+            10.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 50.0,
+          "ph1_w_mse": 100.0,
+          "ph2_w_dir": 5.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 0.0001,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all"
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42",
+          "phase1_steps": 20000,
+          "stage1_steps": 15000,
+          "stage2_steps": 35000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        },
+        "architecture_metadata": {
+          "model_class": "AdaptiveHybridPrecoderLite",
+          "architecture": "ueffn1024",
+          "ue_ffn_dim": 1024,
+          "ue_layers": {
+            "fdma": 4,
+            "as": 4
+          },
+          "D_MODEL": 256
+        }
+      },
+      "checkpoint_allocation_grid": [
+        [
+          0,
+          256
+        ]
+      ],
+      "config_fingerprint": "4ce6463cb4aef5f2",
+      "sidecars": {
+        "paths": {
+          "config": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/config.json",
+          "status": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/status.json"
+        },
+        "all_paths": [
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/config.json",
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/status.json"
+        ],
+        "config": {
+          "experiment": {
+            "model_name": "proposal",
+            "train_mode": "specialist",
+            "k_users": 4,
+            "subcarriers": 256,
+            "feedback_budget": 256,
+            "recipe_name": "k4_n256_standard",
+            "seed": 42,
+            "allocation": [
+              0,
+              256
+            ],
+            "variant": "ueffn1024"
+          },
+          "allocations": [
+            [
+              0,
+              256
+            ]
+          ],
+          "full_allocation_grid": [
+            [
+              64,
+              0
+            ],
+            [
+              48,
+              64
+            ],
+            [
+              32,
+              128
+            ],
+            [
+              16,
+              192
+            ],
+            [
+              0,
+              256
+            ]
+          ],
+          "training_recipe": {
+            "name": "k4_n256_standard",
+            "total_steps": 50000,
+            "batch_size": 48,
+            "lr": 0.0001,
+            "val_interval": 500,
+            "val_batch": 32,
+            "warmup_pct": 0.35,
+            "grad_clip": 1.0,
+            "phase1_pct": 0.4,
+            "snr_stage1_pct": 0.3,
+            "snr_stage2_pct": 0.7,
+            "stage1_snr": [
+              20.0,
+              25.0
+            ],
+            "stage2_snr": [
+              10.0,
+              25.0
+            ],
+            "stage3_snr": [
+              0.0,
+              25.0
+            ],
+            "val_snr_list": [
+              0,
+              10,
+              20,
+              25
+            ],
+            "dir_mode": "real",
+            "ph1_w_dir": 50.0,
+            "ph1_w_mse": 100.0,
+            "ph2_w_dir": 5.0,
+            "ph2_w_mse": 0.0,
+            "weight_decay": 0.0001,
+            "data_cache_size": 1,
+            "log_interval": 100,
+            "best_metric": "mean_all"
+          },
+          "physical": {
+            "ANTENNAS": 32,
+            "CARRIER_FREQ": 3500000000.0,
+            "SPEED": 1.0,
+            "TOTAL_POWER": 1.0,
+            "NUM_SUBBANDS": 4
+          },
+          "proposal_model": {
+            "D_MODEL": 256,
+            "NUM_HEADS": 8,
+            "NUM_ENCODER_LAYERS": 4,
+            "DROPOUT": 0.1,
+            "NUM_UNFOLD_LAYERS": 5,
+            "GNN_AGG_DIM": 48,
+            "NUM_DECODER_LAYERS": 4,
+            "NUM_ITERATIONS": 5
+          },
+          "baseline_model": {
+            "SWIN_NC": 32,
+            "SWIN_PATCH_SIZE": 4,
+            "SWIN_EMBED_DIMS": [
+              128
+            ],
+            "SWIN_NUM_HEADS": [
+              4
+            ],
+            "SWIN_NUM_BLOCKS": [
+              4
+            ],
+            "SWIN_WINDOW_SIZE": 4,
+            "SWIN_MLP_RATIO": 4.0,
+            "CSINET_NC": 32,
+            "CSINET_ENC_CHANNELS": [
+              16,
+              8,
+              4,
+              2
+            ],
+            "CSINET_DEC_CHANNELS": [
+              2,
+              4,
+              8,
+              16
+            ]
+          },
+          "resolved": {
+            "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42",
+            "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42",
+            "phase1_steps": 20000,
+            "stage1_steps": 15000,
+            "stage2_steps": 35000,
+            "d_f_max_per_user": 64,
+            "d_a_max_shared": 256
+          },
+          "architecture_metadata": {
+            "model_class": "AdaptiveHybridPrecoderLite",
+            "architecture": "ueffn1024",
+            "ue_ffn_dim": 1024,
+            "ue_layers": {
+              "fdma": 4,
+              "as": 4
+            },
+            "D_MODEL": 256
+          },
+          "config_fingerprint": "4ce6463cb4aef5f2"
+        },
+        "status": {
+          "state": "completed",
+          "experiment": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42",
+          "step": 50000,
+          "best_metric_name": "mean_all",
+          "best_metric": 18.583319306373596,
+          "best_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/best.pth",
+          "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/latest.pth"
+        }
+      },
+      "provenance_limit": "Saved configuration/completion verified; not a reconstruction of historical execution source or all initialization events.",
+      "model_class": "AdaptiveHybridPrecoderLite",
+      "checkpoint_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/best.pth",
+      "checkpoint_sha256": "9d2aae5aaa550f9db2df0a1529372edd44703922c4305dd19bd5d85430efb962",
+      "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/latest.pth",
+      "latest_sha256": "31d62e957fc082de44247d43c19a7efc5841e9d882223f32b3bec5dbdd1a5a2f",
+      "strict_loading": true,
+      "method_key": "lite1024",
+      "model_key": "proposed",
+      "allocation": [
+        0,
+        256
+      ],
+      "rzf_regularization": 0.001,
+      "structure_widths": {
+        "fdma_backbone": [
+          1024,
+          1024,
+          1024,
+          1024
+        ],
+        "aircomp_backbone": [
+          1024,
+          1024,
+          1024,
+          1024
+        ],
+        "bs_cross_subband": [
+          2048
+        ],
+        "bs_refinement": [
+          512,
+          512,
+          512,
+          512,
+          512
+        ]
+      },
+      "cfg_idx": 0,
+      "max_dimensions": [
+        64,
+        256
+      ]
+    },
+    "swin": {
+      "checkpoint_step": 49000,
+      "completion_step": 50000,
+      "training_status": {
+        "state": "completed",
+        "experiment": "swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "step": 50000,
+        "total_steps": 50000,
+        "best_score": 18.146798491477966,
+        "last_validation": {
+          "rates": {
+            "0": 4.537789344787598,
+            "10": 14.174985885620117,
+            "20": 24.96558380126953,
+            "25": 28.84722137451172
+          },
+          "nmse_db": {
+            "0": 0.2193129062652588,
+            "10": 0.21948187053203583,
+            "20": 0.21982988715171814,
+            "25": 0.21991512179374695
+          },
+          "mean_rate": 18.13139510154724,
+          "mean_nmse_db": 0.21963494643568993,
+          "selection_score": 18.13139510154724,
+          "selection_name": "mean_rate"
+        }
+      },
+      "config": {
+        "MODEL_NAME": "swin",
+        "SCENARIO_NAME": "k4_n256_d256",
+        "OBJECTIVE": "task",
+        "OUTPUT_ROOT": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines",
+        "K_USERS": 4,
+        "ANTENNAS": 32,
+        "SUBCARRIERS": 256,
+        "D_TOT": 256,
+        "D_F": 64,
+        "CARRIER_FREQ": 3500000000.0,
+        "SPEED": 1.0,
+        "TOTAL_POWER": 1.0,
+        "RZF_REG": 0.001,
+        "SEED": 42,
+        "TOTAL_STEPS": 50000,
+        "BATCH_SIZE": 48,
+        "VAL_BATCH": 64,
+        "VAL_INTERVAL": 500,
+        "LOG_INTERVAL": 100,
+        "DATA_CACHE_SIZE": 1,
+        "LR": 0.0001,
+        "WEIGHT_DECAY": 0.0001,
+        "WARMUP_PCT": 0.35,
+        "GRAD_CLIP": 1.0,
+        "SNR_STAGE1_END": 15000,
+        "SNR_STAGE2_END": 35000,
+        "STAGE1_SNR": [
+          20.0,
+          25.0
+        ],
+        "STAGE2_SNR": [
+          10.0,
+          25.0
+        ],
+        "STAGE3_SNR": [
+          0.0,
+          25.0
+        ],
+        "VAL_SNR_LIST": [
+          0,
+          10,
+          20,
+          25
+        ],
+        "SHARE_USER_WEIGHTS": true,
+        "CSINET_NC": 32,
+        "CSINET_ENC_CHANNELS": [
+          16,
+          8,
+          4,
+          2
+        ],
+        "CSINET_DEC_CHANNELS": [
+          2,
+          4,
+          8,
+          16
+        ],
+        "SWIN_NC": 32,
+        "SWIN_PATCH_SIZE": 4,
+        "SWIN_EMBED_DIM": 128,
+        "SWIN_NUM_HEADS": 4,
+        "SWIN_NUM_BLOCKS": 4,
+        "SWIN_WINDOW_SIZE": 4,
+        "SWIN_MLP_RATIO": 4.0,
+        "DIM_FDMA_PER_USER": 64,
+        "DIM_AIRCOMP_SHARED": 0,
+        "SWIN_CODEWORD_DIM": 128,
+        "EXP_NAME": "swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "SAVE_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "BEST_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+        "SAVE_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+        "LOG_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "METRICS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/metrics.jsonl",
+        "STATUS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+      },
+      "checkpoint_allocation_grid": null,
+      "config_fingerprint": "0739f684f1ff2346",
+      "sidecars": {
+        "paths": {
+          "config": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json",
+          "status": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+        },
+        "all_paths": [
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json",
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+        ],
+        "config": {
+          "MODEL_NAME": "swin",
+          "SCENARIO_NAME": "k4_n256_d256",
+          "OBJECTIVE": "task",
+          "OUTPUT_ROOT": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines",
+          "K_USERS": 4,
+          "ANTENNAS": 32,
+          "SUBCARRIERS": 256,
+          "D_TOT": 256,
+          "D_F": 64,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "RZF_REG": 0.001,
+          "SEED": 42,
+          "TOTAL_STEPS": 50000,
+          "BATCH_SIZE": 48,
+          "VAL_BATCH": 64,
+          "VAL_INTERVAL": 500,
+          "LOG_INTERVAL": 100,
+          "DATA_CACHE_SIZE": 1,
+          "LR": 0.0001,
+          "WEIGHT_DECAY": 0.0001,
+          "WARMUP_PCT": 0.35,
+          "GRAD_CLIP": 1.0,
+          "SNR_STAGE1_END": 15000,
+          "SNR_STAGE2_END": 35000,
+          "STAGE1_SNR": [
+            20.0,
+            25.0
+          ],
+          "STAGE2_SNR": [
+            10.0,
+            25.0
+          ],
+          "STAGE3_SNR": [
+            0.0,
+            25.0
+          ],
+          "VAL_SNR_LIST": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "SHARE_USER_WEIGHTS": true,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ],
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIM": 128,
+          "SWIN_NUM_HEADS": 4,
+          "SWIN_NUM_BLOCKS": 4,
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "DIM_FDMA_PER_USER": 64,
+          "DIM_AIRCOMP_SHARED": 0,
+          "SWIN_CODEWORD_DIM": 128,
+          "EXP_NAME": "swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "SAVE_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "BEST_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+          "SAVE_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+          "LOG_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "METRICS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/metrics.jsonl",
+          "STATUS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+        },
+        "status": {
+          "state": "completed",
+          "experiment": "swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "step": 50000,
+          "total_steps": 50000,
+          "best_score": 18.146798491477966,
+          "last_validation": {
+            "rates": {
+              "0": 4.537789344787598,
+              "10": 14.174985885620117,
+              "20": 24.96558380126953,
+              "25": 28.84722137451172
+            },
+            "nmse_db": {
+              "0": 0.2193129062652588,
+              "10": 0.21948187053203583,
+              "20": 0.21982988715171814,
+              "25": 0.21991512179374695
+            },
+            "mean_rate": 18.13139510154724,
+            "mean_nmse_db": 0.21963494643568993,
+            "selection_score": 18.13139510154724,
+            "selection_name": "mean_rate"
+          }
+        }
+      },
+      "provenance_limit": "Saved configuration/completion verified; not a reconstruction of historical execution source or all initialization events.",
+      "model_class": "Swin_E2E_Precoder",
+      "checkpoint_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "checkpoint_sha256": "c913f3477f6af74665d7ba1b11a7a8e06bdea8c051822205ace1a8a071489276",
+      "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+      "latest_sha256": "8b312787c7289a58f9193c082af43eedb2685a41ac13544149ddbec9ba1df958",
+      "strict_loading": true,
+      "method_key": "swin",
+      "model_key": "swin",
+      "allocation": [
+        64,
+        0
+      ],
+      "structure_widths": {
+        "SWIN_EMBED_DIM": 128,
+        "SWIN_MLP_RATIO": 4.0,
+        "CSINET_ENC_CHANNELS": [
+          16,
+          8,
+          4,
+          2
+        ],
+        "CSINET_DEC_CHANNELS": [
+          2,
+          4,
+          8,
+          16
+        ]
+      }
+    },
+    "csinet": {
+      "checkpoint_step": 49500,
+      "completion_step": 50000,
+      "training_status": {
+        "state": "completed",
+        "experiment": "csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "step": 50000,
+        "total_steps": 50000,
+        "best_score": 14.886383771896362,
+        "last_validation": {
+          "rates": {
+            "0": 5.429637908935547,
+            "10": 13.323575019836426,
+            "20": 19.582889556884766,
+            "25": 21.08759307861328
+          },
+          "nmse_db": {
+            "0": 0.9459058046340942,
+            "10": 0.9315527081489563,
+            "20": 0.9324893355369568,
+            "25": 0.9314906597137451
+          },
+          "mean_rate": 14.855923891067505,
+          "mean_nmse_db": 0.9353596270084381,
+          "selection_score": 14.855923891067505,
+          "selection_name": "mean_rate"
+        }
+      },
+      "config": {
+        "MODEL_NAME": "csinet",
+        "SCENARIO_NAME": "k4_n256_d256",
+        "OBJECTIVE": "task",
+        "OUTPUT_ROOT": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines",
+        "K_USERS": 4,
+        "ANTENNAS": 32,
+        "SUBCARRIERS": 256,
+        "D_TOT": 256,
+        "D_F": 64,
+        "CARRIER_FREQ": 3500000000.0,
+        "SPEED": 1.0,
+        "TOTAL_POWER": 1.0,
+        "RZF_REG": 0.001,
+        "SEED": 42,
+        "TOTAL_STEPS": 50000,
+        "BATCH_SIZE": 48,
+        "VAL_BATCH": 64,
+        "VAL_INTERVAL": 500,
+        "LOG_INTERVAL": 100,
+        "DATA_CACHE_SIZE": 1,
+        "LR": 0.0001,
+        "WEIGHT_DECAY": 0.0001,
+        "WARMUP_PCT": 0.35,
+        "GRAD_CLIP": 1.0,
+        "SNR_STAGE1_END": 15000,
+        "SNR_STAGE2_END": 35000,
+        "STAGE1_SNR": [
+          20.0,
+          25.0
+        ],
+        "STAGE2_SNR": [
+          10.0,
+          25.0
+        ],
+        "STAGE3_SNR": [
+          0.0,
+          25.0
+        ],
+        "VAL_SNR_LIST": [
+          0,
+          10,
+          20,
+          25
+        ],
+        "SHARE_USER_WEIGHTS": true,
+        "CSINET_NC": 32,
+        "CSINET_ENC_CHANNELS": [
+          16,
+          8,
+          4,
+          2
+        ],
+        "CSINET_DEC_CHANNELS": [
+          2,
+          4,
+          8,
+          16
+        ],
+        "SWIN_NC": 32,
+        "SWIN_PATCH_SIZE": 4,
+        "SWIN_EMBED_DIM": 128,
+        "SWIN_NUM_HEADS": 4,
+        "SWIN_NUM_BLOCKS": 4,
+        "SWIN_WINDOW_SIZE": 4,
+        "SWIN_MLP_RATIO": 4.0,
+        "DIM_FDMA_PER_USER": 64,
+        "DIM_AIRCOMP_SHARED": 0,
+        "SWIN_CODEWORD_DIM": 128,
+        "EXP_NAME": "csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "SAVE_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "BEST_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+        "SAVE_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+        "LOG_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "METRICS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/metrics.jsonl",
+        "STATUS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+      },
+      "checkpoint_allocation_grid": null,
+      "config_fingerprint": "956f7b51a090f828",
+      "sidecars": {
+        "paths": {
+          "config": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json",
+          "status": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+        },
+        "all_paths": [
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json",
+          "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+        ],
+        "config": {
+          "MODEL_NAME": "csinet",
+          "SCENARIO_NAME": "k4_n256_d256",
+          "OBJECTIVE": "task",
+          "OUTPUT_ROOT": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines",
+          "K_USERS": 4,
+          "ANTENNAS": 32,
+          "SUBCARRIERS": 256,
+          "D_TOT": 256,
+          "D_F": 64,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "RZF_REG": 0.001,
+          "SEED": 42,
+          "TOTAL_STEPS": 50000,
+          "BATCH_SIZE": 48,
+          "VAL_BATCH": 64,
+          "VAL_INTERVAL": 500,
+          "LOG_INTERVAL": 100,
+          "DATA_CACHE_SIZE": 1,
+          "LR": 0.0001,
+          "WEIGHT_DECAY": 0.0001,
+          "WARMUP_PCT": 0.35,
+          "GRAD_CLIP": 1.0,
+          "SNR_STAGE1_END": 15000,
+          "SNR_STAGE2_END": 35000,
+          "STAGE1_SNR": [
+            20.0,
+            25.0
+          ],
+          "STAGE2_SNR": [
+            10.0,
+            25.0
+          ],
+          "STAGE3_SNR": [
+            0.0,
+            25.0
+          ],
+          "VAL_SNR_LIST": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "SHARE_USER_WEIGHTS": true,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ],
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIM": 128,
+          "SWIN_NUM_HEADS": 4,
+          "SWIN_NUM_BLOCKS": 4,
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "DIM_FDMA_PER_USER": 64,
+          "DIM_AIRCOMP_SHARED": 0,
+          "SWIN_CODEWORD_DIM": 128,
+          "EXP_NAME": "csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "SAVE_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "BEST_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+          "SAVE_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+          "LOG_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "METRICS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/metrics.jsonl",
+          "STATUS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+        },
+        "status": {
+          "state": "completed",
+          "experiment": "csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+          "step": 50000,
+          "total_steps": 50000,
+          "best_score": 14.886383771896362,
+          "last_validation": {
+            "rates": {
+              "0": 5.429637908935547,
+              "10": 13.323575019836426,
+              "20": 19.582889556884766,
+              "25": 21.08759307861328
+            },
+            "nmse_db": {
+              "0": 0.9459058046340942,
+              "10": 0.9315527081489563,
+              "20": 0.9324893355369568,
+              "25": 0.9314906597137451
+            },
+            "mean_rate": 14.855923891067505,
+            "mean_nmse_db": 0.9353596270084381,
+            "selection_score": 14.855923891067505,
+            "selection_name": "mean_rate"
+          }
+        }
+      },
+      "provenance_limit": "Saved configuration/completion verified; not a reconstruction of historical execution source or all initialization events.",
+      "model_class": "CsiNetPlus_E2E_Precoder",
+      "checkpoint_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "checkpoint_sha256": "d269922c1f07515e306122de027ca18b283860848ea665ba8733aa5a41ccc287",
+      "latest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+      "latest_sha256": "a936391272267af96e4b4dcf5e3b9c4267d992bf7d2ba2c130662cf636e7be42",
+      "strict_loading": true,
+      "method_key": "csinet",
+      "model_key": "csinet",
+      "allocation": [
+        64,
+        0
+      ],
+      "structure_widths": {
+        "SWIN_EMBED_DIM": 128,
+        "SWIN_MLP_RATIO": 4.0,
+        "CSINET_ENC_CHANNELS": [
+          16,
+          8,
+          4,
+          2
+        ],
+        "CSINET_DEC_CHANNELS": [
+          2,
+          4,
+          8,
+          16
+        ]
+      }
+    }
+  },
+  "runtime": {
+    "git_commit": "273c696d87b85f30388dbd2f4196c23229b7a428",
+    "tracked_changes": [
+      "old/diagnostic_eval.py",
+      "old/train_adaptive_8ue.py",
+      "old/train_csinet_baseline_8ue.py",
+      "old/train_swin_baseline_8ue.py"
+    ],
+    "source_sha256": {
+      "evaluate_proposal_lite.py": "7d3669ed3582f7cc9619360a9c10a13dd90823da9014bca209386d5cd378f14c",
+      "baseline_evaluate.py": "310a46170d8b3d5d2c93ccc6fb2ff9bf44ee75db31276a88e586c5fff9719327",
+      "models/adaptive_hybrid.py": "67dd73c7720a2aa7c4e33b0f5dbaa30e7824c3aa538fba6f5f73739ecd951ceb",
+      "models/adaptive_hybrid_lite.py": "af065f237572350d0c24282e74a18b31f4cd78eea31b88b573e93dc7e36944c7",
+      "models/swin_precoder.py": "16c67415ccd55af2bb3cb6479c7d8282b3fb3582406f76dd30cb102785e1983c",
+      "models/csinet_plus_precoder.py": "dda9075f5698acc9cf219672bab4b0280e54e0dc55397845f85e6172f8354225",
+      "models/baseline_common.py": "3c1c2f89a309de5c8f8119d8aad10d64efcb3f0bbd783d94efbda3a32e629398",
+      "configs/train_config.py": "066b489e7027ad0d7c0ebe32b94b64c8f7c7444bd904c415a3faf8109845f72c",
+      "configs/lite_train_config.py": "fd4c497bd6ce71a0a62e28ad27369e57c37fc7ef272976f52af6d4a063c96525",
+      "configs/baseline_config.py": "4070b359e01c0ed6382288909debb9553d3d068b7ab854b9fd877956e36a7a8b",
+      "utils/channel_generator.py": "645987b832f3137273fe113433640bdd4995fb2dfc54d13b13c80c91d7fe251d",
+      "utils/layers.py": "7969792bdddcb1b28cbcaacc27e8cdf2ff37b55b003c3159a83bc08abe0f5086",
+      "utils/gpu_setup.py": "acb28f742c4bef1529ec662831289d1b0f5946c95843c566a11a1c875266a72c"
+    },
+    "python": "3.12.13",
+    "software": {
+      "torch": "2.11.0",
+      "numpy": "2.4.4",
+      "sionna": "2.0.1"
+    },
+    "backend": {
+      "cuda_version": "13.0",
+      "device": "NVIDIA GeForce RTX 5090",
+      "float32_matmul_precision": "highest",
+      "matmul_allow_tf32": false,
+      "cudnn_allow_tf32": true,
+      "cudnn_deterministic": false,
+      "cudnn_benchmark": false,
+      "deterministic_algorithms": false,
+      "flash_sdp": true,
+      "mem_efficient_sdp": true,
+      "math_sdp": true
+    }
+  },
+  "input_sha256_before": {
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth": "d269922c1f07515e306122de027ca18b283860848ea665ba8733aa5a41ccc287",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth": "a936391272267af96e4b4dcf5e3b9c4267d992bf7d2ba2c130662cf636e7be42",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth": "c913f3477f6af74665d7ba1b11a7a8e06bdea8c051822205ace1a8a071489276",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth": "8b312787c7289a58f9193c082af43eedb2685a41ac13544149ddbec9ba1df958",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json": "6a3b1978956d8d824f751dd70910a704fa1b89029990b52f286611e9f7424f40",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json": "a0a0e14f3801366bd7e25fcd95ae61e251f740f6ce42c8d3176aa847c54a3cff",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json": "4f0ffaa0ba1faa8abf2c445fe86347e281a67c1cad75053bed45a996f4b28f0a",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json": "176d3e6c0fa663f5765f352e260c28bde86949a36b5d835ba02a8a36ebea04bf",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/best.pth": "9d2aae5aaa550f9db2df0a1529372edd44703922c4305dd19bd5d85430efb962",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/config.json": "417a8d133f7612f734ff620feea4ede347eba6c689d56e8343f750f53919069e",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/latest.pth": "31d62e957fc082de44247d43c19a7efc5841e9d882223f32b3bec5dbdd1a5a2f",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/status.json": "9be288ad39e910bcb37aa3b2896ebfdafcda99137e6e1d987177faf3cadc1bb1",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth": "6c0a43998caca585c12091bb51a2b8d9862ae3fde82741d0b82c04db3cc2ae6f",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/config.json": "111d4812f44bbe86e8030242ebbae7bd14e77b89ead4b0b62f311d567aec7d9b",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/latest.pth": "e77dd1e1a61f31000ac97dffcd595a3e22251cb8734faa792f66a8e856de6dc1",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/status.json": "abbba67ae2ccfa427430ae45043f55f209f65ff9ff844634f0a7a2b44b12306b"
+  },
+  "model_buffers_before": {
+    "original": {
+      "buffers": {
+        "running_pwr": {
+          "shape": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "sha256": "bf315735fdb9f8d4fccd05a0ef60550c478b6e60775ca511ba3d48494131f467"
+        },
+        "dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        },
+        "encoder.dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        }
+      },
+      "training": {
+        "": false,
+        "dft": false,
+        "encoder": false,
+        "encoder.dft": false,
+        "encoder.fdma_input_proj": false,
+        "encoder.fdma_input_norm": false,
+        "encoder.fdma_backbone": false,
+        "encoder.fdma_backbone.layers": false,
+        "encoder.fdma_backbone.layers.0": false,
+        "encoder.fdma_backbone.layers.0.self_attn": false,
+        "encoder.fdma_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.0.linear1": false,
+        "encoder.fdma_backbone.layers.0.dropout": false,
+        "encoder.fdma_backbone.layers.0.linear2": false,
+        "encoder.fdma_backbone.layers.0.norm1": false,
+        "encoder.fdma_backbone.layers.0.norm2": false,
+        "encoder.fdma_backbone.layers.0.dropout1": false,
+        "encoder.fdma_backbone.layers.0.dropout2": false,
+        "encoder.fdma_backbone.layers.1": false,
+        "encoder.fdma_backbone.layers.1.self_attn": false,
+        "encoder.fdma_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.1.linear1": false,
+        "encoder.fdma_backbone.layers.1.dropout": false,
+        "encoder.fdma_backbone.layers.1.linear2": false,
+        "encoder.fdma_backbone.layers.1.norm1": false,
+        "encoder.fdma_backbone.layers.1.norm2": false,
+        "encoder.fdma_backbone.layers.1.dropout1": false,
+        "encoder.fdma_backbone.layers.1.dropout2": false,
+        "encoder.fdma_backbone.layers.2": false,
+        "encoder.fdma_backbone.layers.2.self_attn": false,
+        "encoder.fdma_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.2.linear1": false,
+        "encoder.fdma_backbone.layers.2.dropout": false,
+        "encoder.fdma_backbone.layers.2.linear2": false,
+        "encoder.fdma_backbone.layers.2.norm1": false,
+        "encoder.fdma_backbone.layers.2.norm2": false,
+        "encoder.fdma_backbone.layers.2.dropout1": false,
+        "encoder.fdma_backbone.layers.2.dropout2": false,
+        "encoder.fdma_backbone.layers.3": false,
+        "encoder.fdma_backbone.layers.3.self_attn": false,
+        "encoder.fdma_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.3.linear1": false,
+        "encoder.fdma_backbone.layers.3.dropout": false,
+        "encoder.fdma_backbone.layers.3.linear2": false,
+        "encoder.fdma_backbone.layers.3.norm1": false,
+        "encoder.fdma_backbone.layers.3.norm2": false,
+        "encoder.fdma_backbone.layers.3.dropout1": false,
+        "encoder.fdma_backbone.layers.3.dropout2": false,
+        "encoder.fdma_attn_pool": false,
+        "encoder.fdma_attn_pool.0": false,
+        "encoder.fdma_attn_pool.1": false,
+        "encoder.fdma_attn_pool.2": false,
+        "encoder.fc_fdma": false,
+        "encoder.aircomp_input_proj": false,
+        "encoder.aircomp_input_norm": false,
+        "encoder.aircomp_backbone": false,
+        "encoder.aircomp_backbone.layers": false,
+        "encoder.aircomp_backbone.layers.0": false,
+        "encoder.aircomp_backbone.layers.0.self_attn": false,
+        "encoder.aircomp_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.0.linear1": false,
+        "encoder.aircomp_backbone.layers.0.dropout": false,
+        "encoder.aircomp_backbone.layers.0.linear2": false,
+        "encoder.aircomp_backbone.layers.0.norm1": false,
+        "encoder.aircomp_backbone.layers.0.norm2": false,
+        "encoder.aircomp_backbone.layers.0.dropout1": false,
+        "encoder.aircomp_backbone.layers.0.dropout2": false,
+        "encoder.aircomp_backbone.layers.1": false,
+        "encoder.aircomp_backbone.layers.1.self_attn": false,
+        "encoder.aircomp_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.1.linear1": false,
+        "encoder.aircomp_backbone.layers.1.dropout": false,
+        "encoder.aircomp_backbone.layers.1.linear2": false,
+        "encoder.aircomp_backbone.layers.1.norm1": false,
+        "encoder.aircomp_backbone.layers.1.norm2": false,
+        "encoder.aircomp_backbone.layers.1.dropout1": false,
+        "encoder.aircomp_backbone.layers.1.dropout2": false,
+        "encoder.aircomp_backbone.layers.2": false,
+        "encoder.aircomp_backbone.layers.2.self_attn": false,
+        "encoder.aircomp_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.2.linear1": false,
+        "encoder.aircomp_backbone.layers.2.dropout": false,
+        "encoder.aircomp_backbone.layers.2.linear2": false,
+        "encoder.aircomp_backbone.layers.2.norm1": false,
+        "encoder.aircomp_backbone.layers.2.norm2": false,
+        "encoder.aircomp_backbone.layers.2.dropout1": false,
+        "encoder.aircomp_backbone.layers.2.dropout2": false,
+        "encoder.aircomp_backbone.layers.3": false,
+        "encoder.aircomp_backbone.layers.3.self_attn": false,
+        "encoder.aircomp_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.3.linear1": false,
+        "encoder.aircomp_backbone.layers.3.dropout": false,
+        "encoder.aircomp_backbone.layers.3.linear2": false,
+        "encoder.aircomp_backbone.layers.3.norm1": false,
+        "encoder.aircomp_backbone.layers.3.norm2": false,
+        "encoder.aircomp_backbone.layers.3.dropout1": false,
+        "encoder.aircomp_backbone.layers.3.dropout2": false,
+        "encoder.aircomp_attn_pool": false,
+        "encoder.aircomp_attn_pool.0": false,
+        "encoder.aircomp_attn_pool.1": false,
+        "encoder.aircomp_attn_pool.2": false,
+        "encoder.fc_aircomp": false,
+        "cond_embed": false,
+        "cond_embed.net": false,
+        "cond_embed.net.0": false,
+        "cond_embed.net.1": false,
+        "cond_embed.net.2": false,
+        "fdma_emb": false,
+        "aircomp_emb": false,
+        "ul_emb": false,
+        "cross_subband_attn": false,
+        "cross_subband_attn.layers": false,
+        "cross_subband_attn.layers.0": false,
+        "cross_subband_attn.layers.0.self_attn": false,
+        "cross_subband_attn.layers.0.self_attn.out_proj": false,
+        "cross_subband_attn.layers.0.linear1": false,
+        "cross_subband_attn.layers.0.dropout": false,
+        "cross_subband_attn.layers.0.linear2": false,
+        "cross_subband_attn.layers.0.norm1": false,
+        "cross_subband_attn.layers.0.norm2": false,
+        "cross_subband_attn.layers.0.dropout1": false,
+        "cross_subband_attn.layers.0.dropout2": false,
+        "w_init": false,
+        "w_init.0": false,
+        "w_init.1": false,
+        "w_init.2": false,
+        "layers": false,
+        "layers.0": false,
+        "layers.0.uv_estimator": false,
+        "layers.0.uv_estimator.0": false,
+        "layers.0.uv_estimator.1": false,
+        "layers.0.uv_estimator.2": false,
+        "layers.0.A_estimator": false,
+        "layers.0.A_estimator.msg_proj": false,
+        "layers.0.A_estimator.msg_proj.0": false,
+        "layers.0.A_estimator.msg_proj.1": false,
+        "layers.0.A_estimator.msg_proj.2": false,
+        "layers.0.A_estimator.user_query_attn": false,
+        "layers.0.A_estimator.user_query_attn.out_proj": false,
+        "layers.0.A_estimator.pair_agg": false,
+        "layers.0.A_estimator.pair_agg.0": false,
+        "layers.0.A_estimator.pair_agg.1": false,
+        "layers.0.A_estimator.pair_agg.2": false,
+        "layers.0.w_solver_attn": false,
+        "layers.0.w_solver_attn.out_proj": false,
+        "layers.0.A_to_bias": false,
+        "layers.0.cross_user_attn": false,
+        "layers.0.cross_user_attn.out_proj": false,
+        "layers.0.norm_cross": false,
+        "layers.0.ffn": false,
+        "layers.0.ffn.0": false,
+        "layers.0.ffn.1": false,
+        "layers.0.ffn.2": false,
+        "layers.0.norm1": false,
+        "layers.0.norm2": false,
+        "layers.0.norm3": false,
+        "layers.1": false,
+        "layers.1.uv_estimator": false,
+        "layers.1.uv_estimator.0": false,
+        "layers.1.uv_estimator.1": false,
+        "layers.1.uv_estimator.2": false,
+        "layers.1.A_estimator": false,
+        "layers.1.A_estimator.msg_proj": false,
+        "layers.1.A_estimator.msg_proj.0": false,
+        "layers.1.A_estimator.msg_proj.1": false,
+        "layers.1.A_estimator.msg_proj.2": false,
+        "layers.1.A_estimator.user_query_attn": false,
+        "layers.1.A_estimator.user_query_attn.out_proj": false,
+        "layers.1.A_estimator.pair_agg": false,
+        "layers.1.A_estimator.pair_agg.0": false,
+        "layers.1.A_estimator.pair_agg.1": false,
+        "layers.1.A_estimator.pair_agg.2": false,
+        "layers.1.w_solver_attn": false,
+        "layers.1.w_solver_attn.out_proj": false,
+        "layers.1.A_to_bias": false,
+        "layers.1.cross_user_attn": false,
+        "layers.1.cross_user_attn.out_proj": false,
+        "layers.1.norm_cross": false,
+        "layers.1.ffn": false,
+        "layers.1.ffn.0": false,
+        "layers.1.ffn.1": false,
+        "layers.1.ffn.2": false,
+        "layers.1.norm1": false,
+        "layers.1.norm2": false,
+        "layers.1.norm3": false,
+        "layers.2": false,
+        "layers.2.uv_estimator": false,
+        "layers.2.uv_estimator.0": false,
+        "layers.2.uv_estimator.1": false,
+        "layers.2.uv_estimator.2": false,
+        "layers.2.A_estimator": false,
+        "layers.2.A_estimator.msg_proj": false,
+        "layers.2.A_estimator.msg_proj.0": false,
+        "layers.2.A_estimator.msg_proj.1": false,
+        "layers.2.A_estimator.msg_proj.2": false,
+        "layers.2.A_estimator.user_query_attn": false,
+        "layers.2.A_estimator.user_query_attn.out_proj": false,
+        "layers.2.A_estimator.pair_agg": false,
+        "layers.2.A_estimator.pair_agg.0": false,
+        "layers.2.A_estimator.pair_agg.1": false,
+        "layers.2.A_estimator.pair_agg.2": false,
+        "layers.2.w_solver_attn": false,
+        "layers.2.w_solver_attn.out_proj": false,
+        "layers.2.A_to_bias": false,
+        "layers.2.cross_user_attn": false,
+        "layers.2.cross_user_attn.out_proj": false,
+        "layers.2.norm_cross": false,
+        "layers.2.ffn": false,
+        "layers.2.ffn.0": false,
+        "layers.2.ffn.1": false,
+        "layers.2.ffn.2": false,
+        "layers.2.norm1": false,
+        "layers.2.norm2": false,
+        "layers.2.norm3": false,
+        "layers.3": false,
+        "layers.3.uv_estimator": false,
+        "layers.3.uv_estimator.0": false,
+        "layers.3.uv_estimator.1": false,
+        "layers.3.uv_estimator.2": false,
+        "layers.3.A_estimator": false,
+        "layers.3.A_estimator.msg_proj": false,
+        "layers.3.A_estimator.msg_proj.0": false,
+        "layers.3.A_estimator.msg_proj.1": false,
+        "layers.3.A_estimator.msg_proj.2": false,
+        "layers.3.A_estimator.user_query_attn": false,
+        "layers.3.A_estimator.user_query_attn.out_proj": false,
+        "layers.3.A_estimator.pair_agg": false,
+        "layers.3.A_estimator.pair_agg.0": false,
+        "layers.3.A_estimator.pair_agg.1": false,
+        "layers.3.A_estimator.pair_agg.2": false,
+        "layers.3.w_solver_attn": false,
+        "layers.3.w_solver_attn.out_proj": false,
+        "layers.3.A_to_bias": false,
+        "layers.3.cross_user_attn": false,
+        "layers.3.cross_user_attn.out_proj": false,
+        "layers.3.norm_cross": false,
+        "layers.3.ffn": false,
+        "layers.3.ffn.0": false,
+        "layers.3.ffn.1": false,
+        "layers.3.ffn.2": false,
+        "layers.3.norm1": false,
+        "layers.3.norm2": false,
+        "layers.3.norm3": false,
+        "layers.4": false,
+        "layers.4.uv_estimator": false,
+        "layers.4.uv_estimator.0": false,
+        "layers.4.uv_estimator.1": false,
+        "layers.4.uv_estimator.2": false,
+        "layers.4.A_estimator": false,
+        "layers.4.A_estimator.msg_proj": false,
+        "layers.4.A_estimator.msg_proj.0": false,
+        "layers.4.A_estimator.msg_proj.1": false,
+        "layers.4.A_estimator.msg_proj.2": false,
+        "layers.4.A_estimator.user_query_attn": false,
+        "layers.4.A_estimator.user_query_attn.out_proj": false,
+        "layers.4.A_estimator.pair_agg": false,
+        "layers.4.A_estimator.pair_agg.0": false,
+        "layers.4.A_estimator.pair_agg.1": false,
+        "layers.4.A_estimator.pair_agg.2": false,
+        "layers.4.w_solver_attn": false,
+        "layers.4.w_solver_attn.out_proj": false,
+        "layers.4.A_to_bias": false,
+        "layers.4.cross_user_attn": false,
+        "layers.4.cross_user_attn.out_proj": false,
+        "layers.4.norm_cross": false,
+        "layers.4.ffn": false,
+        "layers.4.ffn.0": false,
+        "layers.4.ffn.1": false,
+        "layers.4.ffn.2": false,
+        "layers.4.norm1": false,
+        "layers.4.norm2": false,
+        "layers.4.norm3": false,
+        "h_estimator": false,
+        "h_estimator.0": false,
+        "h_estimator.1": false,
+        "h_estimator.2": false,
+        "residual_head": false,
+        "residual_head.0": false,
+        "residual_head.1": false,
+        "residual_head.2": false
+      }
+    },
+    "lite1024": {
+      "buffers": {
+        "running_pwr": {
+          "shape": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "sha256": "ebfd7d8f0c73d2ccf949a40695e6982001a25d9c566530ee465127ccf58cf93c"
+        },
+        "dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        },
+        "encoder.dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        }
+      },
+      "training": {
+        "": false,
+        "dft": false,
+        "encoder": false,
+        "encoder.dft": false,
+        "encoder.fdma_input_proj": false,
+        "encoder.fdma_input_norm": false,
+        "encoder.fdma_backbone": false,
+        "encoder.fdma_backbone.layers": false,
+        "encoder.fdma_backbone.layers.0": false,
+        "encoder.fdma_backbone.layers.0.self_attn": false,
+        "encoder.fdma_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.0.linear1": false,
+        "encoder.fdma_backbone.layers.0.dropout": false,
+        "encoder.fdma_backbone.layers.0.linear2": false,
+        "encoder.fdma_backbone.layers.0.norm1": false,
+        "encoder.fdma_backbone.layers.0.norm2": false,
+        "encoder.fdma_backbone.layers.0.dropout1": false,
+        "encoder.fdma_backbone.layers.0.dropout2": false,
+        "encoder.fdma_backbone.layers.1": false,
+        "encoder.fdma_backbone.layers.1.self_attn": false,
+        "encoder.fdma_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.1.linear1": false,
+        "encoder.fdma_backbone.layers.1.dropout": false,
+        "encoder.fdma_backbone.layers.1.linear2": false,
+        "encoder.fdma_backbone.layers.1.norm1": false,
+        "encoder.fdma_backbone.layers.1.norm2": false,
+        "encoder.fdma_backbone.layers.1.dropout1": false,
+        "encoder.fdma_backbone.layers.1.dropout2": false,
+        "encoder.fdma_backbone.layers.2": false,
+        "encoder.fdma_backbone.layers.2.self_attn": false,
+        "encoder.fdma_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.2.linear1": false,
+        "encoder.fdma_backbone.layers.2.dropout": false,
+        "encoder.fdma_backbone.layers.2.linear2": false,
+        "encoder.fdma_backbone.layers.2.norm1": false,
+        "encoder.fdma_backbone.layers.2.norm2": false,
+        "encoder.fdma_backbone.layers.2.dropout1": false,
+        "encoder.fdma_backbone.layers.2.dropout2": false,
+        "encoder.fdma_backbone.layers.3": false,
+        "encoder.fdma_backbone.layers.3.self_attn": false,
+        "encoder.fdma_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.3.linear1": false,
+        "encoder.fdma_backbone.layers.3.dropout": false,
+        "encoder.fdma_backbone.layers.3.linear2": false,
+        "encoder.fdma_backbone.layers.3.norm1": false,
+        "encoder.fdma_backbone.layers.3.norm2": false,
+        "encoder.fdma_backbone.layers.3.dropout1": false,
+        "encoder.fdma_backbone.layers.3.dropout2": false,
+        "encoder.fdma_attn_pool": false,
+        "encoder.fdma_attn_pool.0": false,
+        "encoder.fdma_attn_pool.1": false,
+        "encoder.fdma_attn_pool.2": false,
+        "encoder.fc_fdma": false,
+        "encoder.aircomp_input_proj": false,
+        "encoder.aircomp_input_norm": false,
+        "encoder.aircomp_backbone": false,
+        "encoder.aircomp_backbone.layers": false,
+        "encoder.aircomp_backbone.layers.0": false,
+        "encoder.aircomp_backbone.layers.0.self_attn": false,
+        "encoder.aircomp_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.0.linear1": false,
+        "encoder.aircomp_backbone.layers.0.dropout": false,
+        "encoder.aircomp_backbone.layers.0.linear2": false,
+        "encoder.aircomp_backbone.layers.0.norm1": false,
+        "encoder.aircomp_backbone.layers.0.norm2": false,
+        "encoder.aircomp_backbone.layers.0.dropout1": false,
+        "encoder.aircomp_backbone.layers.0.dropout2": false,
+        "encoder.aircomp_backbone.layers.1": false,
+        "encoder.aircomp_backbone.layers.1.self_attn": false,
+        "encoder.aircomp_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.1.linear1": false,
+        "encoder.aircomp_backbone.layers.1.dropout": false,
+        "encoder.aircomp_backbone.layers.1.linear2": false,
+        "encoder.aircomp_backbone.layers.1.norm1": false,
+        "encoder.aircomp_backbone.layers.1.norm2": false,
+        "encoder.aircomp_backbone.layers.1.dropout1": false,
+        "encoder.aircomp_backbone.layers.1.dropout2": false,
+        "encoder.aircomp_backbone.layers.2": false,
+        "encoder.aircomp_backbone.layers.2.self_attn": false,
+        "encoder.aircomp_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.2.linear1": false,
+        "encoder.aircomp_backbone.layers.2.dropout": false,
+        "encoder.aircomp_backbone.layers.2.linear2": false,
+        "encoder.aircomp_backbone.layers.2.norm1": false,
+        "encoder.aircomp_backbone.layers.2.norm2": false,
+        "encoder.aircomp_backbone.layers.2.dropout1": false,
+        "encoder.aircomp_backbone.layers.2.dropout2": false,
+        "encoder.aircomp_backbone.layers.3": false,
+        "encoder.aircomp_backbone.layers.3.self_attn": false,
+        "encoder.aircomp_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.3.linear1": false,
+        "encoder.aircomp_backbone.layers.3.dropout": false,
+        "encoder.aircomp_backbone.layers.3.linear2": false,
+        "encoder.aircomp_backbone.layers.3.norm1": false,
+        "encoder.aircomp_backbone.layers.3.norm2": false,
+        "encoder.aircomp_backbone.layers.3.dropout1": false,
+        "encoder.aircomp_backbone.layers.3.dropout2": false,
+        "encoder.aircomp_attn_pool": false,
+        "encoder.aircomp_attn_pool.0": false,
+        "encoder.aircomp_attn_pool.1": false,
+        "encoder.aircomp_attn_pool.2": false,
+        "encoder.fc_aircomp": false,
+        "cond_embed": false,
+        "cond_embed.net": false,
+        "cond_embed.net.0": false,
+        "cond_embed.net.1": false,
+        "cond_embed.net.2": false,
+        "fdma_emb": false,
+        "aircomp_emb": false,
+        "ul_emb": false,
+        "cross_subband_attn": false,
+        "cross_subband_attn.layers": false,
+        "cross_subband_attn.layers.0": false,
+        "cross_subband_attn.layers.0.self_attn": false,
+        "cross_subband_attn.layers.0.self_attn.out_proj": false,
+        "cross_subband_attn.layers.0.linear1": false,
+        "cross_subband_attn.layers.0.dropout": false,
+        "cross_subband_attn.layers.0.linear2": false,
+        "cross_subband_attn.layers.0.norm1": false,
+        "cross_subband_attn.layers.0.norm2": false,
+        "cross_subband_attn.layers.0.dropout1": false,
+        "cross_subband_attn.layers.0.dropout2": false,
+        "w_init": false,
+        "w_init.0": false,
+        "w_init.1": false,
+        "w_init.2": false,
+        "layers": false,
+        "layers.0": false,
+        "layers.0.uv_estimator": false,
+        "layers.0.uv_estimator.0": false,
+        "layers.0.uv_estimator.1": false,
+        "layers.0.uv_estimator.2": false,
+        "layers.0.A_estimator": false,
+        "layers.0.A_estimator.msg_proj": false,
+        "layers.0.A_estimator.msg_proj.0": false,
+        "layers.0.A_estimator.msg_proj.1": false,
+        "layers.0.A_estimator.msg_proj.2": false,
+        "layers.0.A_estimator.user_query_attn": false,
+        "layers.0.A_estimator.user_query_attn.out_proj": false,
+        "layers.0.A_estimator.pair_agg": false,
+        "layers.0.A_estimator.pair_agg.0": false,
+        "layers.0.A_estimator.pair_agg.1": false,
+        "layers.0.A_estimator.pair_agg.2": false,
+        "layers.0.w_solver_attn": false,
+        "layers.0.w_solver_attn.out_proj": false,
+        "layers.0.A_to_bias": false,
+        "layers.0.cross_user_attn": false,
+        "layers.0.cross_user_attn.out_proj": false,
+        "layers.0.norm_cross": false,
+        "layers.0.ffn": false,
+        "layers.0.ffn.0": false,
+        "layers.0.ffn.1": false,
+        "layers.0.ffn.2": false,
+        "layers.0.norm1": false,
+        "layers.0.norm2": false,
+        "layers.0.norm3": false,
+        "layers.1": false,
+        "layers.1.uv_estimator": false,
+        "layers.1.uv_estimator.0": false,
+        "layers.1.uv_estimator.1": false,
+        "layers.1.uv_estimator.2": false,
+        "layers.1.A_estimator": false,
+        "layers.1.A_estimator.msg_proj": false,
+        "layers.1.A_estimator.msg_proj.0": false,
+        "layers.1.A_estimator.msg_proj.1": false,
+        "layers.1.A_estimator.msg_proj.2": false,
+        "layers.1.A_estimator.user_query_attn": false,
+        "layers.1.A_estimator.user_query_attn.out_proj": false,
+        "layers.1.A_estimator.pair_agg": false,
+        "layers.1.A_estimator.pair_agg.0": false,
+        "layers.1.A_estimator.pair_agg.1": false,
+        "layers.1.A_estimator.pair_agg.2": false,
+        "layers.1.w_solver_attn": false,
+        "layers.1.w_solver_attn.out_proj": false,
+        "layers.1.A_to_bias": false,
+        "layers.1.cross_user_attn": false,
+        "layers.1.cross_user_attn.out_proj": false,
+        "layers.1.norm_cross": false,
+        "layers.1.ffn": false,
+        "layers.1.ffn.0": false,
+        "layers.1.ffn.1": false,
+        "layers.1.ffn.2": false,
+        "layers.1.norm1": false,
+        "layers.1.norm2": false,
+        "layers.1.norm3": false,
+        "layers.2": false,
+        "layers.2.uv_estimator": false,
+        "layers.2.uv_estimator.0": false,
+        "layers.2.uv_estimator.1": false,
+        "layers.2.uv_estimator.2": false,
+        "layers.2.A_estimator": false,
+        "layers.2.A_estimator.msg_proj": false,
+        "layers.2.A_estimator.msg_proj.0": false,
+        "layers.2.A_estimator.msg_proj.1": false,
+        "layers.2.A_estimator.msg_proj.2": false,
+        "layers.2.A_estimator.user_query_attn": false,
+        "layers.2.A_estimator.user_query_attn.out_proj": false,
+        "layers.2.A_estimator.pair_agg": false,
+        "layers.2.A_estimator.pair_agg.0": false,
+        "layers.2.A_estimator.pair_agg.1": false,
+        "layers.2.A_estimator.pair_agg.2": false,
+        "layers.2.w_solver_attn": false,
+        "layers.2.w_solver_attn.out_proj": false,
+        "layers.2.A_to_bias": false,
+        "layers.2.cross_user_attn": false,
+        "layers.2.cross_user_attn.out_proj": false,
+        "layers.2.norm_cross": false,
+        "layers.2.ffn": false,
+        "layers.2.ffn.0": false,
+        "layers.2.ffn.1": false,
+        "layers.2.ffn.2": false,
+        "layers.2.norm1": false,
+        "layers.2.norm2": false,
+        "layers.2.norm3": false,
+        "layers.3": false,
+        "layers.3.uv_estimator": false,
+        "layers.3.uv_estimator.0": false,
+        "layers.3.uv_estimator.1": false,
+        "layers.3.uv_estimator.2": false,
+        "layers.3.A_estimator": false,
+        "layers.3.A_estimator.msg_proj": false,
+        "layers.3.A_estimator.msg_proj.0": false,
+        "layers.3.A_estimator.msg_proj.1": false,
+        "layers.3.A_estimator.msg_proj.2": false,
+        "layers.3.A_estimator.user_query_attn": false,
+        "layers.3.A_estimator.user_query_attn.out_proj": false,
+        "layers.3.A_estimator.pair_agg": false,
+        "layers.3.A_estimator.pair_agg.0": false,
+        "layers.3.A_estimator.pair_agg.1": false,
+        "layers.3.A_estimator.pair_agg.2": false,
+        "layers.3.w_solver_attn": false,
+        "layers.3.w_solver_attn.out_proj": false,
+        "layers.3.A_to_bias": false,
+        "layers.3.cross_user_attn": false,
+        "layers.3.cross_user_attn.out_proj": false,
+        "layers.3.norm_cross": false,
+        "layers.3.ffn": false,
+        "layers.3.ffn.0": false,
+        "layers.3.ffn.1": false,
+        "layers.3.ffn.2": false,
+        "layers.3.norm1": false,
+        "layers.3.norm2": false,
+        "layers.3.norm3": false,
+        "layers.4": false,
+        "layers.4.uv_estimator": false,
+        "layers.4.uv_estimator.0": false,
+        "layers.4.uv_estimator.1": false,
+        "layers.4.uv_estimator.2": false,
+        "layers.4.A_estimator": false,
+        "layers.4.A_estimator.msg_proj": false,
+        "layers.4.A_estimator.msg_proj.0": false,
+        "layers.4.A_estimator.msg_proj.1": false,
+        "layers.4.A_estimator.msg_proj.2": false,
+        "layers.4.A_estimator.user_query_attn": false,
+        "layers.4.A_estimator.user_query_attn.out_proj": false,
+        "layers.4.A_estimator.pair_agg": false,
+        "layers.4.A_estimator.pair_agg.0": false,
+        "layers.4.A_estimator.pair_agg.1": false,
+        "layers.4.A_estimator.pair_agg.2": false,
+        "layers.4.w_solver_attn": false,
+        "layers.4.w_solver_attn.out_proj": false,
+        "layers.4.A_to_bias": false,
+        "layers.4.cross_user_attn": false,
+        "layers.4.cross_user_attn.out_proj": false,
+        "layers.4.norm_cross": false,
+        "layers.4.ffn": false,
+        "layers.4.ffn.0": false,
+        "layers.4.ffn.1": false,
+        "layers.4.ffn.2": false,
+        "layers.4.norm1": false,
+        "layers.4.norm2": false,
+        "layers.4.norm3": false,
+        "h_estimator": false,
+        "h_estimator.0": false,
+        "h_estimator.1": false,
+        "h_estimator.2": false,
+        "residual_head": false,
+        "residual_head.0": false,
+        "residual_head.1": false,
+        "residual_head.2": false
+      }
+    },
+    "swin": {
+      "buffers": {},
+      "training": {
+        "": false,
+        "encoder": false,
+        "encoder.patch_embed": false,
+        "encoder.patch_embed.proj": false,
+        "encoder.patch_embed.norm": false,
+        "encoder.blocks": false,
+        "encoder.blocks.0": false,
+        "encoder.blocks.0.norm1": false,
+        "encoder.blocks.0.attn": false,
+        "encoder.blocks.0.attn.qkv": false,
+        "encoder.blocks.0.attn.proj": false,
+        "encoder.blocks.0.norm2": false,
+        "encoder.blocks.0.mlp": false,
+        "encoder.blocks.0.mlp.0": false,
+        "encoder.blocks.0.mlp.1": false,
+        "encoder.blocks.0.mlp.2": false,
+        "encoder.blocks.1": false,
+        "encoder.blocks.1.norm1": false,
+        "encoder.blocks.1.attn": false,
+        "encoder.blocks.1.attn.qkv": false,
+        "encoder.blocks.1.attn.proj": false,
+        "encoder.blocks.1.norm2": false,
+        "encoder.blocks.1.mlp": false,
+        "encoder.blocks.1.mlp.0": false,
+        "encoder.blocks.1.mlp.1": false,
+        "encoder.blocks.1.mlp.2": false,
+        "encoder.blocks.2": false,
+        "encoder.blocks.2.norm1": false,
+        "encoder.blocks.2.attn": false,
+        "encoder.blocks.2.attn.qkv": false,
+        "encoder.blocks.2.attn.proj": false,
+        "encoder.blocks.2.norm2": false,
+        "encoder.blocks.2.mlp": false,
+        "encoder.blocks.2.mlp.0": false,
+        "encoder.blocks.2.mlp.1": false,
+        "encoder.blocks.2.mlp.2": false,
+        "encoder.blocks.3": false,
+        "encoder.blocks.3.norm1": false,
+        "encoder.blocks.3.attn": false,
+        "encoder.blocks.3.attn.qkv": false,
+        "encoder.blocks.3.attn.proj": false,
+        "encoder.blocks.3.norm2": false,
+        "encoder.blocks.3.mlp": false,
+        "encoder.blocks.3.mlp.0": false,
+        "encoder.blocks.3.mlp.1": false,
+        "encoder.blocks.3.mlp.2": false,
+        "encoder.norm": false,
+        "encoder.fc": false,
+        "decoder": false,
+        "decoder.fc": false,
+        "decoder.blocks": false,
+        "decoder.blocks.0": false,
+        "decoder.blocks.0.norm1": false,
+        "decoder.blocks.0.attn": false,
+        "decoder.blocks.0.attn.qkv": false,
+        "decoder.blocks.0.attn.proj": false,
+        "decoder.blocks.0.norm2": false,
+        "decoder.blocks.0.mlp": false,
+        "decoder.blocks.0.mlp.0": false,
+        "decoder.blocks.0.mlp.1": false,
+        "decoder.blocks.0.mlp.2": false,
+        "decoder.blocks.1": false,
+        "decoder.blocks.1.norm1": false,
+        "decoder.blocks.1.attn": false,
+        "decoder.blocks.1.attn.qkv": false,
+        "decoder.blocks.1.attn.proj": false,
+        "decoder.blocks.1.norm2": false,
+        "decoder.blocks.1.mlp": false,
+        "decoder.blocks.1.mlp.0": false,
+        "decoder.blocks.1.mlp.1": false,
+        "decoder.blocks.1.mlp.2": false,
+        "decoder.blocks.2": false,
+        "decoder.blocks.2.norm1": false,
+        "decoder.blocks.2.attn": false,
+        "decoder.blocks.2.attn.qkv": false,
+        "decoder.blocks.2.attn.proj": false,
+        "decoder.blocks.2.norm2": false,
+        "decoder.blocks.2.mlp": false,
+        "decoder.blocks.2.mlp.0": false,
+        "decoder.blocks.2.mlp.1": false,
+        "decoder.blocks.2.mlp.2": false,
+        "decoder.blocks.3": false,
+        "decoder.blocks.3.norm1": false,
+        "decoder.blocks.3.attn": false,
+        "decoder.blocks.3.attn.qkv": false,
+        "decoder.blocks.3.attn.proj": false,
+        "decoder.blocks.3.norm2": false,
+        "decoder.blocks.3.mlp": false,
+        "decoder.blocks.3.mlp.0": false,
+        "decoder.blocks.3.mlp.1": false,
+        "decoder.blocks.3.mlp.2": false,
+        "decoder.norm": false,
+        "decoder.final_proj": false
+      }
+    },
+    "csinet": {
+      "buffers": {
+        "encoder.conv_layers.1.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "b4778ff466e73561ec1c918e0177e5919207384f6099994586efa2cb99791200"
+        },
+        "encoder.conv_layers.1.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "f4a9c05b56c0a95003ec772baa3c13e9194de7dd0428902937ef56606a051921"
+        },
+        "encoder.conv_layers.1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.4.running_mean": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "8fe721550bf550342f56c588afb5f9883c1dc94acd1c4471427fcd14256fd759"
+        },
+        "encoder.conv_layers.4.running_var": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "5da9e417593010a74045c43046dfd29fe3f26ea9d6e7b195be7d12667d0e647f"
+        },
+        "encoder.conv_layers.4.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.7.running_mean": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "49c0383d4825001f493f265e2c222607793bf6b2be325cd10bb75791c4d3ffe9"
+        },
+        "encoder.conv_layers.7.running_var": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "cedbbf4e9687176eb1769d3e75fc27a13936e552ba3b336503239ebfbbc7541e"
+        },
+        "encoder.conv_layers.7.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.10.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "239fdabe7b1a83329c40dc3b1bd847bd148f9ceb9bc1ab28f55a04a353d7e6a1"
+        },
+        "encoder.conv_layers.10.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "a602daadf71bf6db9e90a4d949e43a281efd77e443a52f46ce3b2d552e062716"
+        },
+        "encoder.conv_layers.10.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.12.bn1.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "06fd8baf9db51a25769487803ab9be115ebe1a1917ce8395e48a9d59fe3b9d2f"
+        },
+        "encoder.conv_layers.12.bn1.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "89386550bbb1f8eaf7378a651a3bc0bf5530540e7873a5a4707550ea6b7ba4a0"
+        },
+        "encoder.conv_layers.12.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.12.bn2.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "547c8dd830f5bc4ed5e83cd5c3c73359b4b1bbe20b66a593b44f0fc3c2199639"
+        },
+        "encoder.conv_layers.12.bn2.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "a53b10178c0d40b3e529b79405ea1695a4fc4aea15295fa6c71fd7be0756bfc2"
+        },
+        "encoder.conv_layers.12.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.13.bn1.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "1bafa15350d153255368c2ac3d4459882c3e5952af94c6d05b0b8c0c2924f344"
+        },
+        "encoder.conv_layers.13.bn1.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "bc06c3933e5780ea3b75fd0da3d06944570759d3b026a5205d3936a5a2991a8f"
+        },
+        "encoder.conv_layers.13.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.13.bn2.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "c778370975e75763c463051559a15b14a33fdaf67cc97ca97274355a0d8d7c27"
+        },
+        "encoder.conv_layers.13.bn2.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "b10210418d41960e850534e7912669d5ea13a88443aab70711b0b193998f49be"
+        },
+        "encoder.conv_layers.13.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.1.running_mean": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "56a80dbf6b5b208e6a7d6d49035b66930b0ad2c518b07f592c6f005d9771bd9e"
+        },
+        "decoder.deconv_layers.1.running_var": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "66dc57e1bb4f87fdbaa75db2901c3cdf926bed14b0763dcaa91a94a3bc16feb5"
+        },
+        "decoder.deconv_layers.1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.4.running_mean": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "f4e1df27fca3b74887ba8d39f6af46e59d6b3a42a53137b3ad6cb8376656fee7"
+        },
+        "decoder.deconv_layers.4.running_var": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "2cb7774d4c30344cfc209a87326c9618873551b17affcd12415227e0bba76d31"
+        },
+        "decoder.deconv_layers.4.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.7.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "e7bc5cad62eea2d543dadf27dfc12a0bd099b983a67363acbfeead2859b74d5c"
+        },
+        "decoder.deconv_layers.7.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "13faaeda50eb43a8c714ea3c331cd164f3b78ec14c3c6fdff20af3687bafc959"
+        },
+        "decoder.deconv_layers.7.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.9.bn1.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "7431c87c93ada80f8806f0867171468ea42b7dcd9727376badaff5294c233236"
+        },
+        "decoder.deconv_layers.9.bn1.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "cd664048f4a259c99c1770dbcc531b8cd59408610fd1b2cab107ecab8d18cd22"
+        },
+        "decoder.deconv_layers.9.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.9.bn2.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "c3b7ac67d01ae6b27710119e07a68fa889b6b8bccba4099d79203a7c28a51b89"
+        },
+        "decoder.deconv_layers.9.bn2.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "592f607c72df87e1bc52abc0e9693ef89caabd3abb14eb184be8997e333a2cfd"
+        },
+        "decoder.deconv_layers.9.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.10.bn1.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "bfe26a051ffbb40f5aa2bed7410515e769db2ed95caf2ed8e1ba38fb98d9fa78"
+        },
+        "decoder.deconv_layers.10.bn1.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "4cf3bc61f6b59dc69216d089e91169582b014dbefbb98ef8ece1445ddef511e7"
+        },
+        "decoder.deconv_layers.10.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.10.bn2.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "60eac22e8fcdcaca472b73c0f4f49f710ef38bbc70eedc55c50293219d171a41"
+        },
+        "decoder.deconv_layers.10.bn2.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "2f83ee540e50eefb0604410dcbb93642a1889a621a0ae1629d3878915219ca9b"
+        },
+        "decoder.deconv_layers.10.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        }
+      },
+      "training": {
+        "": false,
+        "encoder": false,
+        "encoder.conv_layers": false,
+        "encoder.conv_layers.0": false,
+        "encoder.conv_layers.1": false,
+        "encoder.conv_layers.2": false,
+        "encoder.conv_layers.3": false,
+        "encoder.conv_layers.4": false,
+        "encoder.conv_layers.5": false,
+        "encoder.conv_layers.6": false,
+        "encoder.conv_layers.7": false,
+        "encoder.conv_layers.8": false,
+        "encoder.conv_layers.9": false,
+        "encoder.conv_layers.10": false,
+        "encoder.conv_layers.11": false,
+        "encoder.conv_layers.12": false,
+        "encoder.conv_layers.12.conv1": false,
+        "encoder.conv_layers.12.bn1": false,
+        "encoder.conv_layers.12.relu": false,
+        "encoder.conv_layers.12.conv2": false,
+        "encoder.conv_layers.12.bn2": false,
+        "encoder.conv_layers.13": false,
+        "encoder.conv_layers.13.conv1": false,
+        "encoder.conv_layers.13.bn1": false,
+        "encoder.conv_layers.13.relu": false,
+        "encoder.conv_layers.13.conv2": false,
+        "encoder.conv_layers.13.bn2": false,
+        "encoder.fc": false,
+        "decoder": false,
+        "decoder.fc": false,
+        "decoder.deconv_layers": false,
+        "decoder.deconv_layers.0": false,
+        "decoder.deconv_layers.1": false,
+        "decoder.deconv_layers.2": false,
+        "decoder.deconv_layers.3": false,
+        "decoder.deconv_layers.4": false,
+        "decoder.deconv_layers.5": false,
+        "decoder.deconv_layers.6": false,
+        "decoder.deconv_layers.7": false,
+        "decoder.deconv_layers.8": false,
+        "decoder.deconv_layers.9": false,
+        "decoder.deconv_layers.9.conv1": false,
+        "decoder.deconv_layers.9.bn1": false,
+        "decoder.deconv_layers.9.relu": false,
+        "decoder.deconv_layers.9.conv2": false,
+        "decoder.deconv_layers.9.bn2": false,
+        "decoder.deconv_layers.10": false,
+        "decoder.deconv_layers.10.conv1": false,
+        "decoder.deconv_layers.10.bn1": false,
+        "decoder.deconv_layers.10.relu": false,
+        "decoder.deconv_layers.10.conv2": false,
+        "decoder.deconv_layers.10.bn2": false,
+        "decoder.final_conv": false
+      }
+    }
+  },
+  "sampling": "One channel batch shared by every model and SNR; one sample is a complete multi-user realization.",
+  "channel_seed": "seed + stable_int(scenario_id) + batch_index",
+  "feedback_seed": "seed + 100000000 + batch_index*100000 + stable_int(f'{feedback_snr:.6f}')",
+  "noise": "Unchanged relative received-SNR convention. Common RNG seeds imply common base noise only with compatible random-call shape/order, NOT equal absolute AS/FDMA noise power.",
+  "statistics": "SE uses sample standard deviation (ddof=1); normal-approximation 95% CI = mean +/- 1.96 SE; paired differences are formed per sample_index before aggregation.",
+  "nmse": "Mean of per-sample dB raw antenna-frequency representation errors versus H_dl; secondary diagnostic, not task ranking.",
+  "power": "Per-sample total precoder power across all subcarriers; nominal 256 for per-subcarrier power 1.",
+  "selection": "Fixed best checkpoints; no test-based selection, oracle allocation, point deletion, seed search or historical CSV merging.",
+  "input_sha256_after": {
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth": "d269922c1f07515e306122de027ca18b283860848ea665ba8733aa5a41ccc287",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth": "a936391272267af96e4b4dcf5e3b9c4267d992bf7d2ba2c130662cf636e7be42",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth": "c913f3477f6af74665d7ba1b11a7a8e06bdea8c051822205ace1a8a071489276",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth": "8b312787c7289a58f9193c082af43eedb2685a41ac13544149ddbec9ba1df958",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json": "6a3b1978956d8d824f751dd70910a704fa1b89029990b52f286611e9f7424f40",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json": "a0a0e14f3801366bd7e25fcd95ae61e251f740f6ce42c8d3176aa847c54a3cff",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/config.json": "4f0ffaa0ba1faa8abf2c445fe86347e281a67c1cad75053bed45a996f4b28f0a",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json": "176d3e6c0fa663f5765f352e260c28bde86949a36b5d835ba02a8a36ebea04bf",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/best.pth": "9d2aae5aaa550f9db2df0a1529372edd44703922c4305dd19bd5d85430efb962",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/config.json": "417a8d133f7612f734ff620feea4ede347eba6c689d56e8343f750f53919069e",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/latest.pth": "31d62e957fc082de44247d43c19a7efc5841e9d882223f32b3bec5dbdd1a5a2f",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/status.json": "9be288ad39e910bcb37aa3b2896ebfdafcda99137e6e1d987177faf3cadc1bb1",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth": "6c0a43998caca585c12091bb51a2b8d9862ae3fde82741d0b82c04db3cc2ae6f",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/config.json": "111d4812f44bbe86e8030242ebbae7bd14e77b89ead4b0b62f311d567aec7d9b",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/latest.pth": "e77dd1e1a61f31000ac97dffcd595a3e22251cb8734faa792f66a8e856de6dc1",
+    "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/status.json": "abbba67ae2ccfa427430ae45043f55f209f65ff9ff844634f0a7a2b44b12306b"
+  },
+  "model_buffers_after": {
+    "original": {
+      "buffers": {
+        "running_pwr": {
+          "shape": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "sha256": "bf315735fdb9f8d4fccd05a0ef60550c478b6e60775ca511ba3d48494131f467"
+        },
+        "dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        },
+        "encoder.dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        }
+      },
+      "training": {
+        "": false,
+        "dft": false,
+        "encoder": false,
+        "encoder.dft": false,
+        "encoder.fdma_input_proj": false,
+        "encoder.fdma_input_norm": false,
+        "encoder.fdma_backbone": false,
+        "encoder.fdma_backbone.layers": false,
+        "encoder.fdma_backbone.layers.0": false,
+        "encoder.fdma_backbone.layers.0.self_attn": false,
+        "encoder.fdma_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.0.linear1": false,
+        "encoder.fdma_backbone.layers.0.dropout": false,
+        "encoder.fdma_backbone.layers.0.linear2": false,
+        "encoder.fdma_backbone.layers.0.norm1": false,
+        "encoder.fdma_backbone.layers.0.norm2": false,
+        "encoder.fdma_backbone.layers.0.dropout1": false,
+        "encoder.fdma_backbone.layers.0.dropout2": false,
+        "encoder.fdma_backbone.layers.1": false,
+        "encoder.fdma_backbone.layers.1.self_attn": false,
+        "encoder.fdma_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.1.linear1": false,
+        "encoder.fdma_backbone.layers.1.dropout": false,
+        "encoder.fdma_backbone.layers.1.linear2": false,
+        "encoder.fdma_backbone.layers.1.norm1": false,
+        "encoder.fdma_backbone.layers.1.norm2": false,
+        "encoder.fdma_backbone.layers.1.dropout1": false,
+        "encoder.fdma_backbone.layers.1.dropout2": false,
+        "encoder.fdma_backbone.layers.2": false,
+        "encoder.fdma_backbone.layers.2.self_attn": false,
+        "encoder.fdma_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.2.linear1": false,
+        "encoder.fdma_backbone.layers.2.dropout": false,
+        "encoder.fdma_backbone.layers.2.linear2": false,
+        "encoder.fdma_backbone.layers.2.norm1": false,
+        "encoder.fdma_backbone.layers.2.norm2": false,
+        "encoder.fdma_backbone.layers.2.dropout1": false,
+        "encoder.fdma_backbone.layers.2.dropout2": false,
+        "encoder.fdma_backbone.layers.3": false,
+        "encoder.fdma_backbone.layers.3.self_attn": false,
+        "encoder.fdma_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.3.linear1": false,
+        "encoder.fdma_backbone.layers.3.dropout": false,
+        "encoder.fdma_backbone.layers.3.linear2": false,
+        "encoder.fdma_backbone.layers.3.norm1": false,
+        "encoder.fdma_backbone.layers.3.norm2": false,
+        "encoder.fdma_backbone.layers.3.dropout1": false,
+        "encoder.fdma_backbone.layers.3.dropout2": false,
+        "encoder.fdma_attn_pool": false,
+        "encoder.fdma_attn_pool.0": false,
+        "encoder.fdma_attn_pool.1": false,
+        "encoder.fdma_attn_pool.2": false,
+        "encoder.fc_fdma": false,
+        "encoder.aircomp_input_proj": false,
+        "encoder.aircomp_input_norm": false,
+        "encoder.aircomp_backbone": false,
+        "encoder.aircomp_backbone.layers": false,
+        "encoder.aircomp_backbone.layers.0": false,
+        "encoder.aircomp_backbone.layers.0.self_attn": false,
+        "encoder.aircomp_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.0.linear1": false,
+        "encoder.aircomp_backbone.layers.0.dropout": false,
+        "encoder.aircomp_backbone.layers.0.linear2": false,
+        "encoder.aircomp_backbone.layers.0.norm1": false,
+        "encoder.aircomp_backbone.layers.0.norm2": false,
+        "encoder.aircomp_backbone.layers.0.dropout1": false,
+        "encoder.aircomp_backbone.layers.0.dropout2": false,
+        "encoder.aircomp_backbone.layers.1": false,
+        "encoder.aircomp_backbone.layers.1.self_attn": false,
+        "encoder.aircomp_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.1.linear1": false,
+        "encoder.aircomp_backbone.layers.1.dropout": false,
+        "encoder.aircomp_backbone.layers.1.linear2": false,
+        "encoder.aircomp_backbone.layers.1.norm1": false,
+        "encoder.aircomp_backbone.layers.1.norm2": false,
+        "encoder.aircomp_backbone.layers.1.dropout1": false,
+        "encoder.aircomp_backbone.layers.1.dropout2": false,
+        "encoder.aircomp_backbone.layers.2": false,
+        "encoder.aircomp_backbone.layers.2.self_attn": false,
+        "encoder.aircomp_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.2.linear1": false,
+        "encoder.aircomp_backbone.layers.2.dropout": false,
+        "encoder.aircomp_backbone.layers.2.linear2": false,
+        "encoder.aircomp_backbone.layers.2.norm1": false,
+        "encoder.aircomp_backbone.layers.2.norm2": false,
+        "encoder.aircomp_backbone.layers.2.dropout1": false,
+        "encoder.aircomp_backbone.layers.2.dropout2": false,
+        "encoder.aircomp_backbone.layers.3": false,
+        "encoder.aircomp_backbone.layers.3.self_attn": false,
+        "encoder.aircomp_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.3.linear1": false,
+        "encoder.aircomp_backbone.layers.3.dropout": false,
+        "encoder.aircomp_backbone.layers.3.linear2": false,
+        "encoder.aircomp_backbone.layers.3.norm1": false,
+        "encoder.aircomp_backbone.layers.3.norm2": false,
+        "encoder.aircomp_backbone.layers.3.dropout1": false,
+        "encoder.aircomp_backbone.layers.3.dropout2": false,
+        "encoder.aircomp_attn_pool": false,
+        "encoder.aircomp_attn_pool.0": false,
+        "encoder.aircomp_attn_pool.1": false,
+        "encoder.aircomp_attn_pool.2": false,
+        "encoder.fc_aircomp": false,
+        "cond_embed": false,
+        "cond_embed.net": false,
+        "cond_embed.net.0": false,
+        "cond_embed.net.1": false,
+        "cond_embed.net.2": false,
+        "fdma_emb": false,
+        "aircomp_emb": false,
+        "ul_emb": false,
+        "cross_subband_attn": false,
+        "cross_subband_attn.layers": false,
+        "cross_subband_attn.layers.0": false,
+        "cross_subband_attn.layers.0.self_attn": false,
+        "cross_subband_attn.layers.0.self_attn.out_proj": false,
+        "cross_subband_attn.layers.0.linear1": false,
+        "cross_subband_attn.layers.0.dropout": false,
+        "cross_subband_attn.layers.0.linear2": false,
+        "cross_subband_attn.layers.0.norm1": false,
+        "cross_subband_attn.layers.0.norm2": false,
+        "cross_subband_attn.layers.0.dropout1": false,
+        "cross_subband_attn.layers.0.dropout2": false,
+        "w_init": false,
+        "w_init.0": false,
+        "w_init.1": false,
+        "w_init.2": false,
+        "layers": false,
+        "layers.0": false,
+        "layers.0.uv_estimator": false,
+        "layers.0.uv_estimator.0": false,
+        "layers.0.uv_estimator.1": false,
+        "layers.0.uv_estimator.2": false,
+        "layers.0.A_estimator": false,
+        "layers.0.A_estimator.msg_proj": false,
+        "layers.0.A_estimator.msg_proj.0": false,
+        "layers.0.A_estimator.msg_proj.1": false,
+        "layers.0.A_estimator.msg_proj.2": false,
+        "layers.0.A_estimator.user_query_attn": false,
+        "layers.0.A_estimator.user_query_attn.out_proj": false,
+        "layers.0.A_estimator.pair_agg": false,
+        "layers.0.A_estimator.pair_agg.0": false,
+        "layers.0.A_estimator.pair_agg.1": false,
+        "layers.0.A_estimator.pair_agg.2": false,
+        "layers.0.w_solver_attn": false,
+        "layers.0.w_solver_attn.out_proj": false,
+        "layers.0.A_to_bias": false,
+        "layers.0.cross_user_attn": false,
+        "layers.0.cross_user_attn.out_proj": false,
+        "layers.0.norm_cross": false,
+        "layers.0.ffn": false,
+        "layers.0.ffn.0": false,
+        "layers.0.ffn.1": false,
+        "layers.0.ffn.2": false,
+        "layers.0.norm1": false,
+        "layers.0.norm2": false,
+        "layers.0.norm3": false,
+        "layers.1": false,
+        "layers.1.uv_estimator": false,
+        "layers.1.uv_estimator.0": false,
+        "layers.1.uv_estimator.1": false,
+        "layers.1.uv_estimator.2": false,
+        "layers.1.A_estimator": false,
+        "layers.1.A_estimator.msg_proj": false,
+        "layers.1.A_estimator.msg_proj.0": false,
+        "layers.1.A_estimator.msg_proj.1": false,
+        "layers.1.A_estimator.msg_proj.2": false,
+        "layers.1.A_estimator.user_query_attn": false,
+        "layers.1.A_estimator.user_query_attn.out_proj": false,
+        "layers.1.A_estimator.pair_agg": false,
+        "layers.1.A_estimator.pair_agg.0": false,
+        "layers.1.A_estimator.pair_agg.1": false,
+        "layers.1.A_estimator.pair_agg.2": false,
+        "layers.1.w_solver_attn": false,
+        "layers.1.w_solver_attn.out_proj": false,
+        "layers.1.A_to_bias": false,
+        "layers.1.cross_user_attn": false,
+        "layers.1.cross_user_attn.out_proj": false,
+        "layers.1.norm_cross": false,
+        "layers.1.ffn": false,
+        "layers.1.ffn.0": false,
+        "layers.1.ffn.1": false,
+        "layers.1.ffn.2": false,
+        "layers.1.norm1": false,
+        "layers.1.norm2": false,
+        "layers.1.norm3": false,
+        "layers.2": false,
+        "layers.2.uv_estimator": false,
+        "layers.2.uv_estimator.0": false,
+        "layers.2.uv_estimator.1": false,
+        "layers.2.uv_estimator.2": false,
+        "layers.2.A_estimator": false,
+        "layers.2.A_estimator.msg_proj": false,
+        "layers.2.A_estimator.msg_proj.0": false,
+        "layers.2.A_estimator.msg_proj.1": false,
+        "layers.2.A_estimator.msg_proj.2": false,
+        "layers.2.A_estimator.user_query_attn": false,
+        "layers.2.A_estimator.user_query_attn.out_proj": false,
+        "layers.2.A_estimator.pair_agg": false,
+        "layers.2.A_estimator.pair_agg.0": false,
+        "layers.2.A_estimator.pair_agg.1": false,
+        "layers.2.A_estimator.pair_agg.2": false,
+        "layers.2.w_solver_attn": false,
+        "layers.2.w_solver_attn.out_proj": false,
+        "layers.2.A_to_bias": false,
+        "layers.2.cross_user_attn": false,
+        "layers.2.cross_user_attn.out_proj": false,
+        "layers.2.norm_cross": false,
+        "layers.2.ffn": false,
+        "layers.2.ffn.0": false,
+        "layers.2.ffn.1": false,
+        "layers.2.ffn.2": false,
+        "layers.2.norm1": false,
+        "layers.2.norm2": false,
+        "layers.2.norm3": false,
+        "layers.3": false,
+        "layers.3.uv_estimator": false,
+        "layers.3.uv_estimator.0": false,
+        "layers.3.uv_estimator.1": false,
+        "layers.3.uv_estimator.2": false,
+        "layers.3.A_estimator": false,
+        "layers.3.A_estimator.msg_proj": false,
+        "layers.3.A_estimator.msg_proj.0": false,
+        "layers.3.A_estimator.msg_proj.1": false,
+        "layers.3.A_estimator.msg_proj.2": false,
+        "layers.3.A_estimator.user_query_attn": false,
+        "layers.3.A_estimator.user_query_attn.out_proj": false,
+        "layers.3.A_estimator.pair_agg": false,
+        "layers.3.A_estimator.pair_agg.0": false,
+        "layers.3.A_estimator.pair_agg.1": false,
+        "layers.3.A_estimator.pair_agg.2": false,
+        "layers.3.w_solver_attn": false,
+        "layers.3.w_solver_attn.out_proj": false,
+        "layers.3.A_to_bias": false,
+        "layers.3.cross_user_attn": false,
+        "layers.3.cross_user_attn.out_proj": false,
+        "layers.3.norm_cross": false,
+        "layers.3.ffn": false,
+        "layers.3.ffn.0": false,
+        "layers.3.ffn.1": false,
+        "layers.3.ffn.2": false,
+        "layers.3.norm1": false,
+        "layers.3.norm2": false,
+        "layers.3.norm3": false,
+        "layers.4": false,
+        "layers.4.uv_estimator": false,
+        "layers.4.uv_estimator.0": false,
+        "layers.4.uv_estimator.1": false,
+        "layers.4.uv_estimator.2": false,
+        "layers.4.A_estimator": false,
+        "layers.4.A_estimator.msg_proj": false,
+        "layers.4.A_estimator.msg_proj.0": false,
+        "layers.4.A_estimator.msg_proj.1": false,
+        "layers.4.A_estimator.msg_proj.2": false,
+        "layers.4.A_estimator.user_query_attn": false,
+        "layers.4.A_estimator.user_query_attn.out_proj": false,
+        "layers.4.A_estimator.pair_agg": false,
+        "layers.4.A_estimator.pair_agg.0": false,
+        "layers.4.A_estimator.pair_agg.1": false,
+        "layers.4.A_estimator.pair_agg.2": false,
+        "layers.4.w_solver_attn": false,
+        "layers.4.w_solver_attn.out_proj": false,
+        "layers.4.A_to_bias": false,
+        "layers.4.cross_user_attn": false,
+        "layers.4.cross_user_attn.out_proj": false,
+        "layers.4.norm_cross": false,
+        "layers.4.ffn": false,
+        "layers.4.ffn.0": false,
+        "layers.4.ffn.1": false,
+        "layers.4.ffn.2": false,
+        "layers.4.norm1": false,
+        "layers.4.norm2": false,
+        "layers.4.norm3": false,
+        "h_estimator": false,
+        "h_estimator.0": false,
+        "h_estimator.1": false,
+        "h_estimator.2": false,
+        "residual_head": false,
+        "residual_head.0": false,
+        "residual_head.1": false,
+        "residual_head.2": false
+      }
+    },
+    "lite1024": {
+      "buffers": {
+        "running_pwr": {
+          "shape": [
+            1
+          ],
+          "dtype": "torch.float32",
+          "sha256": "ebfd7d8f0c73d2ccf949a40695e6982001a25d9c566530ee465127ccf58cf93c"
+        },
+        "dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        },
+        "encoder.dft.F": {
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "torch.complex64",
+          "sha256": "10ce2dbab07243a28baa34749d3ee36c787ac271648a581d3321c97fbcc54218"
+        }
+      },
+      "training": {
+        "": false,
+        "dft": false,
+        "encoder": false,
+        "encoder.dft": false,
+        "encoder.fdma_input_proj": false,
+        "encoder.fdma_input_norm": false,
+        "encoder.fdma_backbone": false,
+        "encoder.fdma_backbone.layers": false,
+        "encoder.fdma_backbone.layers.0": false,
+        "encoder.fdma_backbone.layers.0.self_attn": false,
+        "encoder.fdma_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.0.linear1": false,
+        "encoder.fdma_backbone.layers.0.dropout": false,
+        "encoder.fdma_backbone.layers.0.linear2": false,
+        "encoder.fdma_backbone.layers.0.norm1": false,
+        "encoder.fdma_backbone.layers.0.norm2": false,
+        "encoder.fdma_backbone.layers.0.dropout1": false,
+        "encoder.fdma_backbone.layers.0.dropout2": false,
+        "encoder.fdma_backbone.layers.1": false,
+        "encoder.fdma_backbone.layers.1.self_attn": false,
+        "encoder.fdma_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.1.linear1": false,
+        "encoder.fdma_backbone.layers.1.dropout": false,
+        "encoder.fdma_backbone.layers.1.linear2": false,
+        "encoder.fdma_backbone.layers.1.norm1": false,
+        "encoder.fdma_backbone.layers.1.norm2": false,
+        "encoder.fdma_backbone.layers.1.dropout1": false,
+        "encoder.fdma_backbone.layers.1.dropout2": false,
+        "encoder.fdma_backbone.layers.2": false,
+        "encoder.fdma_backbone.layers.2.self_attn": false,
+        "encoder.fdma_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.2.linear1": false,
+        "encoder.fdma_backbone.layers.2.dropout": false,
+        "encoder.fdma_backbone.layers.2.linear2": false,
+        "encoder.fdma_backbone.layers.2.norm1": false,
+        "encoder.fdma_backbone.layers.2.norm2": false,
+        "encoder.fdma_backbone.layers.2.dropout1": false,
+        "encoder.fdma_backbone.layers.2.dropout2": false,
+        "encoder.fdma_backbone.layers.3": false,
+        "encoder.fdma_backbone.layers.3.self_attn": false,
+        "encoder.fdma_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.fdma_backbone.layers.3.linear1": false,
+        "encoder.fdma_backbone.layers.3.dropout": false,
+        "encoder.fdma_backbone.layers.3.linear2": false,
+        "encoder.fdma_backbone.layers.3.norm1": false,
+        "encoder.fdma_backbone.layers.3.norm2": false,
+        "encoder.fdma_backbone.layers.3.dropout1": false,
+        "encoder.fdma_backbone.layers.3.dropout2": false,
+        "encoder.fdma_attn_pool": false,
+        "encoder.fdma_attn_pool.0": false,
+        "encoder.fdma_attn_pool.1": false,
+        "encoder.fdma_attn_pool.2": false,
+        "encoder.fc_fdma": false,
+        "encoder.aircomp_input_proj": false,
+        "encoder.aircomp_input_norm": false,
+        "encoder.aircomp_backbone": false,
+        "encoder.aircomp_backbone.layers": false,
+        "encoder.aircomp_backbone.layers.0": false,
+        "encoder.aircomp_backbone.layers.0.self_attn": false,
+        "encoder.aircomp_backbone.layers.0.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.0.linear1": false,
+        "encoder.aircomp_backbone.layers.0.dropout": false,
+        "encoder.aircomp_backbone.layers.0.linear2": false,
+        "encoder.aircomp_backbone.layers.0.norm1": false,
+        "encoder.aircomp_backbone.layers.0.norm2": false,
+        "encoder.aircomp_backbone.layers.0.dropout1": false,
+        "encoder.aircomp_backbone.layers.0.dropout2": false,
+        "encoder.aircomp_backbone.layers.1": false,
+        "encoder.aircomp_backbone.layers.1.self_attn": false,
+        "encoder.aircomp_backbone.layers.1.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.1.linear1": false,
+        "encoder.aircomp_backbone.layers.1.dropout": false,
+        "encoder.aircomp_backbone.layers.1.linear2": false,
+        "encoder.aircomp_backbone.layers.1.norm1": false,
+        "encoder.aircomp_backbone.layers.1.norm2": false,
+        "encoder.aircomp_backbone.layers.1.dropout1": false,
+        "encoder.aircomp_backbone.layers.1.dropout2": false,
+        "encoder.aircomp_backbone.layers.2": false,
+        "encoder.aircomp_backbone.layers.2.self_attn": false,
+        "encoder.aircomp_backbone.layers.2.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.2.linear1": false,
+        "encoder.aircomp_backbone.layers.2.dropout": false,
+        "encoder.aircomp_backbone.layers.2.linear2": false,
+        "encoder.aircomp_backbone.layers.2.norm1": false,
+        "encoder.aircomp_backbone.layers.2.norm2": false,
+        "encoder.aircomp_backbone.layers.2.dropout1": false,
+        "encoder.aircomp_backbone.layers.2.dropout2": false,
+        "encoder.aircomp_backbone.layers.3": false,
+        "encoder.aircomp_backbone.layers.3.self_attn": false,
+        "encoder.aircomp_backbone.layers.3.self_attn.out_proj": false,
+        "encoder.aircomp_backbone.layers.3.linear1": false,
+        "encoder.aircomp_backbone.layers.3.dropout": false,
+        "encoder.aircomp_backbone.layers.3.linear2": false,
+        "encoder.aircomp_backbone.layers.3.norm1": false,
+        "encoder.aircomp_backbone.layers.3.norm2": false,
+        "encoder.aircomp_backbone.layers.3.dropout1": false,
+        "encoder.aircomp_backbone.layers.3.dropout2": false,
+        "encoder.aircomp_attn_pool": false,
+        "encoder.aircomp_attn_pool.0": false,
+        "encoder.aircomp_attn_pool.1": false,
+        "encoder.aircomp_attn_pool.2": false,
+        "encoder.fc_aircomp": false,
+        "cond_embed": false,
+        "cond_embed.net": false,
+        "cond_embed.net.0": false,
+        "cond_embed.net.1": false,
+        "cond_embed.net.2": false,
+        "fdma_emb": false,
+        "aircomp_emb": false,
+        "ul_emb": false,
+        "cross_subband_attn": false,
+        "cross_subband_attn.layers": false,
+        "cross_subband_attn.layers.0": false,
+        "cross_subband_attn.layers.0.self_attn": false,
+        "cross_subband_attn.layers.0.self_attn.out_proj": false,
+        "cross_subband_attn.layers.0.linear1": false,
+        "cross_subband_attn.layers.0.dropout": false,
+        "cross_subband_attn.layers.0.linear2": false,
+        "cross_subband_attn.layers.0.norm1": false,
+        "cross_subband_attn.layers.0.norm2": false,
+        "cross_subband_attn.layers.0.dropout1": false,
+        "cross_subband_attn.layers.0.dropout2": false,
+        "w_init": false,
+        "w_init.0": false,
+        "w_init.1": false,
+        "w_init.2": false,
+        "layers": false,
+        "layers.0": false,
+        "layers.0.uv_estimator": false,
+        "layers.0.uv_estimator.0": false,
+        "layers.0.uv_estimator.1": false,
+        "layers.0.uv_estimator.2": false,
+        "layers.0.A_estimator": false,
+        "layers.0.A_estimator.msg_proj": false,
+        "layers.0.A_estimator.msg_proj.0": false,
+        "layers.0.A_estimator.msg_proj.1": false,
+        "layers.0.A_estimator.msg_proj.2": false,
+        "layers.0.A_estimator.user_query_attn": false,
+        "layers.0.A_estimator.user_query_attn.out_proj": false,
+        "layers.0.A_estimator.pair_agg": false,
+        "layers.0.A_estimator.pair_agg.0": false,
+        "layers.0.A_estimator.pair_agg.1": false,
+        "layers.0.A_estimator.pair_agg.2": false,
+        "layers.0.w_solver_attn": false,
+        "layers.0.w_solver_attn.out_proj": false,
+        "layers.0.A_to_bias": false,
+        "layers.0.cross_user_attn": false,
+        "layers.0.cross_user_attn.out_proj": false,
+        "layers.0.norm_cross": false,
+        "layers.0.ffn": false,
+        "layers.0.ffn.0": false,
+        "layers.0.ffn.1": false,
+        "layers.0.ffn.2": false,
+        "layers.0.norm1": false,
+        "layers.0.norm2": false,
+        "layers.0.norm3": false,
+        "layers.1": false,
+        "layers.1.uv_estimator": false,
+        "layers.1.uv_estimator.0": false,
+        "layers.1.uv_estimator.1": false,
+        "layers.1.uv_estimator.2": false,
+        "layers.1.A_estimator": false,
+        "layers.1.A_estimator.msg_proj": false,
+        "layers.1.A_estimator.msg_proj.0": false,
+        "layers.1.A_estimator.msg_proj.1": false,
+        "layers.1.A_estimator.msg_proj.2": false,
+        "layers.1.A_estimator.user_query_attn": false,
+        "layers.1.A_estimator.user_query_attn.out_proj": false,
+        "layers.1.A_estimator.pair_agg": false,
+        "layers.1.A_estimator.pair_agg.0": false,
+        "layers.1.A_estimator.pair_agg.1": false,
+        "layers.1.A_estimator.pair_agg.2": false,
+        "layers.1.w_solver_attn": false,
+        "layers.1.w_solver_attn.out_proj": false,
+        "layers.1.A_to_bias": false,
+        "layers.1.cross_user_attn": false,
+        "layers.1.cross_user_attn.out_proj": false,
+        "layers.1.norm_cross": false,
+        "layers.1.ffn": false,
+        "layers.1.ffn.0": false,
+        "layers.1.ffn.1": false,
+        "layers.1.ffn.2": false,
+        "layers.1.norm1": false,
+        "layers.1.norm2": false,
+        "layers.1.norm3": false,
+        "layers.2": false,
+        "layers.2.uv_estimator": false,
+        "layers.2.uv_estimator.0": false,
+        "layers.2.uv_estimator.1": false,
+        "layers.2.uv_estimator.2": false,
+        "layers.2.A_estimator": false,
+        "layers.2.A_estimator.msg_proj": false,
+        "layers.2.A_estimator.msg_proj.0": false,
+        "layers.2.A_estimator.msg_proj.1": false,
+        "layers.2.A_estimator.msg_proj.2": false,
+        "layers.2.A_estimator.user_query_attn": false,
+        "layers.2.A_estimator.user_query_attn.out_proj": false,
+        "layers.2.A_estimator.pair_agg": false,
+        "layers.2.A_estimator.pair_agg.0": false,
+        "layers.2.A_estimator.pair_agg.1": false,
+        "layers.2.A_estimator.pair_agg.2": false,
+        "layers.2.w_solver_attn": false,
+        "layers.2.w_solver_attn.out_proj": false,
+        "layers.2.A_to_bias": false,
+        "layers.2.cross_user_attn": false,
+        "layers.2.cross_user_attn.out_proj": false,
+        "layers.2.norm_cross": false,
+        "layers.2.ffn": false,
+        "layers.2.ffn.0": false,
+        "layers.2.ffn.1": false,
+        "layers.2.ffn.2": false,
+        "layers.2.norm1": false,
+        "layers.2.norm2": false,
+        "layers.2.norm3": false,
+        "layers.3": false,
+        "layers.3.uv_estimator": false,
+        "layers.3.uv_estimator.0": false,
+        "layers.3.uv_estimator.1": false,
+        "layers.3.uv_estimator.2": false,
+        "layers.3.A_estimator": false,
+        "layers.3.A_estimator.msg_proj": false,
+        "layers.3.A_estimator.msg_proj.0": false,
+        "layers.3.A_estimator.msg_proj.1": false,
+        "layers.3.A_estimator.msg_proj.2": false,
+        "layers.3.A_estimator.user_query_attn": false,
+        "layers.3.A_estimator.user_query_attn.out_proj": false,
+        "layers.3.A_estimator.pair_agg": false,
+        "layers.3.A_estimator.pair_agg.0": false,
+        "layers.3.A_estimator.pair_agg.1": false,
+        "layers.3.A_estimator.pair_agg.2": false,
+        "layers.3.w_solver_attn": false,
+        "layers.3.w_solver_attn.out_proj": false,
+        "layers.3.A_to_bias": false,
+        "layers.3.cross_user_attn": false,
+        "layers.3.cross_user_attn.out_proj": false,
+        "layers.3.norm_cross": false,
+        "layers.3.ffn": false,
+        "layers.3.ffn.0": false,
+        "layers.3.ffn.1": false,
+        "layers.3.ffn.2": false,
+        "layers.3.norm1": false,
+        "layers.3.norm2": false,
+        "layers.3.norm3": false,
+        "layers.4": false,
+        "layers.4.uv_estimator": false,
+        "layers.4.uv_estimator.0": false,
+        "layers.4.uv_estimator.1": false,
+        "layers.4.uv_estimator.2": false,
+        "layers.4.A_estimator": false,
+        "layers.4.A_estimator.msg_proj": false,
+        "layers.4.A_estimator.msg_proj.0": false,
+        "layers.4.A_estimator.msg_proj.1": false,
+        "layers.4.A_estimator.msg_proj.2": false,
+        "layers.4.A_estimator.user_query_attn": false,
+        "layers.4.A_estimator.user_query_attn.out_proj": false,
+        "layers.4.A_estimator.pair_agg": false,
+        "layers.4.A_estimator.pair_agg.0": false,
+        "layers.4.A_estimator.pair_agg.1": false,
+        "layers.4.A_estimator.pair_agg.2": false,
+        "layers.4.w_solver_attn": false,
+        "layers.4.w_solver_attn.out_proj": false,
+        "layers.4.A_to_bias": false,
+        "layers.4.cross_user_attn": false,
+        "layers.4.cross_user_attn.out_proj": false,
+        "layers.4.norm_cross": false,
+        "layers.4.ffn": false,
+        "layers.4.ffn.0": false,
+        "layers.4.ffn.1": false,
+        "layers.4.ffn.2": false,
+        "layers.4.norm1": false,
+        "layers.4.norm2": false,
+        "layers.4.norm3": false,
+        "h_estimator": false,
+        "h_estimator.0": false,
+        "h_estimator.1": false,
+        "h_estimator.2": false,
+        "residual_head": false,
+        "residual_head.0": false,
+        "residual_head.1": false,
+        "residual_head.2": false
+      }
+    },
+    "swin": {
+      "buffers": {},
+      "training": {
+        "": false,
+        "encoder": false,
+        "encoder.patch_embed": false,
+        "encoder.patch_embed.proj": false,
+        "encoder.patch_embed.norm": false,
+        "encoder.blocks": false,
+        "encoder.blocks.0": false,
+        "encoder.blocks.0.norm1": false,
+        "encoder.blocks.0.attn": false,
+        "encoder.blocks.0.attn.qkv": false,
+        "encoder.blocks.0.attn.proj": false,
+        "encoder.blocks.0.norm2": false,
+        "encoder.blocks.0.mlp": false,
+        "encoder.blocks.0.mlp.0": false,
+        "encoder.blocks.0.mlp.1": false,
+        "encoder.blocks.0.mlp.2": false,
+        "encoder.blocks.1": false,
+        "encoder.blocks.1.norm1": false,
+        "encoder.blocks.1.attn": false,
+        "encoder.blocks.1.attn.qkv": false,
+        "encoder.blocks.1.attn.proj": false,
+        "encoder.blocks.1.norm2": false,
+        "encoder.blocks.1.mlp": false,
+        "encoder.blocks.1.mlp.0": false,
+        "encoder.blocks.1.mlp.1": false,
+        "encoder.blocks.1.mlp.2": false,
+        "encoder.blocks.2": false,
+        "encoder.blocks.2.norm1": false,
+        "encoder.blocks.2.attn": false,
+        "encoder.blocks.2.attn.qkv": false,
+        "encoder.blocks.2.attn.proj": false,
+        "encoder.blocks.2.norm2": false,
+        "encoder.blocks.2.mlp": false,
+        "encoder.blocks.2.mlp.0": false,
+        "encoder.blocks.2.mlp.1": false,
+        "encoder.blocks.2.mlp.2": false,
+        "encoder.blocks.3": false,
+        "encoder.blocks.3.norm1": false,
+        "encoder.blocks.3.attn": false,
+        "encoder.blocks.3.attn.qkv": false,
+        "encoder.blocks.3.attn.proj": false,
+        "encoder.blocks.3.norm2": false,
+        "encoder.blocks.3.mlp": false,
+        "encoder.blocks.3.mlp.0": false,
+        "encoder.blocks.3.mlp.1": false,
+        "encoder.blocks.3.mlp.2": false,
+        "encoder.norm": false,
+        "encoder.fc": false,
+        "decoder": false,
+        "decoder.fc": false,
+        "decoder.blocks": false,
+        "decoder.blocks.0": false,
+        "decoder.blocks.0.norm1": false,
+        "decoder.blocks.0.attn": false,
+        "decoder.blocks.0.attn.qkv": false,
+        "decoder.blocks.0.attn.proj": false,
+        "decoder.blocks.0.norm2": false,
+        "decoder.blocks.0.mlp": false,
+        "decoder.blocks.0.mlp.0": false,
+        "decoder.blocks.0.mlp.1": false,
+        "decoder.blocks.0.mlp.2": false,
+        "decoder.blocks.1": false,
+        "decoder.blocks.1.norm1": false,
+        "decoder.blocks.1.attn": false,
+        "decoder.blocks.1.attn.qkv": false,
+        "decoder.blocks.1.attn.proj": false,
+        "decoder.blocks.1.norm2": false,
+        "decoder.blocks.1.mlp": false,
+        "decoder.blocks.1.mlp.0": false,
+        "decoder.blocks.1.mlp.1": false,
+        "decoder.blocks.1.mlp.2": false,
+        "decoder.blocks.2": false,
+        "decoder.blocks.2.norm1": false,
+        "decoder.blocks.2.attn": false,
+        "decoder.blocks.2.attn.qkv": false,
+        "decoder.blocks.2.attn.proj": false,
+        "decoder.blocks.2.norm2": false,
+        "decoder.blocks.2.mlp": false,
+        "decoder.blocks.2.mlp.0": false,
+        "decoder.blocks.2.mlp.1": false,
+        "decoder.blocks.2.mlp.2": false,
+        "decoder.blocks.3": false,
+        "decoder.blocks.3.norm1": false,
+        "decoder.blocks.3.attn": false,
+        "decoder.blocks.3.attn.qkv": false,
+        "decoder.blocks.3.attn.proj": false,
+        "decoder.blocks.3.norm2": false,
+        "decoder.blocks.3.mlp": false,
+        "decoder.blocks.3.mlp.0": false,
+        "decoder.blocks.3.mlp.1": false,
+        "decoder.blocks.3.mlp.2": false,
+        "decoder.norm": false,
+        "decoder.final_proj": false
+      }
+    },
+    "csinet": {
+      "buffers": {
+        "encoder.conv_layers.1.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "b4778ff466e73561ec1c918e0177e5919207384f6099994586efa2cb99791200"
+        },
+        "encoder.conv_layers.1.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "f4a9c05b56c0a95003ec772baa3c13e9194de7dd0428902937ef56606a051921"
+        },
+        "encoder.conv_layers.1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.4.running_mean": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "8fe721550bf550342f56c588afb5f9883c1dc94acd1c4471427fcd14256fd759"
+        },
+        "encoder.conv_layers.4.running_var": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "5da9e417593010a74045c43046dfd29fe3f26ea9d6e7b195be7d12667d0e647f"
+        },
+        "encoder.conv_layers.4.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.7.running_mean": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "49c0383d4825001f493f265e2c222607793bf6b2be325cd10bb75791c4d3ffe9"
+        },
+        "encoder.conv_layers.7.running_var": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "cedbbf4e9687176eb1769d3e75fc27a13936e552ba3b336503239ebfbbc7541e"
+        },
+        "encoder.conv_layers.7.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.10.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "239fdabe7b1a83329c40dc3b1bd847bd148f9ceb9bc1ab28f55a04a353d7e6a1"
+        },
+        "encoder.conv_layers.10.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "a602daadf71bf6db9e90a4d949e43a281efd77e443a52f46ce3b2d552e062716"
+        },
+        "encoder.conv_layers.10.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.12.bn1.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "06fd8baf9db51a25769487803ab9be115ebe1a1917ce8395e48a9d59fe3b9d2f"
+        },
+        "encoder.conv_layers.12.bn1.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "89386550bbb1f8eaf7378a651a3bc0bf5530540e7873a5a4707550ea6b7ba4a0"
+        },
+        "encoder.conv_layers.12.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.12.bn2.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "547c8dd830f5bc4ed5e83cd5c3c73359b4b1bbe20b66a593b44f0fc3c2199639"
+        },
+        "encoder.conv_layers.12.bn2.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "a53b10178c0d40b3e529b79405ea1695a4fc4aea15295fa6c71fd7be0756bfc2"
+        },
+        "encoder.conv_layers.12.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.13.bn1.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "1bafa15350d153255368c2ac3d4459882c3e5952af94c6d05b0b8c0c2924f344"
+        },
+        "encoder.conv_layers.13.bn1.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "bc06c3933e5780ea3b75fd0da3d06944570759d3b026a5205d3936a5a2991a8f"
+        },
+        "encoder.conv_layers.13.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "encoder.conv_layers.13.bn2.running_mean": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "c778370975e75763c463051559a15b14a33fdaf67cc97ca97274355a0d8d7c27"
+        },
+        "encoder.conv_layers.13.bn2.running_var": {
+          "shape": [
+            2
+          ],
+          "dtype": "torch.float32",
+          "sha256": "b10210418d41960e850534e7912669d5ea13a88443aab70711b0b193998f49be"
+        },
+        "encoder.conv_layers.13.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.1.running_mean": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "56a80dbf6b5b208e6a7d6d49035b66930b0ad2c518b07f592c6f005d9771bd9e"
+        },
+        "decoder.deconv_layers.1.running_var": {
+          "shape": [
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "66dc57e1bb4f87fdbaa75db2901c3cdf926bed14b0763dcaa91a94a3bc16feb5"
+        },
+        "decoder.deconv_layers.1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.4.running_mean": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "f4e1df27fca3b74887ba8d39f6af46e59d6b3a42a53137b3ad6cb8376656fee7"
+        },
+        "decoder.deconv_layers.4.running_var": {
+          "shape": [
+            8
+          ],
+          "dtype": "torch.float32",
+          "sha256": "2cb7774d4c30344cfc209a87326c9618873551b17affcd12415227e0bba76d31"
+        },
+        "decoder.deconv_layers.4.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.7.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "e7bc5cad62eea2d543dadf27dfc12a0bd099b983a67363acbfeead2859b74d5c"
+        },
+        "decoder.deconv_layers.7.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "13faaeda50eb43a8c714ea3c331cd164f3b78ec14c3c6fdff20af3687bafc959"
+        },
+        "decoder.deconv_layers.7.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.9.bn1.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "7431c87c93ada80f8806f0867171468ea42b7dcd9727376badaff5294c233236"
+        },
+        "decoder.deconv_layers.9.bn1.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "cd664048f4a259c99c1770dbcc531b8cd59408610fd1b2cab107ecab8d18cd22"
+        },
+        "decoder.deconv_layers.9.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.9.bn2.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "c3b7ac67d01ae6b27710119e07a68fa889b6b8bccba4099d79203a7c28a51b89"
+        },
+        "decoder.deconv_layers.9.bn2.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "592f607c72df87e1bc52abc0e9693ef89caabd3abb14eb184be8997e333a2cfd"
+        },
+        "decoder.deconv_layers.9.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.10.bn1.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "bfe26a051ffbb40f5aa2bed7410515e769db2ed95caf2ed8e1ba38fb98d9fa78"
+        },
+        "decoder.deconv_layers.10.bn1.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "4cf3bc61f6b59dc69216d089e91169582b014dbefbb98ef8ece1445ddef511e7"
+        },
+        "decoder.deconv_layers.10.bn1.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        },
+        "decoder.deconv_layers.10.bn2.running_mean": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "60eac22e8fcdcaca472b73c0f4f49f710ef38bbc70eedc55c50293219d171a41"
+        },
+        "decoder.deconv_layers.10.bn2.running_var": {
+          "shape": [
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "2f83ee540e50eefb0604410dcbb93642a1889a621a0ae1629d3878915219ca9b"
+        },
+        "decoder.deconv_layers.10.bn2.num_batches_tracked": {
+          "shape": [],
+          "dtype": "torch.int64",
+          "sha256": "5122dce75724444d57021e512ca3191909f45746f4ae6c8080251644146086cc"
+        }
+      },
+      "training": {
+        "": false,
+        "encoder": false,
+        "encoder.conv_layers": false,
+        "encoder.conv_layers.0": false,
+        "encoder.conv_layers.1": false,
+        "encoder.conv_layers.2": false,
+        "encoder.conv_layers.3": false,
+        "encoder.conv_layers.4": false,
+        "encoder.conv_layers.5": false,
+        "encoder.conv_layers.6": false,
+        "encoder.conv_layers.7": false,
+        "encoder.conv_layers.8": false,
+        "encoder.conv_layers.9": false,
+        "encoder.conv_layers.10": false,
+        "encoder.conv_layers.11": false,
+        "encoder.conv_layers.12": false,
+        "encoder.conv_layers.12.conv1": false,
+        "encoder.conv_layers.12.bn1": false,
+        "encoder.conv_layers.12.relu": false,
+        "encoder.conv_layers.12.conv2": false,
+        "encoder.conv_layers.12.bn2": false,
+        "encoder.conv_layers.13": false,
+        "encoder.conv_layers.13.conv1": false,
+        "encoder.conv_layers.13.bn1": false,
+        "encoder.conv_layers.13.relu": false,
+        "encoder.conv_layers.13.conv2": false,
+        "encoder.conv_layers.13.bn2": false,
+        "encoder.fc": false,
+        "decoder": false,
+        "decoder.fc": false,
+        "decoder.deconv_layers": false,
+        "decoder.deconv_layers.0": false,
+        "decoder.deconv_layers.1": false,
+        "decoder.deconv_layers.2": false,
+        "decoder.deconv_layers.3": false,
+        "decoder.deconv_layers.4": false,
+        "decoder.deconv_layers.5": false,
+        "decoder.deconv_layers.6": false,
+        "decoder.deconv_layers.7": false,
+        "decoder.deconv_layers.8": false,
+        "decoder.deconv_layers.9": false,
+        "decoder.deconv_layers.9.conv1": false,
+        "decoder.deconv_layers.9.bn1": false,
+        "decoder.deconv_layers.9.relu": false,
+        "decoder.deconv_layers.9.conv2": false,
+        "decoder.deconv_layers.9.bn2": false,
+        "decoder.deconv_layers.10": false,
+        "decoder.deconv_layers.10.conv1": false,
+        "decoder.deconv_layers.10.bn1": false,
+        "decoder.deconv_layers.10.relu": false,
+        "decoder.deconv_layers.10.conv2": false,
+        "decoder.deconv_layers.10.bn2": false,
+        "decoder.final_conv": false
+      }
+    }
+  },
+  "checkpoint_and_buffers_unchanged": true,
+  "summary_rows": 24
+}
