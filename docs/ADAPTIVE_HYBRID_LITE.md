@@ -201,3 +201,70 @@ The new tests cover original snapshots/fingerprints, unchanged trainer algorithm
 ### Local checks actually executed for the entry
 
 On 2026-10-01, the new 32-test suite completed with 30 passing and 2 explicitly skipped, no failures/errors. The skips were the actual Lite CPU factory/checkpoint test (missing sionna.phy) and the real directory-symlink fixture (Windows privilege unavailable). Mocked symlink-decision tests passed but do not replace the real filesystem fixture. The unchanged 16-model-test suite was also rerun: 3 static tests passed and 13 numerical tests skipped for missing sionna.phy. Dry-run/no-argument checks, source AST parsing and diff whitespace checks passed. No optimizer step, GPU preflight, smoke training or real evaluation ran. Pre/post SHA-256 checks confirmed that both model files, the existing 16-test source and pre-existing plotting/figure work were unchanged.
+
+## Independent four-model evaluation (2026-10-02)
+
+### User-reported training completion, not independent test evidence
+
+The user reports that the seed42 K4/Nt32/Nsc256/Dtot256 pure-AS Lite1024 run completed 50,000 steps from random initialization using k4_n256_standard. The reported selected best step is 49,500, with validation mean_all=18.583; the final step has mean_all=18.581. The reported selected-step validation rates at matched FB=DL=[0,10,20,25] dB are approximately [6.06,14.17,24.87,29.24] bps/Hz. These are validation records supplied by the user, not locally inspected checkpoint contents or independent test results. They must never populate the new evaluation CSVs. The real checkpoints are absent locally. The evaluator explicitly refuses a Lite best step different from the reported 49,500, rather than rewriting metadata.
+
+The existing parameter measurements are unchanged: Original/Lite full counts 20,209,115/16,006,619, and encoder+condition counts 10,877,090/6,674,594. These are not MAC counts, measured latency or a speedup ratio.
+
+### Fixed models and loading boundary
+
+New entry: evaluate_proposal_lite.py. New tests: tests/test_lite_evaluation.py. No existing evaluator, training code, config, model, result or paper file is changed.
+
+The four exact repository-relative best checkpoints are:
+
+~~~text
+runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth
+runs_as_screen/proposal_lite/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_ueffn1024_seed42/best.pth
+runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth
+runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth
+~~~
+
+There is no checkpoint discovery, path override, universal/robust model or best-of-test curve. Original and Lite have distinct method_key values original/lite1024 but both retain model_key=proposed for the public evaluator's forward/metric dispatch. Lite is explicitly constructed as AdaptiveHybridPrecoderLite(runtime_cfg, ue_ffn_dim=1024) using proposal_runtime_config. Strict loading, eval mode, singleton supported grid [(0,256)], running_pwr shape (1,), index 0 and retained maximum widths (64,256) are required. UE FFNs and unchanged BS FFNs (2048/512) are checked. Original and FDMA baseline loading reuse the existing strict builders; the unchanged eval-only h_estimator hook recovers H_hat without switching to train mode.
+
+Before evaluation, each actual best and latest is read and checked against saved config/status. The existing completion resolver supports checkpoint-adjacent proposal/Lite records and baseline logs/<experiment> records. Ambiguous conflicting sidecars are rejected. Saved recipe/architecture/scenario/seed/allocation fields are compared explicitly, including the original full standard recipe (proposal VAL_BATCH=32; baseline VAL_BATCH=64). Saved fingerprints are recomputed from historical saved configs, not relocated output paths. Best selected steps are distinct from completed latest/status steps (50,000); Lite best must be 49,500. Full configs and actual steps/hashes go into the manifest. These checks establish saved training configuration and completion, not a reconstruction of unavailable historical source or initialization events.
+
+### Protocol, statistics and output
+
+Both proposals use (0,256); Swin/CsiNet+ use (64,0). The fixed protocol is K4/Nt32/Nsc256/Dtot256/Nsb4, FB=[0,5,10,15,20,25] dB, DL=25 dB, batch size 8 and seed 20261002. Formal evaluation has 200 batches (1600 complete multi-user channel realizations per condition); preflight has one batch (8 per condition). Both have exactly 24 conditions. All four methods are freshly evaluated together; no old CSV means are merged. This is not another validation sweep for checkpoint or hyperparameter selection.
+
+One call to baseline_evaluate.evaluate_scenario shares each H_dl/H_ul batch across all four methods and all six SNR points. Its channel/feedback seed formulas, channel generator, relative received-SNR convention, normalization, RZF and rate metrics are unchanged. No probes or numerical backend setters are added. Per-condition reseeding gives common base noise only where RNG-call shapes/order match; it does not mean identical absolute AS/FDMA noise powers. All registered buffers (including non-persistent ones) and module modes are hashed/recorded before and after evaluation, including failure paths. Best/latest and sidecar file hashes are also compared. Any change aborts successful output publication.
+
+Main fields retain evaluator sum_rate_mean, sum_rate_se and normal-approximation 95% CI (mean +/- 1.96 SE). Raw NMSE remains the mean of per-channel dB representation errors against H_dl, a secondary diagnostic, not a task-performance ranking. Existing precoder_power is summed over all subcarriers (nominal 256, not 1). Summary/raw consistency checks allow only 1e-6 absolute/relative float32 reduction rounding; original summary values are preserved.
+
+The 12 paired-difference rows are Lite minus Original and Lite minus Swin at each of six SNRs. Each difference is formed first for the same sample_index, then mean, sample standard deviation / sqrt(N), and 95% CI are computed. The denominator is 8 or 1600 channel realizations, not user/subcarrier count. Negative differences are preserved. Duplicate/missing samples or conditions, inconsistent settings and non-finite metric values are rejected before successful output publication.
+
+Every invocation creates a new preflight_<UTC timestamp>/ or formal_<UTC timestamp>/ under:
+
+~~~text
+runs_as_screen/evaluation/k4_pure_as_lite1024/
+~~~
+
+Existing directories are never reused; symlink/junction or resolved-path escape is rejected. Files are summary_k4_pure_as_lite1024.csv, samples_k4_pure_as_lite1024.csv.gz, results_k4_pure_as_lite1024.json, metadata_k4_pure_as_lite1024.json, plot_k4_pure_as_lite1024.csv, paired_deltas_k4_pure_as_lite1024.csv, parameters_k4_pure_as_lite1024.csv and manifest.json. The plot CSV is data only: no figures are generated. Each data table labels preflight/formal role. The manifest records actual classes/widths, checkpoint provenance, protocol, software/backend settings, runtime Git commit and source hashes. A failed new directory remains marked failed; do not treat it as completed formal data. No paper/data, figures or old evaluation directory is written.
+
+### Server commands (not executed locally)
+
+After safely pulling this change, from the repository root in the existing environment:
+
+~~~bash
+python -X utf8 -B evaluate_proposal_lite.py --dry-run
+python -X utf8 -B -m unittest discover -s tests -p test_lite_evaluation.py -v
+python -X utf8 -B evaluate_proposal_lite.py --preflight
+~~~
+
+Only after preflight passes, run the fixed independent test:
+
+~~~bash
+python -X utf8 -B evaluate_proposal_lite.py --evaluate
+~~~
+
+No arguments show help. Modes are mutually exclusive. Dry-run reads only file availability and sidecar JSON; it cannot verify internal checkpoint steps or successful tensor loading. Real loading, GPU preflight and the formal 1600-sample evaluation remain server-side actions; none were executed during local code preparation.
+
+### Evaluation-entry checks actually executed locally
+
+On 2026-10-02, the new suite ran 28 tests: 27 passed, one explicitly skipped, no failures/errors. The skipped test requires sionna.phy for an actual Lite synthetic-state CPU adapter load; no dependency was installed or bypassed. Passing tests use synthetic records and tiny CPU buffer fixtures, not real checkpoints, channel generation or model evaluation. They cover exact plans/provenance, strict-loader source checks, singleton/max-width separation, 24-condition coverage, missing/duplicate/non-finite rejection, paired SE/CI and negative differences, float32 summary preservation, path protection and eval-buffer/mode mutation detection. The real-workspace dry-run correctly returned exit code 1 with exact missing checkpoint/sidecar paths and created no output directory. AST parsing and diff checks passed. SHA-256 comparison confirmed the protected models, trainer, training entry, evaluator, existing configs and manual plotting/figure files were unchanged.
+
+Proposal rzf_lambda is populated in result metadata with the inherited solver's already-fixed 1e-3, avoiding an unavailable-value NaN in JSON. This LoadedMethod reporting field is not used by the proposed forward branch and does not change the model, runtime solver or regularization.
