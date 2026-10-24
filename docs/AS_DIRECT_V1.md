@@ -90,7 +90,7 @@ optimizer creation and save `architecture_metadata` plus the complete source
 configuration. This task does not add or enable such an entry and does not
 change old fingerprints or checkpoint formats.
 
-## Validation record and remaining checks
+## Initial local validation at 41fc81f
 
 Local environment: Python 3.12, PyTorch `2.6.0+cpu`; normal original-model import
 requires unavailable `sionna.phy`. No dependencies were installed, stubbed, or
@@ -132,7 +132,106 @@ They do not perform optimizer steps. Fixed tolerances are
 pass. Numerical replay prints actual maximum absolute differences.
 
 **Local zero-gate maximum error: not measured (dependency skip), not zero.**
-The +5 count follows from the five new scalar gates; runtime count verification,
-strict synthetic loading, gradients, and numerical replay remain pending the
-above CPU command. Real-checkpoint and GPU behavior are also unverified and
-are outside this implementation-only task. No performance gain is claimed.
+At that initial local stage, runtime parameter counting, strict synthetic loading,
+gradients and numerical replay were pending. The subsequently reported server
+CPU acceptance is recorded below. Real-checkpoint/CUDA behavior is still
+unverified. No performance gain is claimed.
+
+## Reported server CPU acceptance
+
+For accepted code `41fc81f8d370d3f52b5a8910dafbb32abad96a32`, the user reported
+that `tests/test_adaptive_hybrid_as_direct.py` completed on the server with
+**18 passed, 0 failures/errors/skips**. The maximum absolute and relative
+differences were both **0** for `H_hat`, `W_train`, `W_eval`, and
+`deployed_RZF` with zero gates. Log reference, relative to the server's
+03_PRECODER checkout: `terminal_logs/as_direct_cpu_OZ1waP0M`.
+
+This is the user's server acceptance record, not a log independently fetched
+in this task. It covers the synthetic CPU tests, not a real-checkpoint CUDA
+run. The original local dependency skips above remain a historical record;
+the complete model test suite was not rerun on the laptop this round.
+
+## Independent real-checkpoint CUDA preflight
+
+`preflight_proposal_as_direct.py` is a preflight tool, **not a training entry**.
+No arguments show help. `--dry-run` uses the standard library only: it reads
+the small archived manifest, but does not import models/Torch/Sionna, open
+checkpoint bytes, test checkpoint availability, or create result directories.
+
+```bash
+python -B -S preflight_proposal_as_direct.py --dry-run
+# Only in the existing CUDA environment, from the 03_PRECODER checkout:
+python -u preflight_proposal_as_direct.py --run
+```
+
+The source is exactly `robust_specialist` in
+`paper/data/diagnostics/k4_low_feedback_snr/validation256_cudnn_deterministic_20260930T165938_038117Z/diagnostic_manifest.json`.
+Its recorded checkpoint SHA-256 is pinned to
+`e21ea1feae595e0898b6be724f7062b05c09b2d1ef03fe9ffec7ac91869064bf`, with
+selected step `20000` and completed robust-refinement training. The default
+path is the recorded checkpoint path; it is not replaced by a search or a
+different checkpoint. `--checkpoint PATH` can relocate the **same bytes**;
+relative overrides are resolved from this script's repository root. Hashing
+and deserialization use the same open binary handle. File hashes are checked
+again after the run. No new weights are saved.
+
+Before model state loading, the tool checks the complete saved config against
+the manifest (normalizing JSON-equivalent tuples/lists only), saved step and
+allocation grid. It maps the archived dimensions to a runtime namespace:
+K4/Nt32/Nsc256/Dtot256/Nsb4, Full UE FFN2048, maximum widths `(64,256)`,
+singleton `GAMMA_GRID=[(0,256)]`, `running_pwr.shape=(1,)`, and `cfg_idx=0`.
+The full architecture grid is not substituted for the supported singleton.
+Original uses `strict=True`; ASDirect uses the explicit migration helper,
+which also loads strictly. The preflight checks that the only additions are
+five zero scalar gates and all other source parameters/buffers are unchanged.
+
+`--run` fails without CUDA, with no CPU fallback. It uses exactly two synthetic
+complex64 multi-user samples of the formal tensor size, never CDL or held-out
+experiment data. The fixed master seed is `20261024`; channel tensors are
+shared across FB SNR `0/10/25` dB, with DL SNR fixed at `25` dB. Train-mode
+paired replay/backward use seed `20261025`; eval-mode pairs use `20261026`.
+Each pair restores Python/NumPy/Torch CPU/all-CUDA RNG states and begins with
+the same loaded buffers. Train and eval are compared separately, not to each
+other. Training forward's expected `running_pwr` update is recorded and
+restored; unexpected buffer changes fail the preflight.
+
+The checks compare zero-gate `H_hat`, normalized deployment RZF, eval output,
+and the legacy training-return interface at fixed `rtol=atol=1e-6`. Reports
+contain actual maximum absolute/relative differences; the relative-error
+denominator floor is `1e-12`, distinct from the unchanged acceptance tolerance.
+Power checks sum across users and antennas on every subcarrier.
+
+For each feedback SNR, a separate backward check uses the real task path:
+`H_hat -> model.zf_solver -> total-power normalization -> main_train.SumRateLoss`,
+with DL noise `10**(-25/10)`. The legacy residual `W_train` is not the loss
+input. All populated gradients must be finite; the five gate gradients must
+exist, be finite, and have nonzero combined norm. Missing gradients on inactive
+FDMA or unused legacy parameters are reported, not incorrectly treated as a
+failure. There is no optimizer, parameter update, gradient clipping, scheduler,
+or change of precision, determinism, attention backend, noise or RZF settings.
+
+Each actual invocation creates a new timestamp/UUID directory under
+`runs_as_screen/diagnostics/as_direct_v1/`, with exclusive, non-overwriting
+`report.json`. It records source config/hash/step, code commit/source hashes,
+software/effective numerical backends, seeds, errors, power checks, gate
+gradients, buffer changes, and pass/fail status. Failed conditions retain their
+partial evidence and return a nonzero exit code. Nonfinite report metrics are
+represented by null plus explicit field paths and force failure; they cannot
+silently prevent a failure report from being serialized. Synthetic rates in
+this report are diagnostics, not performance results or checkpoint selection.
+
+Local checks for this tool: **31 standard-library tests passed, 0 failures,
+errors or skips**, plus syntax checks and `--dry-run`. The tests cover CLI
+isolation, source/config/hash rejection, same-handle hashing, output collision
+protection, and valid failure JSON. They use only archived JSON and arbitrary
+temporary byte fixtures, not serialized real weights or mocked dependencies.
+
+```bash
+python -X utf8 -B -S -m unittest discover -s tests -p test_preflight_proposal_as_direct.py -v
+```
+
+**CUDA/real-checkpoint preflight has not been run in this task.** No SSH
+connection, checkpoint download, model test rerun, training, performance
+evaluation, profiling, plotting, or paper change was performed. Future
+training still needs explicit migration before optimizer creation; this tool
+does not make the existing `init_checkpoint` branch accept missing gate keys.
