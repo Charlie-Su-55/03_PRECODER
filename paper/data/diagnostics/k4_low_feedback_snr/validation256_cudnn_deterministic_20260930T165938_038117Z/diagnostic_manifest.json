@@ -1,0 +1,1185 @@
+{
+  "created_utc": "20260930T165938_039390Z",
+  "dataset_role": "configuration_selection_validation_not_formal_test",
+  "formal_test": false,
+  "preflight": false,
+  "seed": 20360928,
+  "num_samples": 256,
+  "batch_size": 8,
+  "num_batches": 32,
+  "feedback_snr_db": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    25
+  ],
+  "downlink_snr_db": 25,
+  "strict_loading": true,
+  "channels": {
+    "seed": 20360928,
+    "num_samples": 256,
+    "batch_size": 8,
+    "scenario_id": "K4_Nsc256_Dfb256",
+    "dataset_role": "configuration_selection_validation_not_formal_test",
+    "sha256": "3abbb54c50f092c65ad9938dce72f222b081a7d089910b4a37b822e6e09d0787",
+    "generation": "Unmodified evaluator channel generator; batch seed = seed + stable_int(scenario_id) + batch_index.",
+    "software": {
+      "torch": "2.11.0",
+      "numpy": "2.4.4",
+      "sionna": "2.0.1"
+    },
+    "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/diagnostics/k4_low_feedback_snr/validation_channels_seed20360928_b8_n256/channels.npz",
+    "manifest_path": "/home/r50037942/project/03_PRECODER/runs_as_screen/diagnostics/k4_low_feedback_snr/validation_channels_seed20360928_b8_n256/channels.json"
+  },
+  "methods": [
+    {
+      "method_key": "specialist_df64_da0",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (64,0)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f100_a000_df64_da0_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "db652e48cce3635170e3b6bfd9a67faf7f7c5e269fde6645c9ec74d70ef0b496",
+      "training_mode": "fixed_allocation_base_specialist",
+      "loaded_checkpoint_config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_standard",
+          "seed": 42,
+          "allocation": [
+            64,
+            0
+          ],
+          "variant": ""
+        },
+        "allocations": [
+          [
+            64,
+            0
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_standard",
+          "total_steps": 50000,
+          "batch_size": 48,
+          "lr": 0.0001,
+          "val_interval": 500,
+          "val_batch": 32,
+          "warmup_pct": 0.35,
+          "grad_clip": 1.0,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            20.0,
+            25.0
+          ],
+          "stage2_snr": [
+            10.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 50.0,
+          "ph1_w_mse": 100.0,
+          "ph2_w_dir": 5.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 0.0001,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all"
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f100_a000_df64_da0_sb4_k4_n256_standard_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f100_a000_df64_da0_sb4_k4_n256_standard_seed42",
+          "phase1_steps": 20000,
+          "stage1_steps": 15000,
+          "stage2_steps": 35000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        }
+      },
+      "checkpoint_step": 49000,
+      "cfg_index": 0
+    },
+    {
+      "method_key": "specialist_df48_da64",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (48,64)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f075_a025_df48_da64_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          48,
+          64
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "0bd05a71d7bfe7a44b4679f68024e6fdf8c382bf7e997c487a51a876cdb47670",
+      "training_mode": "fixed_allocation_base_specialist",
+      "loaded_checkpoint_config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_standard",
+          "seed": 42,
+          "allocation": [
+            48,
+            64
+          ],
+          "variant": ""
+        },
+        "allocations": [
+          [
+            48,
+            64
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_standard",
+          "total_steps": 50000,
+          "batch_size": 48,
+          "lr": 0.0001,
+          "val_interval": 500,
+          "val_batch": 32,
+          "warmup_pct": 0.35,
+          "grad_clip": 1.0,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            20.0,
+            25.0
+          ],
+          "stage2_snr": [
+            10.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 50.0,
+          "ph1_w_mse": 100.0,
+          "ph2_w_dir": 5.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 0.0001,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all"
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f075_a025_df48_da64_sb4_k4_n256_standard_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f075_a025_df48_da64_sb4_k4_n256_standard_seed42",
+          "phase1_steps": 20000,
+          "stage1_steps": 15000,
+          "stage2_steps": 35000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        }
+      },
+      "checkpoint_step": 47500,
+      "cfg_index": 0
+    },
+    {
+      "method_key": "specialist_df32_da128",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (32,128)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f050_a050_df32_da128_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          32,
+          128
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "d30a98fe746a401895b8d6e6453404964b89ee798db2e183c44d0d99d230db99",
+      "training_mode": "fixed_allocation_base_specialist",
+      "loaded_checkpoint_config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_standard",
+          "seed": 42,
+          "allocation": [
+            32,
+            128
+          ],
+          "variant": ""
+        },
+        "allocations": [
+          [
+            32,
+            128
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_standard",
+          "total_steps": 50000,
+          "batch_size": 48,
+          "lr": 0.0001,
+          "val_interval": 500,
+          "val_batch": 32,
+          "warmup_pct": 0.35,
+          "grad_clip": 1.0,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            20.0,
+            25.0
+          ],
+          "stage2_snr": [
+            10.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 50.0,
+          "ph1_w_mse": 100.0,
+          "ph2_w_dir": 5.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 0.0001,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all"
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f050_a050_df32_da128_sb4_k4_n256_standard_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f050_a050_df32_da128_sb4_k4_n256_standard_seed42",
+          "phase1_steps": 20000,
+          "stage1_steps": 15000,
+          "stage2_steps": 35000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        }
+      },
+      "checkpoint_step": 46500,
+      "cfg_index": 0
+    },
+    {
+      "method_key": "specialist_df16_da192",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (16,192)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f025_a075_df16_da192_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          16,
+          192
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "43b5d44f4ad858a63aac7ca38d542ad7b19c64b95d6d09627a338e17da609045",
+      "training_mode": "fixed_allocation_base_specialist",
+      "loaded_checkpoint_config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_standard",
+          "seed": 42,
+          "allocation": [
+            16,
+            192
+          ],
+          "variant": ""
+        },
+        "allocations": [
+          [
+            16,
+            192
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_standard",
+          "total_steps": 50000,
+          "batch_size": 48,
+          "lr": 0.0001,
+          "val_interval": 500,
+          "val_batch": 32,
+          "warmup_pct": 0.35,
+          "grad_clip": 1.0,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            20.0,
+            25.0
+          ],
+          "stage2_snr": [
+            10.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 50.0,
+          "ph1_w_mse": 100.0,
+          "ph2_w_dir": 5.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 0.0001,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all"
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f025_a075_df16_da192_sb4_k4_n256_standard_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f025_a075_df16_da192_sb4_k4_n256_standard_seed42",
+          "phase1_steps": 20000,
+          "stage1_steps": 15000,
+          "stage2_steps": 35000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        }
+      },
+      "checkpoint_step": 47000,
+      "cfg_index": 0
+    },
+    {
+      "method_key": "specialist_df0_da256",
+      "model_key": "proposed",
+      "method_type": "specialist",
+      "label": "Specialist (0,256)",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42/best.pth",
+      "allocations": [
+        [
+          0,
+          256
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "6c0a43998caca585c12091bb51a2b8d9862ae3fde82741d0b82c04db3cc2ae6f",
+      "training_mode": "fixed_allocation_base_specialist",
+      "loaded_checkpoint_config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_standard",
+          "seed": 42,
+          "allocation": [
+            0,
+            256
+          ],
+          "variant": ""
+        },
+        "allocations": [
+          [
+            0,
+            256
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_standard",
+          "total_steps": 50000,
+          "batch_size": 48,
+          "lr": 0.0001,
+          "val_interval": 500,
+          "val_batch": 32,
+          "warmup_pct": 0.35,
+          "grad_clip": 1.0,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            20.0,
+            25.0
+          ],
+          "stage2_snr": [
+            10.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            10,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 50.0,
+          "ph1_w_mse": 100.0,
+          "ph2_w_dir": 5.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 0.0001,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all"
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_specialists/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_standard_seed42",
+          "phase1_steps": 20000,
+          "stage1_steps": 15000,
+          "stage2_steps": 35000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        }
+      },
+      "checkpoint_step": 50000,
+      "cfg_index": 0
+    },
+    {
+      "method_key": "robust_specialist",
+      "model_key": "proposed",
+      "method_type": "robust_specialist",
+      "label": "Existing FB-SNR-robust pure-AS",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_snr_robust/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_fb_robust_ft_seed42/best.pth",
+      "allocations": [
+        [
+          0,
+          256
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "e21ea1feae595e0898b6be724f7062b05c09b2d1ef03fe9ffec7ac91869064bf",
+      "training_mode": "fixed_allocation_robust_refinement",
+      "loaded_checkpoint_config": {
+        "experiment": {
+          "model_name": "proposal",
+          "train_mode": "specialist",
+          "k_users": 4,
+          "subcarriers": 256,
+          "feedback_budget": 256,
+          "recipe_name": "k4_n256_fb_robust_ft",
+          "seed": 42,
+          "allocation": [
+            0,
+            256
+          ],
+          "variant": ""
+        },
+        "allocations": [
+          [
+            0,
+            256
+          ]
+        ],
+        "full_allocation_grid": [
+          [
+            64,
+            0
+          ],
+          [
+            48,
+            64
+          ],
+          [
+            32,
+            128
+          ],
+          [
+            16,
+            192
+          ],
+          [
+            0,
+            256
+          ]
+        ],
+        "training_recipe": {
+          "name": "k4_n256_fb_robust_ft",
+          "total_steps": 20000,
+          "batch_size": 48,
+          "lr": 2e-05,
+          "val_interval": 500,
+          "val_batch": 64,
+          "warmup_pct": 0.1,
+          "grad_clip": 0.5,
+          "phase1_pct": 0.4,
+          "snr_stage1_pct": 0.3,
+          "snr_stage2_pct": 0.7,
+          "stage1_snr": [
+            0.0,
+            25.0
+          ],
+          "stage2_snr": [
+            0.0,
+            25.0
+          ],
+          "stage3_snr": [
+            0.0,
+            25.0
+          ],
+          "val_snr_list": [
+            0,
+            5,
+            10,
+            15,
+            20,
+            25
+          ],
+          "dir_mode": "real",
+          "ph1_w_dir": 0.0,
+          "ph1_w_mse": 0.0,
+          "ph2_w_dir": 0.0,
+          "ph2_w_mse": 0.0,
+          "weight_decay": 1e-05,
+          "data_cache_size": 1,
+          "log_interval": 100,
+          "best_metric": "mean_all",
+          "downlink_snr_db": 25.0
+        },
+        "physical": {
+          "ANTENNAS": 32,
+          "CARRIER_FREQ": 3500000000.0,
+          "SPEED": 1.0,
+          "TOTAL_POWER": 1.0,
+          "NUM_SUBBANDS": 4
+        },
+        "proposal_model": {
+          "D_MODEL": 256,
+          "NUM_HEADS": 8,
+          "NUM_ENCODER_LAYERS": 4,
+          "DROPOUT": 0.1,
+          "NUM_UNFOLD_LAYERS": 5,
+          "GNN_AGG_DIM": 48,
+          "NUM_DECODER_LAYERS": 4,
+          "NUM_ITERATIONS": 5
+        },
+        "baseline_model": {
+          "SWIN_NC": 32,
+          "SWIN_PATCH_SIZE": 4,
+          "SWIN_EMBED_DIMS": [
+            128
+          ],
+          "SWIN_NUM_HEADS": [
+            4
+          ],
+          "SWIN_NUM_BLOCKS": [
+            4
+          ],
+          "SWIN_WINDOW_SIZE": 4,
+          "SWIN_MLP_RATIO": 4.0,
+          "CSINET_NC": 32,
+          "CSINET_ENC_CHANNELS": [
+            16,
+            8,
+            4,
+            2
+          ],
+          "CSINET_DEC_CHANNELS": [
+            2,
+            4,
+            8,
+            16
+          ]
+        },
+        "resolved": {
+          "exp_name": "hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_fb_robust_ft_seed42",
+          "save_dir": "/home/r50037942/project/03_PRECODER/runs_as_screen/proposal_snr_robust/checkpoints/hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_k4_n256_fb_robust_ft_seed42",
+          "phase1_steps": 8000,
+          "stage1_steps": 6000,
+          "stage2_steps": 14000,
+          "d_f_max_per_user": 64,
+          "d_a_max_shared": 256
+        }
+      },
+      "checkpoint_step": 20000,
+      "cfg_index": 0
+    },
+    {
+      "method_key": "swin",
+      "model_key": "swin",
+      "method_type": "Swin",
+      "label": "Swin-based FDMA",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "c913f3477f6af74665d7ba1b11a7a8e06bdea8c051822205ace1a8a071489276",
+      "training_mode": "task_trained_analog_FDMA",
+      "loaded_checkpoint_config": {
+        "MODEL_NAME": "swin",
+        "SCENARIO_NAME": "k4_n256_d256",
+        "OBJECTIVE": "task",
+        "OUTPUT_ROOT": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines",
+        "K_USERS": 4,
+        "ANTENNAS": 32,
+        "SUBCARRIERS": 256,
+        "D_TOT": 256,
+        "D_F": 64,
+        "CARRIER_FREQ": 3500000000.0,
+        "SPEED": 1.0,
+        "TOTAL_POWER": 1.0,
+        "RZF_REG": 0.001,
+        "SEED": 42,
+        "TOTAL_STEPS": 50000,
+        "BATCH_SIZE": 48,
+        "VAL_BATCH": 64,
+        "VAL_INTERVAL": 500,
+        "LOG_INTERVAL": 100,
+        "DATA_CACHE_SIZE": 1,
+        "LR": 0.0001,
+        "WEIGHT_DECAY": 0.0001,
+        "WARMUP_PCT": 0.35,
+        "GRAD_CLIP": 1.0,
+        "SNR_STAGE1_END": 15000,
+        "SNR_STAGE2_END": 35000,
+        "STAGE1_SNR": [
+          20.0,
+          25.0
+        ],
+        "STAGE2_SNR": [
+          10.0,
+          25.0
+        ],
+        "STAGE3_SNR": [
+          0.0,
+          25.0
+        ],
+        "VAL_SNR_LIST": [
+          0,
+          10,
+          20,
+          25
+        ],
+        "SHARE_USER_WEIGHTS": true,
+        "CSINET_NC": 32,
+        "CSINET_ENC_CHANNELS": [
+          16,
+          8,
+          4,
+          2
+        ],
+        "CSINET_DEC_CHANNELS": [
+          2,
+          4,
+          8,
+          16
+        ],
+        "SWIN_NC": 32,
+        "SWIN_PATCH_SIZE": 4,
+        "SWIN_EMBED_DIM": 128,
+        "SWIN_NUM_HEADS": 4,
+        "SWIN_NUM_BLOCKS": 4,
+        "SWIN_WINDOW_SIZE": 4,
+        "SWIN_MLP_RATIO": 4.0,
+        "DIM_FDMA_PER_USER": 64,
+        "DIM_AIRCOMP_SHARED": 0,
+        "SWIN_CODEWORD_DIM": 128,
+        "EXP_NAME": "swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "SAVE_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "BEST_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+        "SAVE_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+        "LOG_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "METRICS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/metrics.jsonl",
+        "STATUS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/swin_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+      },
+      "checkpoint_step": 49000,
+      "cfg_index": null
+    },
+    {
+      "method_key": "csinet",
+      "model_key": "csinet",
+      "method_type": "CsiNet+",
+      "label": "CsiNet+-based FDMA",
+      "path": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+      "allocations": [
+        [
+          64,
+          0
+        ]
+      ],
+      "training_status": "completed",
+      "checkpoint_sha256": "d269922c1f07515e306122de027ca18b283860848ea665ba8733aa5a41ccc287",
+      "training_mode": "task_trained_analog_FDMA",
+      "loaded_checkpoint_config": {
+        "MODEL_NAME": "csinet",
+        "SCENARIO_NAME": "k4_n256_d256",
+        "OBJECTIVE": "task",
+        "OUTPUT_ROOT": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines",
+        "K_USERS": 4,
+        "ANTENNAS": 32,
+        "SUBCARRIERS": 256,
+        "D_TOT": 256,
+        "D_F": 64,
+        "CARRIER_FREQ": 3500000000.0,
+        "SPEED": 1.0,
+        "TOTAL_POWER": 1.0,
+        "RZF_REG": 0.001,
+        "SEED": 42,
+        "TOTAL_STEPS": 50000,
+        "BATCH_SIZE": 48,
+        "VAL_BATCH": 64,
+        "VAL_INTERVAL": 500,
+        "LOG_INTERVAL": 100,
+        "DATA_CACHE_SIZE": 1,
+        "LR": 0.0001,
+        "WEIGHT_DECAY": 0.0001,
+        "WARMUP_PCT": 0.35,
+        "GRAD_CLIP": 1.0,
+        "SNR_STAGE1_END": 15000,
+        "SNR_STAGE2_END": 35000,
+        "STAGE1_SNR": [
+          20.0,
+          25.0
+        ],
+        "STAGE2_SNR": [
+          10.0,
+          25.0
+        ],
+        "STAGE3_SNR": [
+          0.0,
+          25.0
+        ],
+        "VAL_SNR_LIST": [
+          0,
+          10,
+          20,
+          25
+        ],
+        "SHARE_USER_WEIGHTS": true,
+        "CSINET_NC": 32,
+        "CSINET_ENC_CHANNELS": [
+          16,
+          8,
+          4,
+          2
+        ],
+        "CSINET_DEC_CHANNELS": [
+          2,
+          4,
+          8,
+          16
+        ],
+        "SWIN_NC": 32,
+        "SWIN_PATCH_SIZE": 4,
+        "SWIN_EMBED_DIM": 128,
+        "SWIN_NUM_HEADS": 4,
+        "SWIN_NUM_BLOCKS": 4,
+        "SWIN_WINDOW_SIZE": 4,
+        "SWIN_MLP_RATIO": 4.0,
+        "DIM_FDMA_PER_USER": 64,
+        "DIM_AIRCOMP_SHARED": 0,
+        "SWIN_CODEWORD_DIM": 128,
+        "EXP_NAME": "csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "SAVE_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "BEST_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/best.pth",
+        "SAVE_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/checkpoints/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/latest.pth",
+        "LOG_DIR": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42",
+        "METRICS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/metrics.jsonl",
+        "STATUS_PATH": "/home/r50037942/project/03_PRECODER/runs_as_screen/baselines/logs/csinet_task_K4_Nsc256_Dfb256_Df64_sharedUE_seed42/status.json"
+      },
+      "checkpoint_step": 49500,
+      "cfg_index": null
+    }
+  ],
+  "git_commit": "28ec53cb867de98e8f37f4f77158075e2bf33ec9",
+  "sampling": "Identical cached H_dl/H_ul tensors for every method and SNR; original evaluator feedback seeds unchanged.",
+  "inactive_branches": "No row is recorded for a physically inactive branch; missing is not zero noise.",
+  "snr_location": "Active-stream batch-mean received power / expected complex noise variance at BS antennas, before MRC/DFT/neural decoder.",
+  "as_power_reference": "Power of the coherent sum over all four UE contributions, including cross terms.",
+  "mrc_metrics": "Actual equalized symbols vs transmitted normalized symbols; noise projected through original MRC. No neural post-detection SNR.",
+  "low_snr_metric": "Per-channel mean rate at 0/5/10 dB, then mean and SE over channel indices. Signed paired gains retained.",
+  "allocation_selection": "Eight fixed configurations only; no sample-wise max or oracle deployment curve.",
+  "source_sha256": {
+    "diagnose_low_feedback_snr.py": "ff4675e68af8d7f59310adf457a0b314af397a0245169e36f5cd5c5cdd33267b",
+    "feedback_link_diagnostics.py": "539b05435bce5cdb9cd9509a93a2305dba5d6519078a2f18a271095aa5b9c536",
+    "baseline_evaluate.py": "310a46170d8b3d5d2c93ccc6fb2ff9bf44ee75db31276a88e586c5fff9719327",
+    "models/adaptive_hybrid.py": "67dd73c7720a2aa7c4e33b0f5dbaa30e7824c3aa538fba6f5f73739ecd951ceb",
+    "models/baseline_common.py": "3c1c2f89a309de5c8f8119d8aad10d64efcb3f0bbd783d94efbda3a32e629398",
+    "models/swin_precoder.py": "16c67415ccd55af2bb3cb6479c7d8282b3fb3582406f76dd30cb102785e1983c",
+    "models/csinet_plus_precoder.py": "dda9075f5698acc9cf219672bab4b0280e54e0dc55397845f85e6172f8354225",
+    "utils/channel_generator.py": "645987b832f3137273fe113433640bdd4995fb2dfc54d13b13c80c91d7fe251d"
+  }
+}

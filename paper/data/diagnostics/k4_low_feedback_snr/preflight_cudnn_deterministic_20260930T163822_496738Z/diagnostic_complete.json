@@ -1,0 +1,10 @@
+{
+  "status": "complete",
+  "dataset_role": "configuration_selection_validation_not_formal_test",
+  "preflight": true,
+  "summary_rows": 48,
+  "num_samples_per_point": 8,
+  "physical_rows": 66,
+  "checkpoint_hashes_unchanged": true,
+  "probe_transparency": "passed (A/B/C metrics, RNG, memory and cleanup)"
+}

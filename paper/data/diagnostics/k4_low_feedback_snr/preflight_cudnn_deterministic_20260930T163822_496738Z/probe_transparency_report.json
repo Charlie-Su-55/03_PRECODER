@@ -1,0 +1,762 @@
+{
+  "status": "passed",
+  "passed": true,
+  "plain_vs_plain_passed": true,
+  "plain_vs_probed_passed": true,
+  "comparisons": {
+    "plain_vs_plain": {
+      "labels": [
+        "A",
+        "B"
+      ],
+      "rel_tol": 1e-06,
+      "abs_tol": 1e-06,
+      "structural_issues": {
+        "A": [],
+        "B": []
+      },
+      "missing": {
+        "A": [],
+        "B": []
+      },
+      "unexpected": {
+        "A": [],
+        "B": []
+      },
+      "fields": {
+        "sum_rate": {
+          "compared_records": 384,
+          "over_tolerance_count": 0,
+          "max_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "first_failure": null,
+          "maximum_absolute_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "sum_rate",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 12.213630676269531,
+              "B": 12.213630676269531,
+              "C": 12.213630676269531
+            }
+          },
+          "maximum_relative_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "sum_rate",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 12.213630676269531,
+              "B": 12.213630676269531,
+              "C": 12.213630676269531
+            }
+          },
+          "failures": []
+        },
+        "nmse_db": {
+          "compared_records": 384,
+          "over_tolerance_count": 0,
+          "max_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "first_failure": null,
+          "maximum_absolute_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "nmse_db",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 1.7300976514816284,
+              "B": 1.7300976514816284,
+              "C": 1.7300976514816284
+            }
+          },
+          "maximum_relative_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "nmse_db",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 1.7300976514816284,
+              "B": 1.7300976514816284,
+              "C": 1.7300976514816284
+            }
+          },
+          "failures": []
+        },
+        "precoder_power": {
+          "compared_records": 384,
+          "over_tolerance_count": 0,
+          "max_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "first_failure": null,
+          "maximum_absolute_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "precoder_power",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 256.0,
+              "B": 256.0,
+              "C": 256.0
+            }
+          },
+          "maximum_relative_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "precoder_power",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 256.0,
+              "B": 256.0,
+              "C": 256.0
+            }
+          },
+          "failures": []
+        }
+      },
+      "over_tolerance_records": 0,
+      "passed": true
+    },
+    "plain_vs_probed": {
+      "labels": [
+        "A",
+        "C"
+      ],
+      "rel_tol": 1e-06,
+      "abs_tol": 1e-06,
+      "structural_issues": {
+        "A": [],
+        "C": []
+      },
+      "missing": {
+        "A": [],
+        "C": []
+      },
+      "unexpected": {
+        "A": [],
+        "C": []
+      },
+      "fields": {
+        "sum_rate": {
+          "compared_records": 384,
+          "over_tolerance_count": 0,
+          "max_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "first_failure": null,
+          "maximum_absolute_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "sum_rate",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 12.213630676269531,
+              "B": 12.213630676269531,
+              "C": 12.213630676269531
+            }
+          },
+          "maximum_relative_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "sum_rate",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 12.213630676269531,
+              "B": 12.213630676269531,
+              "C": 12.213630676269531
+            }
+          },
+          "failures": []
+        },
+        "nmse_db": {
+          "compared_records": 384,
+          "over_tolerance_count": 0,
+          "max_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "first_failure": null,
+          "maximum_absolute_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "nmse_db",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 1.7300976514816284,
+              "B": 1.7300976514816284,
+              "C": 1.7300976514816284
+            }
+          },
+          "maximum_relative_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "nmse_db",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 1.7300976514816284,
+              "B": 1.7300976514816284,
+              "C": 1.7300976514816284
+            }
+          },
+          "failures": []
+        },
+        "precoder_power": {
+          "compared_records": 384,
+          "over_tolerance_count": 0,
+          "max_absolute_difference": 0.0,
+          "max_relative_difference": 0.0,
+          "first_failure": null,
+          "maximum_absolute_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "precoder_power",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 256.0,
+              "B": 256.0,
+              "C": 256.0
+            }
+          },
+          "maximum_relative_difference_record": {
+            "key": {
+              "scenario_id": "K4_Nsc256_Dfb256",
+              "method_key": "csinet",
+              "allocation_df": 64,
+              "allocation_da": 0,
+              "feedback_snr_db": 0.0,
+              "downlink_snr_db": 25.0,
+              "sample_index": 0
+            },
+            "field": "precoder_power",
+            "absolute_difference": 0.0,
+            "relative_difference": 0.0,
+            "values": {
+              "A": 256.0,
+              "B": 256.0,
+              "C": 256.0
+            }
+          },
+          "failures": []
+        }
+      },
+      "over_tolerance_records": 0,
+      "passed": true
+    }
+  },
+  "rng_comparisons": {
+    "plain_vs_plain": {
+      "passed": true,
+      "equal": {
+        "python": true,
+        "numpy": true,
+        "torch_cpu": true,
+        "cuda": true,
+        "independent": true
+      },
+      "left": {
+        "python": "6f0ebf7f12e8a4413374262de37e381f427de0800286e385ca7932733ffe8d0d",
+        "numpy": "b38fec62ec3e47d453e6a2475531c4eae286dbd238a62f10cb12a8c1162b04e4",
+        "torch_cpu": "a77fc7fe0b91adb45ca82a1051a2c9753c0a6cdfad0e29d22fc4c87c76dff735",
+        "cuda": {
+          "0": "7f848f81bb1d15de60dbe93861c74b6a9aec471058f2dcfabe320727cb335ba5"
+        },
+        "independent": {}
+      },
+      "right": {
+        "python": "6f0ebf7f12e8a4413374262de37e381f427de0800286e385ca7932733ffe8d0d",
+        "numpy": "b38fec62ec3e47d453e6a2475531c4eae286dbd238a62f10cb12a8c1162b04e4",
+        "torch_cpu": "a77fc7fe0b91adb45ca82a1051a2c9753c0a6cdfad0e29d22fc4c87c76dff735",
+        "cuda": {
+          "0": "7f848f81bb1d15de60dbe93861c74b6a9aec471058f2dcfabe320727cb335ba5"
+        },
+        "independent": {}
+      }
+    },
+    "plain_vs_probed": {
+      "passed": true,
+      "equal": {
+        "python": true,
+        "numpy": true,
+        "torch_cpu": true,
+        "cuda": true,
+        "independent": true
+      },
+      "left": {
+        "python": "6f0ebf7f12e8a4413374262de37e381f427de0800286e385ca7932733ffe8d0d",
+        "numpy": "b38fec62ec3e47d453e6a2475531c4eae286dbd238a62f10cb12a8c1162b04e4",
+        "torch_cpu": "a77fc7fe0b91adb45ca82a1051a2c9753c0a6cdfad0e29d22fc4c87c76dff735",
+        "cuda": {
+          "0": "7f848f81bb1d15de60dbe93861c74b6a9aec471058f2dcfabe320727cb335ba5"
+        },
+        "independent": {}
+      },
+      "right": {
+        "python": "6f0ebf7f12e8a4413374262de37e381f427de0800286e385ca7932733ffe8d0d",
+        "numpy": "b38fec62ec3e47d453e6a2475531c4eae286dbd238a62f10cb12a8c1162b04e4",
+        "torch_cpu": "a77fc7fe0b91adb45ca82a1051a2c9753c0a6cdfad0e29d22fc4c87c76dff735",
+        "cuda": {
+          "0": "7f848f81bb1d15de60dbe93861c74b6a9aec471058f2dcfabe320727cb335ba5"
+        },
+        "independent": {}
+      }
+    }
+  },
+  "initial_state": {
+    "rng": {
+      "python": "2e3a008d2fcfd22fb1bc9cb7f196158dfb10779fcd9c2f8a6348f65f005b3a64",
+      "numpy": "042497f55381e7c7a52c5ab820bb29e76d378b5c78587a9477d133718092c800",
+      "torch_cpu": "3bb99578ec08c8a13c0ed537ce40c5a041eac67149859e338a3f88bb98f1aec9",
+      "cuda": {
+        "0": "0284f6dba8e97bab0b2b7598f013b570bf30bcc48f35fba38a8fe89c8f3c769c"
+      },
+      "independent": {}
+    },
+    "memory_entry_counts": {
+      "parameters": 2704,
+      "buffers": 63,
+      "modes": 1826,
+      "module_tree": 1826,
+      "extra_caches": 0,
+      "unsupported_caches": 0,
+      "inputs": 2
+    },
+    "independent_generators": [],
+    "generator_audit": "Cached replay bypasses Sionna; physical noise uses global Torch RNG. Model attributes/evaluator globals also scanned."
+  },
+  "final_restore": {
+    "passed": true,
+    "model": {
+      "passed": true,
+      "coverage_complete": true,
+      "unverified_cache_paths": [],
+      "parameters": [],
+      "buffers": [],
+      "modes": [],
+      "module_tree": [],
+      "extra_caches": [],
+      "unsupported_caches": [],
+      "inputs": []
+    },
+    "rng": true,
+    "hooks_functions": {
+      "passed": true,
+      "functions": [],
+      "hooks": []
+    }
+  },
+  "numerical_backend": {
+    "torch_version": "2.11.0+cu130",
+    "cuda_version": "13.0",
+    "devices": [
+      "NVIDIA GeForce RTX 5090"
+    ],
+    "matmul_precision": "high",
+    "cuda_matmul_allow_tf32": true,
+    "cudnn_allow_tf32": true,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "cudnn_version": 91900,
+    "deterministic_algorithms": false,
+    "deterministic_warn_only": false,
+    "sdpa_flash": true,
+    "sdpa_memory_efficient": true,
+    "sdpa_math": true,
+    "mha_fastpath": true,
+    "CUBLAS_WORKSPACE_CONFIG": null,
+    "NVIDIA_TF32_OVERRIDE": null,
+    "diagnostic_backend_override": true,
+    "diagnostic_mode": "cudnn_deterministic_only"
+  },
+  "runs": {
+    "A": {
+      "error": null,
+      "evidence_errors": [],
+      "initial_restore": {
+        "passed": true,
+        "model": {
+          "passed": true,
+          "coverage_complete": true,
+          "unverified_cache_paths": [],
+          "parameters": [],
+          "buffers": [],
+          "modes": [],
+          "module_tree": [],
+          "extra_caches": [],
+          "unsupported_caches": [],
+          "inputs": []
+        },
+        "rng": true,
+        "hooks_functions": {
+          "passed": true,
+          "functions": [],
+          "hooks": []
+        }
+      },
+      "rng_start": {
+        "python": "2e3a008d2fcfd22fb1bc9cb7f196158dfb10779fcd9c2f8a6348f65f005b3a64",
+        "numpy": "042497f55381e7c7a52c5ab820bb29e76d378b5c78587a9477d133718092c800",
+        "torch_cpu": "3bb99578ec08c8a13c0ed537ce40c5a041eac67149859e338a3f88bb98f1aec9",
+        "cuda": {
+          "0": "0284f6dba8e97bab0b2b7598f013b570bf30bcc48f35fba38a8fe89c8f3c769c"
+        },
+        "independent": {}
+      },
+      "rng_end": {
+        "python": "6f0ebf7f12e8a4413374262de37e381f427de0800286e385ca7932733ffe8d0d",
+        "numpy": "b38fec62ec3e47d453e6a2475531c4eae286dbd238a62f10cb12a8c1162b04e4",
+        "torch_cpu": "a77fc7fe0b91adb45ca82a1051a2c9753c0a6cdfad0e29d22fc4c87c76dff735",
+        "cuda": {
+          "0": "7f848f81bb1d15de60dbe93861c74b6a9aec471058f2dcfabe320727cb335ba5"
+        },
+        "independent": {}
+      },
+      "state_changes": {
+        "passed": true,
+        "coverage_complete": true,
+        "unverified_cache_paths": [],
+        "parameters": [],
+        "buffers": [],
+        "modes": [],
+        "module_tree": [],
+        "extra_caches": [],
+        "unsupported_caches": [],
+        "inputs": []
+      },
+      "probe_cleanup": {
+        "passed": true,
+        "functions": [],
+        "hooks": []
+      },
+      "probe_context_cleanup": null,
+      "last_probe_context": null,
+      "batch_inputs": {
+        "passed": true,
+        "changed": [],
+        "source_instances": 1,
+        "batch_cursors": [
+          1
+        ]
+      },
+      "backend_end": {
+        "torch_version": "2.11.0+cu130",
+        "cuda_version": "13.0",
+        "devices": [
+          "NVIDIA GeForce RTX 5090"
+        ],
+        "matmul_precision": "high",
+        "cuda_matmul_allow_tf32": true,
+        "cudnn_allow_tf32": true,
+        "cudnn_benchmark": false,
+        "cudnn_deterministic": true,
+        "cudnn_version": 91900,
+        "deterministic_algorithms": false,
+        "deterministic_warn_only": false,
+        "sdpa_flash": true,
+        "sdpa_memory_efficient": true,
+        "sdpa_math": true,
+        "mha_fastpath": true,
+        "CUBLAS_WORKSPACE_CONFIG": null,
+        "NVIDIA_TF32_OVERRIDE": null,
+        "diagnostic_backend_override": true,
+        "diagnostic_mode": "cudnn_deterministic_only"
+      },
+      "backend_unchanged": true
+    },
+    "B": {
+      "error": null,
+      "evidence_errors": [],
+      "initial_restore": {
+        "passed": true,
+        "model": {
+          "passed": true,
+          "coverage_complete": true,
+          "unverified_cache_paths": [],
+          "parameters": [],
+          "buffers": [],
+          "modes": [],
+          "module_tree": [],
+          "extra_caches": [],
+          "unsupported_caches": [],
+          "inputs": []
+        },
+        "rng": true,
+        "hooks_functions": {
+          "passed": true,
+          "functions": [],
+          "hooks": []
+        }
+      },
+      "rng_start": {
+        "python": "2e3a008d2fcfd22fb1bc9cb7f196158dfb10779fcd9c2f8a6348f65f005b3a64",
+        "numpy": "042497f55381e7c7a52c5ab820bb29e76d378b5c78587a9477d133718092c800",
+        "torch_cpu": "3bb99578ec08c8a13c0ed537ce40c5a041eac67149859e338a3f88bb98f1aec9",
+        "cuda": {
+          "0": "0284f6dba8e97bab0b2b7598f013b570bf30bcc48f35fba38a8fe89c8f3c769c"
+        },
+        "independent": {}
+      },
+      "rng_end": {
+        "python": "6f0ebf7f12e8a4413374262de37e381f427de0800286e385ca7932733ffe8d0d",
+        "numpy": "b38fec62ec3e47d453e6a2475531c4eae286dbd238a62f10cb12a8c1162b04e4",
+        "torch_cpu": "a77fc7fe0b91adb45ca82a1051a2c9753c0a6cdfad0e29d22fc4c87c76dff735",
+        "cuda": {
+          "0": "7f848f81bb1d15de60dbe93861c74b6a9aec471058f2dcfabe320727cb335ba5"
+        },
+        "independent": {}
+      },
+      "state_changes": {
+        "passed": true,
+        "coverage_complete": true,
+        "unverified_cache_paths": [],
+        "parameters": [],
+        "buffers": [],
+        "modes": [],
+        "module_tree": [],
+        "extra_caches": [],
+        "unsupported_caches": [],
+        "inputs": []
+      },
+      "probe_cleanup": {
+        "passed": true,
+        "functions": [],
+        "hooks": []
+      },
+      "probe_context_cleanup": null,
+      "last_probe_context": null,
+      "batch_inputs": {
+        "passed": true,
+        "changed": [],
+        "source_instances": 1,
+        "batch_cursors": [
+          1
+        ]
+      },
+      "backend_end": {
+        "torch_version": "2.11.0+cu130",
+        "cuda_version": "13.0",
+        "devices": [
+          "NVIDIA GeForce RTX 5090"
+        ],
+        "matmul_precision": "high",
+        "cuda_matmul_allow_tf32": true,
+        "cudnn_allow_tf32": true,
+        "cudnn_benchmark": false,
+        "cudnn_deterministic": true,
+        "cudnn_version": 91900,
+        "deterministic_algorithms": false,
+        "deterministic_warn_only": false,
+        "sdpa_flash": true,
+        "sdpa_memory_efficient": true,
+        "sdpa_math": true,
+        "mha_fastpath": true,
+        "CUBLAS_WORKSPACE_CONFIG": null,
+        "NVIDIA_TF32_OVERRIDE": null,
+        "diagnostic_backend_override": true,
+        "diagnostic_mode": "cudnn_deterministic_only"
+      },
+      "backend_unchanged": true
+    },
+    "C": {
+      "error": null,
+      "evidence_errors": [],
+      "initial_restore": {
+        "passed": true,
+        "model": {
+          "passed": true,
+          "coverage_complete": true,
+          "unverified_cache_paths": [],
+          "parameters": [],
+          "buffers": [],
+          "modes": [],
+          "module_tree": [],
+          "extra_caches": [],
+          "unsupported_caches": [],
+          "inputs": []
+        },
+        "rng": true,
+        "hooks_functions": {
+          "passed": true,
+          "functions": [],
+          "hooks": []
+        }
+      },
+      "rng_start": {
+        "python": "2e3a008d2fcfd22fb1bc9cb7f196158dfb10779fcd9c2f8a6348f65f005b3a64",
+        "numpy": "042497f55381e7c7a52c5ab820bb29e76d378b5c78587a9477d133718092c800",
+        "torch_cpu": "3bb99578ec08c8a13c0ed537ce40c5a041eac67149859e338a3f88bb98f1aec9",
+        "cuda": {
+          "0": "0284f6dba8e97bab0b2b7598f013b570bf30bcc48f35fba38a8fe89c8f3c769c"
+        },
+        "independent": {}
+      },
+      "rng_end": {
+        "python": "6f0ebf7f12e8a4413374262de37e381f427de0800286e385ca7932733ffe8d0d",
+        "numpy": "b38fec62ec3e47d453e6a2475531c4eae286dbd238a62f10cb12a8c1162b04e4",
+        "torch_cpu": "a77fc7fe0b91adb45ca82a1051a2c9753c0a6cdfad0e29d22fc4c87c76dff735",
+        "cuda": {
+          "0": "7f848f81bb1d15de60dbe93861c74b6a9aec471058f2dcfabe320727cb335ba5"
+        },
+        "independent": {}
+      },
+      "state_changes": {
+        "passed": true,
+        "coverage_complete": true,
+        "unverified_cache_paths": [],
+        "parameters": [],
+        "buffers": [],
+        "modes": [],
+        "module_tree": [],
+        "extra_caches": [],
+        "unsupported_caches": [],
+        "inputs": []
+      },
+      "probe_cleanup": {
+        "passed": true,
+        "functions": [],
+        "hooks": []
+      },
+      "probe_context_cleanup": {
+        "passed": true,
+        "functions": [],
+        "hooks": []
+      },
+      "last_probe_context": {
+        "method_key": "csinet",
+        "batch_index": 0,
+        "first_sample_index": 0,
+        "batch_size": 8,
+        "allocation_df": 64,
+        "allocation_da": 0,
+        "cfg_index": null,
+        "feedback_snr_db": 25.0,
+        "downlink_snr_db": 25
+      },
+      "batch_inputs": {
+        "passed": true,
+        "changed": [],
+        "source_instances": 1,
+        "batch_cursors": [
+          1
+        ]
+      },
+      "backend_end": {
+        "torch_version": "2.11.0+cu130",
+        "cuda_version": "13.0",
+        "devices": [
+          "NVIDIA GeForce RTX 5090"
+        ],
+        "matmul_precision": "high",
+        "cuda_matmul_allow_tf32": true,
+        "cudnn_allow_tf32": true,
+        "cudnn_benchmark": false,
+        "cudnn_deterministic": true,
+        "cudnn_version": 91900,
+        "deterministic_algorithms": false,
+        "deterministic_warn_only": false,
+        "sdpa_flash": true,
+        "sdpa_memory_efficient": true,
+        "sdpa_math": true,
+        "mha_fastpath": true,
+        "CUBLAS_WORKSPACE_CONFIG": null,
+        "NVIDIA_TF32_OVERRIDE": null,
+        "diagnostic_backend_override": true,
+        "diagnostic_mode": "cudnn_deterministic_only"
+      },
+      "backend_unchanged": true
+    }
+  },
+  "affected_wrapper_operator_paths": {},
+  "interpretation": [
+    "RNG end-state equality alone does not establish identical noise at every operation.",
+    "No cause is assigned from a failed plain-vs-probed metric check alone.",
+    "State mutations are reported before restoration and make the check fail.",
+    "Wrapper/operator paths are localization candidates, not confirmed causes.",
+    "Native CUDA/library algorithm caches are not reset; backend settings are observed, not modified."
+  ]
+}

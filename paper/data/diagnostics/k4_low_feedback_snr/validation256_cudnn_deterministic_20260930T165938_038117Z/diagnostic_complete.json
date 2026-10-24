@@ -1,0 +1,10 @@
+{
+  "status": "complete",
+  "dataset_role": "configuration_selection_validation_not_formal_test",
+  "preflight": false,
+  "summary_rows": 48,
+  "num_samples_per_point": 256,
+  "physical_rows": 2112,
+  "checkpoint_hashes_unchanged": true,
+  "probe_transparency": "run --preflight separately"
+}
