@@ -376,3 +376,148 @@ runtime tensor checks and real migration/resume remain unexecuted locally.
 ```bash
 python -X utf8 -B -S -m unittest discover -s tests -p test_train_proposal_as_direct.py -v
 ```
+
+## Independent four-method screening evaluation
+
+The user reported that both screening arms finished 5000 additional updates,
+with both best and latest selected/saved at step 5000. The reported hashes are
+for **latest.pth**, not best.pth:
+
+| Arm | User-reported latest SHA-256 |
+| --- | --- |
+| `full_control` | `3362abf4812f1fd61c2dc66795766bbfcf26845f59161be739328e15258492cc` |
+| `as_direct` | `211b55c28a1501b34e4197c69098d402a6d63828b3c2a79cf4154987b5f77981` |
+
+These training facts/identities were supplied by the user, not obtained by a
+local checkpoint inspection. `evaluate_proposal_as_direct.py` performs their
+actual verification only on an explicitly requested CUDA run. It evaluates
+exactly four fixed methods, in this order:
+
+1. `full_control`: Full +5k best, path from `as_direct_config`.
+2. `as_direct`: ASDirect +5k best, path from `as_direct_config`.
+3. `robust_frozen`: the archived robust specialist used as training origin.
+4. `swin`: the archived Swin-based FDMA checkpoint.
+
+The new arms must match their respective latest hashes, completed status,
+complete saved config/fingerprint, singleton allocation and step 5000. Their
+best checkpoints must also be step 5000, with exactly the same model tensors
+(keys/shapes/dtypes/values, including gates and buffers) and selection metric
+as latest. Actual **best hashes are measured separately**, never equated to
+latest hashes: their payloads include different non-model fields.
+
+Frozen robust and Swin paths, full saved configs and expected hashes come from
+the same archived diagnostic manifest used above. Robust's selected step is
+20000; Swin's selected step is 49000 in its completed 50000-update experiment.
+Their completion evidence is the archived manifest, not a newly inferred
+common training budget. No checkpoint discovery or replacement search occurs.
+
+ASDirect is explicitly constructed as `AdaptiveHybridPrecoderASDirect` and
+strictly loads its trained state. No migration function is called and no gate
+is filled with zero. Full and robust use `AdaptiveHybridPrecoder`; Swin uses
+the existing baseline loader, with additional exact tensor/dtype checks. All
+three proposals preserve singleton `(0,256)`, cfg_idx 0, running-power length 1,
+max-width `(64,256)`, Full FFN2048 and original RZF `1e-3`; Swin uses `(64,0)`.
+Proposal model keys remain `proposed`, with three distinct method keys.
+
+### Fixed test protocol and paired inference
+
+Both modes use K4/Nt32/Nsc256/Dtot256/Nsb4, CDL-C, DL25, and all six feedback
+SNRs 0/5/10/15/20/25 dB. Screening evaluation uses seed **20261026**, batch 8,
+200 batches: 1600 complete multi-user samples per condition. Entry preflight
+uses a separate seed **20261027** and one batch of 8 per condition. Both retain
+24 conditions; preflight results are explicitly not screening conclusions.
+
+The original `baseline_evaluate.evaluate_scenario` supplies each channel batch
+to all four methods and all six SNRs, retaining its channel/noise seed protocol.
+Models remain in eval mode and forward calls are under no_grad. Existing
+H_hat extraction and metric/output helpers are reused; no physical path, noise,
+normalization or RZF is changed. `include_proposed_best=False` explicitly
+disables the old helper's cross-method oracle rows. Effective numerical
+backends are recorded, not silently adjusted to obtain a pass.
+
+The prespecified primary estimand is **ASDirect minus Full, averaged over
+FB0/5/10 within each channel sample**. The FB25 difference is the secondary
+degradation check, without a post-hoc chosen acceptance threshold. All signed
+results, including negative differences, are retained. The four comparisons
+are ASDirect-Full, Full-robust_frozen, ASDirect-robust_frozen and ASDirect-Swin.
+Each comparison includes six single-SNR points, the low-SNR mean and the
+six-SNR mean: 32 aggregate paired-statistic rows in total.
+
+For each estimand, channels are paired by sample_index under the fixed scenario,
+allocation and FB/DL conditions. SNR averaging occurs **within each sample
+before** inference across samples. Sample-level SE uses ddof=1 and CI is
+`mean +/- 1.96*SE`. The 4800 low-SNR records are not treated as 4800 independent
+samples, and individual-point SEs are never averaged.
+
+Both uncertainty conventions are always exported side by side:
+
+- `delta_*`: historical channel-level paired mean/SE/95% CI, N=1600.
+- `batch_delta_*`: first average the eight sample differences in each
+  `sample_index//8` group, then compute SE/95% CI over 200 batch means.
+
+This additional batch calculation checks sensitivity to within-batch shared
+noise scales. Neither interval is selected after seeing favorable results.
+For the one-batch preflight, `batch_ci_estimable=False` and batch SE/CI fields
+are empty/null, **not zero**. Intervals describe evaluation sampling for fixed
+checkpoints, not multi-training-seed stability. The Swin comparison is not
+training-budget-matched. Common feedback RNG does not imply equal absolute
+noise power or equal total UE energy across FDMA and AS.
+
+### Outputs, checks and commands
+
+Each explicit run exclusively creates a new timestamp/UUID subdirectory of
+`runs_as_screen/evaluation/k4_as_direct_v1/`: `preflight_...` or `screening_...`.
+Existing directories are rejected, including unsafe linked output paths. No
+outputs go to paper data, figures, the manuscript, or previous result folders.
+
+Outputs are `summary_k4_as_direct_v1.csv`, `samples_k4_as_direct_v1.csv.gz`,
+`results_k4_as_direct_v1.json`, standard evaluator metadata,
+`paired_deltas_k4_as_direct_v1.csv`, `paired_samples_k4_as_direct_v1.csv.gz`,
+`parameters_k4_as_direct_v1.csv`, `gates_k4_as_direct_v1.csv`, and `manifest.json`.
+Parameter counts are not MACs/latency. Gate records contain trained alpha and
+tanh(alpha). `precoder_power` sums **all subcarriers**, with nominal value 256,
+not per-subcarrier power 1. Raw representation NMSE is only a secondary
+task-surrogate diagnostic and is never used for checkpoint selection.
+
+Checks reject missing/duplicate sample IDs or conditions, nonfinite metrics,
+summary/raw inconsistency, checkpoint/config mismatches and changed input
+hashes/model buffers/modes/gates. Input and frozen-state checks also run after
+failures where applicable. Failure manifests preserve errors and partial
+identity evidence; returned raw results are retained if later validation fails.
+Only a completed manifest with passed freeze checks is an accepted result.
+The manifest records full configurations, checkpoint identities, actual file
+hashes, code/source hashes, environment/backends, seed, sample/batch definitions
+and both statistical conventions. No new weights are written.
+
+Default invocation only displays help. `--dry-run` reads small archived JSON,
+not checkpoint bytes; it imports no models/Torch/Sionna and writes no files.
+It does not certify server file availability or actual checkpoint contents.
+The following server commands are **not executed as part of implementation**:
+
+```bash
+python -B -S evaluate_proposal_as_direct.py --dry-run
+python -u evaluate_proposal_as_direct.py --preflight
+# Only after checking the preflight's completed manifest:
+python -u evaluate_proposal_as_direct.py --evaluate
+```
+
+Both execution modes require CUDA and fail rather than falling back to CPU.
+Real checkpoint loading, actual 24-condition evaluation, CUDA frozen-state
+checks and resulting performance remain unverified locally. This task does not
+connect SSH, run a model, train, profile, draw figures, or change the paper.
+
+Local implementation checks: **33 tests passed, 0 failures/errors/skips**.
+Thirty checks cover standard-library metadata, pinned hashes, best/latest
+identity separation, condition/sample coverage, signed paired statistics,
+within-channel SNR averages, batch intervals, output protection and CLI/source
+contracts. Three checks use only tiny CPU tensors to test strict state-key,
+shape, dtype, finiteness and value checks (including nonzero trained gates).
+No model was imported, instantiated or executed by these tests. A fresh
+`-B -S` dry-run subprocess additionally guards against heavy imports, weight
+reads and filesystem writes. Syntax checks and the standalone dry-run passed.
+These checks do not verify actual server weights, numerical forward results,
+or CUDA integration.
+
+```bash
+python -X utf8 -B -m unittest discover -s tests -p test_evaluate_proposal_as_direct.py -v
+```
