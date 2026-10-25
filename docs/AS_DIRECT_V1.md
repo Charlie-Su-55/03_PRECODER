@@ -235,3 +235,144 @@ connection, checkpoint download, model test rerun, training, performance
 evaluation, profiling, plotting, or paper change was performed. Future
 training still needs explicit migration before optimizer creation; this tool
 does not make the existing `init_checkpoint` branch accept missing gate keys.
+
+## User-reported real-checkpoint CUDA acceptance (2026-10-25)
+
+For accepted code `b6b6b89c63f778697fe50d4bf653c341bdf1280b`, the user
+reported a successful robust-checkpoint CUDA preflight at FB SNR 0/10/25 dB.
+Zero-gate `H_hat`, legacy training return, normalized deployment RZF and eval
+output all had maximum absolute and relative differences of **0**. All five
+gates had finite, nonzero gradients at all three conditions. Report reference,
+relative to the server's 03_PRECODER checkout:
+`runs_as_screen/diagnostics/as_direct_v1/preflight_20261025T112943_010217Z_9ea0286d/report.json`.
+
+This is the user's acceptance record; the server report was **not read
+locally**. No CPU/CUDA model preflight was repeated for the training-entry task.
+The preceding local/preflight notes are historical, not a claim that this
+reported server acceptance was independently executed on the laptop.
+
+## Independent two-arm 5k screening entry
+
+`configs/as_direct_train_config.py` defines a local recipe without adding it
+to old recipes/suites or changing their fingerprints. `train_proposal_as_direct.py`
+adapts the existing `main_train.train_proposal` through `model_factory`; it
+does not copy the training loop or modify any model. The two opt-in arms are:
+
+| Arm | Class / architecture | Fresh weight initialization |
+| --- | --- | --- |
+| `full_control` | `AdaptiveHybridPrecoder` / `full` | Original state, `strict=True` |
+| `as_direct` | `AdaptiveHybridPrecoderASDirect` / `as_direct_v1` | Existing explicit migration; only five zero gates added, then strict load |
+
+Both use exactly the archived `robust_specialist` identity described above.
+The preflight's pinned SHA-256 and complete saved-config validation are reused;
+no alternative checkpoint search is performed. The supported allocation is
+`[(0,256)]`, `cfg_idx=0`, `running_pwr.shape=(1,)`, while architecture capacities
+remain `(64,256)`: K4/Nt32/Nsc256/Dtot256/Nsb4, Full UE FFN2048. A fresh-only
+`--checkpoint PATH` may relocate identical source bytes, never select different
+weights. Runtime path overrides are recorded separately from the archived
+source identity in the config/fingerprint.
+
+Both arms use seed **20261025**, **5000 new optimizer updates**, batch 48,
+AdamW maximum LR `2e-5`, weight decay `1e-5`, cosine OneCycle warmup 10%, and
+gradient clipping 0.5. The original trainer's OneCycle defaults, including
+momentum cycling and initial LR `max_lr/25`, are retained. All parameters are
+trainable in one optimizer group; gates have no special LR or optimizer rule.
+All three SNR stages sample FB uniformly from 0 to 25 dB, DL is fixed at 25 dB,
+and all four phase-dependent direction/MSE weights are zero. Phase boundaries
+remain only for compatibility with the existing recipe API. The loss follows
+`H_hat -> model.zf_solver -> total-power normalization -> sum-rate`, not the
+legacy residual training-return precoder. Physical slicing, noise, running
+power, RZF, and legacy outputs are unchanged.
+
+Validation is every 500 updates using the same 64 channels and six FB points
+0/5/10/15/20/25 dB, with DL25; best is selected by six-point `mean_all`. The
+original deterministic sampling conventions are reused for both arms:
+validation channel seed `seed+500000`, training channel seed
+`seed+10000000+global_step`, and validation feedback-noise seed
+`seed+1000000+cfg_idx*10000+10*FB_SNR`. No final test results are used for selection.
+
+### Initialization, pause and strict resume
+
+Before the trainer can write status/config, the adapter validates the selected
+source or the run's own latest checkpoint. Fresh source state is checked for
+complete keys/shapes/dtypes and finite values. A single CPU model is prepared
+for checks, then the factory loads Full or explicitly migrates ASDirect before
+the trainer creates its new AdamW and 5000-step scheduler. The factory verifies
+exact source-state preservation and zero gates, then moves that model to CUDA.
+`init_checkpoint=None` is always passed. Source optimizer/scheduler state is
+discarded; no old optimizer history becomes part of the new 5k budget.
+
+Resume requires this arm's latest, best, config, status and metrics files.
+Complete config/source/architecture/fingerprint, singleton state, optimizer
+parameter order and moment shapes/dtypes/finiteness, RNG states and CUDA-device
+count are checked before calling the trainer. Every active parameter must have
+optimizer history through the saved step; only statically bypassed FDMA,
+padding and legacy-residual parameters may lack history. The retained best
+checkpoint must also belong to this arm and agree with latest's best metric.
+Missing gates, missing latest, cross-arm state, malformed moments/RNG or a
+different recipe fail explicitly, with no fresh-initialization fallback.
+Resume never calls source migration. Original strict restoration is retained.
+
+Scheduler phases, base/maximum/minimum LR, momentum settings, `total_steps=5000`,
+`last_epoch=step`, and saved LR/beta1 are checked. `--stop-after N` means N
+additional updates within that fixed budget, not a separate schedule. It
+accepts positive multiples of 500 up to 5000, keeping pauses on validation
+boundaries: the original trainer otherwise also selects best at an arbitrary
+pause endpoint. Thus the prescribed 500-step pause followed by resume runs
+updates 1-500 and 501-5000, never an extra 500 steps.
+
+No arguments show help; `--dry-run` is standard-library only, reads the small
+manifest, does not read/check availability of weights or create output files.
+Actual execution requires explicit `--train` or `--stop-after N` and CUDA;
+there is no CPU fallback. Commands below are for the existing server environment,
+from the 03_PRECODER root; **they were not executed in this task**:
+
+```bash
+python -B -S train_proposal_as_direct.py --arm full_control --dry-run
+python -B -S train_proposal_as_direct.py --arm as_direct --dry-run
+
+# Same first-500 pause protocol for each arm; separate checkpoints/logs.
+python -u train_proposal_as_direct.py --arm full_control --stop-after 500
+python -u train_proposal_as_direct.py --arm as_direct --stop-after 500
+
+# After reviewing both completion records, continue each saved 5k schedule.
+python -u train_proposal_as_direct.py --arm full_control --resume --train
+python -u train_proposal_as_direct.py --arm as_direct --resume --train
+```
+
+Both arms are isolated under `runs_as_screen/proposal_as_direct_v1/`, using
+`checkpoints/<experiment>/` and `logs/<experiment>/`. Experiment names are
+`hybrid_gnn_specialist_K4_Nsc256_Dfb256_f000_a100_df0_da256_sb4_as_direct_screen5k_<arm>_seed20261025`.
+Fresh runs refuse existing run directories. Path/link containment and exclusive
+per-experiment locks protect outputs. Stale locks are not silently removed.
+Existing trainer config/status/metrics/best/latest outputs are preserved.
+
+Each invocation writes an exclusive timestamp/UUID provenance JSON containing
+mode, full config and source identity, loaded checkpoint hash, code commit,
+source hashes and environment. Normal return adds a small completion JSON with
+the actual completed updates and, for ASDirect, all five `alpha` and
+`tanh(alpha)` values. Failures after trainer entry get a separate failure JSON.
+No forward hooks are added. Effective backend settings are recorded; the
+existing trainer still sets matmul precision to `high`, with no new backend
+override in this adapter.
+
+This is a **single-seed, 5k screening experiment**, not a formal performance
+conclusion. Restoring model/optimizer/scheduler/RNG is not a locally verified
+claim of bitwise equivalence to uninterrupted training; in particular the
+existing channel-generator constructor executes after trainer RNG restoration.
+Real checkpoint initialization, CUDA training, pause/resume integration, actual
+optimizer moment/RNG tensor validation, and gate evolution remain server-side
+checks. This task did not connect SSH, train, evaluate, profile, plot, download
+weights, install dependencies, or modify the paper.
+
+Local entry checks: **41 standard-library tests passed, 0 failures/errors/skips**,
+plus syntax checks and both arms' `--dry-run`. The tests cover identical recipes,
+source identity, singleton/max-width separation, strict initialization routing,
+factory-before-optimizer integration, complete resume metadata, retained-best
+metadata, 5k scheduler semantics, output protection and no-heavy-import/no-write
+dry runs. They do not import Torch/Sionna or execute model/optimizer updates;
+runtime tensor checks and real migration/resume remain unexecuted locally.
+
+```bash
+python -X utf8 -B -S -m unittest discover -s tests -p test_train_proposal_as_direct.py -v
+```
