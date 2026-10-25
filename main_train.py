@@ -129,7 +129,7 @@ def restore_rng_state(state: Mapping[str, Any] | None) -> None:
 
 @contextmanager
 def temporary_seed(seed: int):
-    """Use a deterministic local seed without changing the training RNG stream."""
+    """Temporarily seed default RNGs only; Sionna's private RNGs are not covered."""
 
     state = capture_rng_state()
     set_seed(seed)
@@ -376,8 +376,8 @@ def build_channel_generator(cfg: TrainConfig, device: torch.device):
 
 
 def generate_validation_set(channel_gen, cfg: TrainConfig, device: torch.device):
-    # Validation channels are independent of the training RNG and reproducible
-    # across fresh runs and resumed runs.
+    # Legacy default-RNG seeding does not isolate Sionna's private streams;
+    # this alone does not guarantee fresh-process/resume channel replay.
     with temporary_seed(cfg.SEED + 500_000):
         with torch.no_grad():
             H_dl, H_ul = channel_gen.generate_batch_data(cfg.VAL_BATCH)
@@ -390,8 +390,8 @@ def generate_training_batch(
     device: torch.device,
     step: int,
 ):
-    # The batch for a given global step is deterministic. This avoids changing
-    # the data stream after resume even though the in-memory cache is not saved.
+    # Legacy step seeding covers default RNGs, not Sionna's private streams.
+    # Explicit channel_data is required for the new step-addressed data protocol.
     with temporary_seed(cfg.SEED + 10_000_000 + step):
         with torch.no_grad():
             H_dl, H_ul = channel_gen.generate_batch_data(cfg.BATCH_SIZE)
@@ -435,18 +435,25 @@ def load_latest_checkpoint(
     optimizer: optim.Optimizer,
     scheduler: Any,
     device: torch.device,
+    *,
+    validated_checkpoint: Mapping[str, Any] | None = None,
 ) -> Tuple[int, float]:
+    uses_replayable_data = "channel_data_protocol" in cfg.to_dict()
     path = Path(cfg.SAVE_PATH)
-    if not path.exists():
+    if validated_checkpoint is None and not path.exists():
+        if uses_replayable_data:
+            raise FileNotFoundError(f"New data protocol resume requires latest checkpoint: {path}")
         return 1, float("-inf")
 
-    checkpoint = torch.load(
+    checkpoint = validated_checkpoint if validated_checkpoint is not None else torch.load(
         path,
         map_location="cpu",
         weights_only=False,
     )
     expected = config_fingerprint(cfg)
     actual = checkpoint.get("config_fingerprint")
+    if uses_replayable_data:
+        _channel_data_api().validate_resume_config(checkpoint, cfg)
     if actual is not None and actual != expected:
         raise RuntimeError(
             "Checkpoint/config mismatch. Refusing unsafe resume.\n"
@@ -471,6 +478,55 @@ def load_latest_checkpoint(
 # 4. One resolved experiment
 # =============================================================================
 
+def _channel_data_api():
+    # Metadata helpers are stdlib-only; avoid utils/__init__ and its GPU/Sionna
+    # initialization until the normal trainer path actually needs them.
+    import importlib.util
+    name = "_precoder_replayable_channel_data_v1"
+    path = Path(__file__).resolve().parent / "utils" / "replayable_channel_data.py"
+    if name in sys.modules:
+        module = sys.modules[name]
+        if Path(module.__file__).resolve() != path.resolve():
+            raise RuntimeError("Conflicting replayable channel data module")
+        return module
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Cannot load replayable channel data metadata helpers")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        del sys.modules[name]
+        raise
+    return module
+
+
+def _validate_channel_data_options(cfg, options, channel_data):
+    """Fail before outputs/model construction; retain the verified resume payload."""
+    api = _channel_data_api()
+    protocol = api.validate_channel_data(cfg, channel_data)
+    if protocol is None:
+        return None  # Do not tighten historical config/checkpoint behavior.
+    snapshot = cfg.to_dict()
+    fingerprint = config_fingerprint(cfg)
+    config_path = Path(cfg.CONFIG_PATH)
+    if config_path.exists():
+        existing = json.loads(config_path.read_text(encoding="utf-8"))
+        expected = dict(snapshot, config_fingerprint=fingerprint)
+        if json.dumps(existing, sort_keys=True, default=json_default) != json.dumps(expected, sort_keys=True, default=json_default):
+            raise ValueError("Existing replayable-data config snapshot/fingerprint differs")
+    path = Path(cfg.SAVE_PATH)
+    if options.resume:
+        if not path.is_file():
+            raise FileNotFoundError(f"Explicit new-protocol resume requires latest checkpoint: {path}")
+        checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+        return api.validate_resume_config(checkpoint, cfg)
+    if path.exists():
+        raise FileExistsError(f"Checkpoint exists but new-protocol resume is disabled: {path}")
+    return None
+
+
 @dataclass
 class RunOptions:
     resume: bool
@@ -490,12 +546,16 @@ def train_proposal(
     options: RunOptions,
     *,
     model_factory: Callable[[TrainConfig, torch.device], nn.Module] | None = None,
+    channel_data: Any | None = None,
 ) -> None:
+    validated_checkpoint = _validate_channel_data_options(cfg, options, channel_data)
     torch.set_float32_matmul_precision("high")
     set_seed(cfg.SEED)
     from utils import setup_gpu
 
     device = setup_gpu()
+    if channel_data is not None:
+        _channel_data_api().validate_channel_data(cfg, channel_data, device=device)
 
     save_dir = Path(cfg.SAVE_DIR)
     log_dir = Path(cfg.LOG_DIR)
@@ -588,7 +648,7 @@ def train_proposal(
     best_metric = float("-inf")
     latest_path = Path(cfg.SAVE_PATH)
 
-    if options.resume and latest_path.exists():
+    if options.resume and (validated_checkpoint is not None or latest_path.exists()):
         # Resume an interrupted fine-tuning run, including optimizer/scheduler.
         start_step, best_metric = load_latest_checkpoint(
             cfg,
@@ -596,7 +656,9 @@ def train_proposal(
             optimizer,
             scheduler,
             device,
+            validated_checkpoint=validated_checkpoint,
         )
+        validated_checkpoint = None
         print(
             f"[Resume]     start_step={start_step}, "
             f"best_{cfg.BEST_METRIC}={best_metric:.3f}"
@@ -677,9 +739,15 @@ def train_proposal(
             f"of {cfg.TOTAL_STEPS}"
         )
 
-    channel_gen = build_channel_generator(cfg, device)
+    if channel_data is None:
+        channel_gen = build_channel_generator(cfg, device)
+    else:
+        channel_data.prepare()
     print("[Validation] Preparing fixed channel set...")
-    H_dl_val, H_ul_val = generate_validation_set(channel_gen, cfg, device)
+    if channel_data is None:
+        H_dl_val, H_ul_val = generate_validation_set(channel_gen, cfg, device)
+    else:
+        H_dl_val, H_ul_val = channel_data.validation()
     # Reset CUDA peak-memory statistics before the training loop.
     # The fixed validation tensors remain allocated, so their memory is still
     # included in the current baseline.
@@ -687,8 +755,8 @@ def train_proposal(
         torch.cuda.empty_cache()
         torch.cuda.reset_peak_memory_stats(device)
 
-    # Cache is keyed by global step. The deterministic per-step generator keeps
-    # resumed runs aligned without storing large tensors inside checkpoints.
+    # Cache remains keyed by global step. Only the explicitly declared new data
+    # protocol guarantees step-addressed channels; legacy helpers are unchanged.
     batch_cache: Dict[int, Tuple[torch.Tensor, torch.Tensor]] = {}
 
     def get_batch(step: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -696,9 +764,12 @@ def train_proposal(
             last = min(cfg.TOTAL_STEPS, step + cfg.DATA_CACHE_SIZE - 1)
             for future_step in range(step, last + 1):
                 if future_step not in batch_cache:
-                    batch_cache[future_step] = generate_training_batch(
-                        channel_gen, cfg, device, future_step
-                    )
+                    if channel_data is None:
+                        batch_cache[future_step] = generate_training_batch(
+                            channel_gen, cfg, device, future_step
+                        )
+                    else:
+                        batch_cache[future_step] = channel_data.training(future_step)
         batch = batch_cache.pop(step)
         return batch
 

@@ -143,3 +143,154 @@ python -B -u diagnose_sionna_rng.py --run
 The test file contains only lightweight metadata/CLI/output checks and small
 dependency-gated RNG tests; actual CDL replay is exercised by the explicit
 CUDA diagnostic command. Neither command trains or evaluates a model.
+
+## Optional trainer data interface (new, default disabled)
+
+### Prior server acceptance, supplied by the user
+
+The user reported **22 RNG utility tests passed, 1 expected skip**, and **all
+17 channel diagnostic checks passed**, including fresh-process replay. Report:
+`runs_as_screen/diagnostics/sionna_rng_v1/channels_20261025T192137_887475Z_0774b71b/report.json`.
+This is user-provided server evidence. The report was not read or rerun locally
+in this implementation task, and the accepted RNG utility is unchanged.
+
+### Minimal opt-in boundary
+
+`main_train.train_proposal(..., channel_data=None)` keeps the existing channel
+constructor, validation-set helper and per-step training helper when the
+argument is None. The legacy helpers' unconditional cross-process/resume claims
+were corrected in comments; their RNG behavior and code paths are unchanged.
+The original model, optimizer, scheduler, losses, feedback noise, cache policy
+and update loop are not replaced. No old recipe or training CLI opts in.
+
+The new `utils/replayable_channel_data.py` exports a metadata-only constructor:
+`ReplayableChannelData(base_seed=..., k_users=4, nt=32, nsc=256, batch_size=...,
+validation_batch_size=..., carrier_freq=3.5e9, speed=1.0, cdl_model="C",
+device="cuda:0")`. Its interface is:
+
+- `protocol`: a copy-safe JSON description including version, data identity,
+  seed mapping, physical settings, batch sizes and execution device/precision.
+- `prepare()`: construct the original generator inside the accepted RNG
+  isolation context. This is the trainer's alternative to its old constructor.
+- `validation()`: regenerate the same fixed validation pair, independent of
+  training step or call order.
+- `training(global_step)`: generate the pair addressed by a 1-based update step.
+
+Each sampling call uses one isolated seed around the original
+`generate_batch_data`: DL followed by UL, with no reset in between. Constructor
+and sampling isolate external RNGs. The generator's constants, normalization
+and operations are not edited. Nt remains 32 because its physical BS array is
+fixed at 4x8. The object returns the generated device tensors directly; it does
+not hash or copy every training batch to CPU. Only RNG-state capture performed
+by the already accepted isolation utility remains. No Sionna RNG object or
+channel tensor is added to checkpoint payloads.
+
+### Exact seed mapping and data identity
+
+Protocol: `training-channel-data-v1`; mapping: `namespace-offset30-v1`.
+The canonical identity is sorted, compact, ASCII-escaped JSON encoded as UTF-8.
+Its SHA-256 hex digest is `data_id`. Identity includes the base seed, protocol
+and Sionna/isolation versions, physical settings, both batch sizes, and declared
+execution device/precision. No model/arm name, filesystem path, timestamp or
+Python `hash()` enters the identity or seed derivation.
+
+For each split, take SHA-256 of UTF-8
+`protocol_version + ":" + data_id + ":" + split`; interpret its first four bytes
+as an unsigned big-endian integer and reduce modulo `2**30` to obtain `offset`.
+The seed is `(namespace << 30) | ((offset + index) % 2**30)`:
+
+| Split | Namespace | Index |
+| --- | --- | --- |
+| constructor | 0 | 0 |
+| validation | 1 | 0, never the training step |
+| training | 2 | global_step, 1 through 2**30-1 |
+
+Base seeds must be actual integers in `[0, 2**32-1]`; bool/None are rejected.
+Derived seed bounds, the namespace registry, supported version and complete
+serialized mapping are checked. Namespace ranges are disjoint, and the
+offset-plus-index mapping has no collisions between supported training steps
+within one data identity. Finite 32-bit seeds do not imply collision freedom
+between arbitrary different identities. Replay is promised only for the same
+declared configuration and supported runtime, not identical per-sample data
+after changing batch size, batching boundaries, precision or hardware/backend.
+
+The trainer's existing prefetch cache simply calls `training(future_step)`.
+Fetching a different step first or inserting validation calls therefore does
+not change the address of any other training batch. The diagnostic tests this
+property directly, not by pretending to resume a model checkpoint.
+
+### Explicit config and strict new-protocol resume
+
+A **new** config must explicitly include the exact `data.protocol` value under
+`channel_data_protocol` in `to_dict()`. The existing fingerprint algorithm
+already hashes all of `to_dict()`, so this opt-in declaration participates in
+the fingerprint without changing the algorithm or old serialized configs.
+It is not enough to attach an un-serialized Python attribute to an old config.
+This task does not provide a new training recipe/entry or modify TrainConfig,
+ASDirect config, or their fingerprints.
+
+Before any trainer output directory/status/config creation, validation rejects:
+
+- An object without a declaration, a declaration without an object, or an
+  object whose protocol differs from the declaration.
+- Unsupported/mutated protocol metadata, inconsistent physical dimensions or
+  training/validation batch sizes, and an unsupported step range.
+- For the new protocol, an existing config snapshot that differs in either
+  full serialized content or fingerprint.
+- Explicit new-protocol resume without latest, missing full saved config or
+  fingerprint, any full-config/fingerprint mismatch, and incomplete resume
+  payload fields. An old checkpoint cannot silently become a new-protocol run.
+
+New-protocol resume reads and validates the CPU payload before output creation,
+then passes that same payload to the existing loader, which repeats the strict
+metadata check before loading state. It is not reread from a potentially
+different file. Fresh runs must explicitly use resume=False and new run paths;
+an existing latest with resume disabled is rejected. Historical missing-
+fingerprint behavior remains confined to the old, undeclared protocol. Explicit
+weights-only initialization is distinct from resume and is not a protocol
+upgrade of a historical run. No such training is started here.
+
+### Narrow data-interface diagnostic and actual checks
+
+`diagnose_training_channel_data.py` uses the same declaration validation,
+`prepare`, `validation`, and `training(global_step)` operations as the trainer.
+Its independent diagnostic config uses CUDA, B=2/K4/Nt32/Nsc256, CDL-C; it never
+imports the trainer, constructs a model/optimizer, or reads a checkpoint.
+
+It compares selected steps 1,2,5,500,501,5000 in ascending order, interleaved
+with fixed validation, and in reversed prefetch order. A fresh subprocess first
+requests step501, then5000 without generating earlier steps. It compares DL/UL
+hashes and actual max absolute/relative errors, along with validation hashes.
+Full external default/Sionna RNG fingerprints are checked around construction,
+preparation and each data call. Failed side effects are reported before any
+cleanup restoration. This does not repeat the previously accepted complete
+normal/exception/nested RNG isolation suite.
+
+Reports go to a new exclusive directory under
+`runs_as_screen/diagnostics/training_channel_data_v1/`; protocol, dependency and
+source versions/hashes, backend settings and selected channel evidence are
+saved. Failed checks preserve a report and return a nonzero exit code.
+
+Actual local validation of this interface: **42 tests: 41 passed, 1 explicitly
+skipped, 0 failures/errors**. The skip records the unavailable genuine Sionna
+2.0.1/CUDA acceptance environment (local Sionna is 0.15.1). Tests execute pure
+metadata helpers and AST-extracted actual trainer guard functions, covering
+the old None branch, rejection before output/runtime work, mapping, protocol
+binding and strict resume. They do not train a stub model or fake Sionna.
+The existing ASDirect entry's **41 standard-library regression tests passed**.
+Syntax and standard-library help/dry-run checks passed. No dependencies were
+installed, no weights downloaded, and no training/model/channel evaluation ran.
+
+Server interface acceptance commands, not executed locally:
+
+```bash
+python -B -m unittest discover -s tests -p test_replayable_channel_data.py -v
+python -B -S diagnose_training_channel_data.py --dry-run
+python -B -u diagnose_training_channel_data.py --run
+```
+
+**Boundary:** this validates channel reproducibility through the new data
+interface only. Full model/optimizer/scheduler pause/resume has not been shown
+bitwise identical; other random streams, numerical kernels, and trainer
+initialization still require a separate controlled test. Historical checkpoints
+and results are not silently reclassified under this new protocol.
