@@ -1303,8 +1303,14 @@ def evaluate_scenario(
     snr_points: Sequence[Tuple[float, float]],
     args: argparse.Namespace,
     device: torch.device,
+    *,
+    channel_data=None,
 ) -> Tuple[List[dict], List[dict]]:
-    generator = build_channel_generator(scenario, device)
+    if channel_data is None:
+        generator = build_channel_generator(scenario, device)
+    else:
+        # Opt-in source only; legacy generation and feedback RNG remain unchanged.
+        channel_data.prepare()
 
     # key -> list[tensor], one tensor per batch
     stores: Dict[Tuple[str, int, int, float, float, str], List[torch.Tensor]] = {}
@@ -1341,7 +1347,10 @@ def evaluate_scenario(
             + batch_index
         )
         set_seed(channel_seed)
-        H_dl, H_ul = generator.generate_batch_data(args.batch_size)
+        if channel_data is None:
+            H_dl, H_ul = generator.generate_batch_data(args.batch_size)
+        else:
+            H_dl, H_ul = channel_data.training(batch_index + 1)
         H_dl = H_dl.to(device)
         H_ul = H_ul.to(device)
 

@@ -469,53 +469,10 @@ class OutputAndCliTests(unittest.TestCase):
                     entry.build_parser().parse_args(arguments)
                 self.assertEqual(raised.exception.code, 2)
 
-    def test_fresh_process_import_help_and_dry_run_never_read_weights_or_write(self):
-        script = r'''
-import builtins
-import contextlib
-import io
-import json
-import os
-from pathlib import Path
-import sys
-
-sys.path.insert(0, sys.argv[1])
-real_import = builtins.__import__
-blocked = {"torch", "numpy", "sionna", "tensorflow", "models", "utils", "main_train", "baseline_evaluate"}
-def guarded_import(name, *args, **kwargs):
-    if name.split(".", 1)[0] in blocked:
-        raise AssertionError("Heavy import attempted: " + name)
-    return real_import(name, *args, **kwargs)
-def audit(event, args):
-    if event == "os.mkdir":
-        raise AssertionError("Directory write attempted")
-    if event == "open":
-        path, mode, flags = args
-        if flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
-            raise AssertionError("File write attempted: " + str(path))
-        if isinstance(path, (str, bytes)) and os.fsdecode(path).lower().endswith((".pth", ".pt", ".ckpt")):
-            raise AssertionError("Weight read attempted: " + os.fsdecode(path))
-builtins.__import__ = guarded_import
-sys.addaudithook(audit)
-import evaluate_proposal_as_direct as entry
-with contextlib.redirect_stdout(io.StringIO()):
-    assert entry.main([]) == 0
-out = io.StringIO()
-with contextlib.redirect_stdout(out):
-    assert entry.main(["--dry-run"]) == 0
-plan = json.loads(out.getvalue())
-assert [item["method_key"] for item in plan["plan"]] == ["full_control", "as_direct", "robust_frozen", "swin"]
-assert plan["checkpoint_bytes_not_read"] is True
-assert plan["evaluation"]["num_samples"] == 1600
-assert plan["preflight"]["num_samples"] == 8
-assert not blocked.intersection(sys.modules)
-print("dry-run stayed read-only and lightweight")
-'''
-        with tempfile.TemporaryDirectory() as temporary:
-            result = subprocess.run([sys.executable, "-X", "utf8", "-B", "-S", "-c", script, str(ROOT)],
-                                    cwd=temporary, capture_output=True, text=True, timeout=30)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("read-only and lightweight", result.stdout)
+    def test_lightweight_cli_contract(self):
+        from cli_contracts import assert_lightweight_cli
+        assert_lightweight_cli(self, 'evaluate_proposal_as_direct', [['--dry-run']],
+            "assert [p['method_key'] for p in plans[0]['plan']] == ['full_control','as_direct','robust_frozen','swin']; assert plans[0]['evaluation']['num_samples']==1600; assert plans[0]['preflight']['num_samples']==8")
 
 
 class EvaluationSourceTests(unittest.TestCase):

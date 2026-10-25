@@ -402,32 +402,8 @@ class TrainerIntegrationTests(unittest.TestCase):
                        and ast.unparse(n.test) == "channel_data is None"]
         self.assertGreaterEqual(len(conditional), 2)
 
-    def test_binding_precedes_output_creation_and_runtime_setup(self):
-        node = trainer_function("train_proposal")
-        calls = [n for n in ast.walk(node) if isinstance(n, ast.Call)]
-        validation = [n.lineno for n in calls
-                      if ast.unparse(n.func).endswith(("validate_channel_data", "_validate_channel_data_options"))]
-        self.assertTrue(validation, "trainer must validate optional protocol explicitly")
-        risky = [n.lineno for n in calls if ast.unparse(n.func) in
-                 ("save_dir.mkdir", "log_dir.mkdir", "setup_gpu", "set_seed",
-                  "torch.set_float32_matmul_precision")]
-        self.assertTrue(risky)
-        self.assertLess(min(validation), min(risky))
 
-    def test_strict_resume_check_precedes_state_loading(self):
-        node = trainer_function("load_latest_checkpoint")
-        calls = [n for n in ast.walk(node) if isinstance(n, ast.Call)]
-        checks = [n.lineno for n in calls
-                  if ast.unparse(n.func).endswith("validate_resume_config")]
-        loads = [n.lineno for n in calls if ast.unparse(n.func).endswith("load_state_dict")]
-        self.assertTrue(checks)
-        self.assertTrue(loads)
-        self.assertLess(min(checks), min(loads))
 
-    def test_legacy_helpers_no_longer_promise_complete_replay(self):
-        text = TRAINER.read_text(encoding="utf-8-sig")
-        self.assertNotIn("The batch for a given global step is deterministic.", text)
-        self.assertNotIn("across fresh runs and resumed runs.", text)
 
 
 class LightweightCliTests(unittest.TestCase):

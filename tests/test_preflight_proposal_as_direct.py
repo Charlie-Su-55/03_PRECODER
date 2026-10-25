@@ -21,8 +21,9 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for directory in (ROOT, Path(__file__).resolve().parent):
+    if str(directory) not in sys.path:
+        sys.path.insert(0, str(directory))
 
 import preflight_proposal_as_direct as preflight
 
@@ -446,65 +447,11 @@ class CommandLineTests(unittest.TestCase):
                     preflight.build_parser().parse_args(["--dry-run", option, value])
                 self.assertEqual(raised.exception.code, 2)
 
-    def test_import_help_and_dry_run_never_import_heavy_modules_read_weights_or_write(self):
-        # A fresh -S process prevents installed packages/site hooks from hiding an
-        # accidental heavy import. The audit hook denies all write opens/mkdirs
-        # and every checkpoint read, independently of current repository state.
-        script = r'''
-import builtins
-import contextlib
-import io
-import json
-import os
-from pathlib import Path
-import sys
-
-root = Path(sys.argv[1])
-sys.path.insert(0, str(root))
-real_import = builtins.__import__
-forbidden = {"torch", "numpy", "sionna", "tensorflow", "models", "utils",
-             "main_train", "baseline_evaluate", "train_proposal_snr_robust"}
-
-def guarded_import(name, *args, **kwargs):
-    if name.split(".", 1)[0] in forbidden:
-        raise AssertionError("Heavy import attempted: " + name)
-    return real_import(name, *args, **kwargs)
-
-def audit(event, args):
-    if event == "os.mkdir":
-        raise AssertionError("Directory creation attempted: " + str(args[0]))
-    if event == "open":
-        path, mode, flags = args
-        if flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
-            raise AssertionError("File write attempted: " + str(path))
-        if isinstance(path, (str, bytes)) and os.fsdecode(path).lower().endswith(
-                (".pth", ".pt", ".ckpt", ".safetensors")):
-            raise AssertionError("Checkpoint read attempted: " + os.fsdecode(path))
-
-builtins.__import__ = guarded_import
-sys.addaudithook(audit)
-import preflight_proposal_as_direct as preflight
-
-help_output = io.StringIO()
-with contextlib.redirect_stdout(help_output):
-    assert preflight.main([]) == 0
-assert "--run" in help_output.getvalue()
-
-dry_output = io.StringIO()
-with contextlib.redirect_stdout(dry_output):
-    assert preflight.main(["--dry-run", "--checkpoint", "missing/no-load.pth"]) == 0
-plan = json.loads(dry_output.getvalue())
-assert Path(plan["checkpoint_path"]) == root / "missing/no-load.pth"
-assert not forbidden.intersection(sys.modules)
-print("import/help/dry-run stayed read-only and lightweight")
-'''
-        with tempfile.TemporaryDirectory() as temporary:
-            result = subprocess.run(
-                [sys.executable, "-X", "utf8", "-B", "-S", "-c", script, str(ROOT)],
-                cwd=temporary, capture_output=True, text=True, timeout=30,
-            )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("stayed read-only and lightweight", result.stdout)
+    def test_lightweight_cli_contract(self):
+        from cli_contracts import assert_lightweight_cli
+        assert_lightweight_cli(self, 'preflight_proposal_as_direct',
+            [['--dry-run', '--checkpoint', 'missing/no-load.pth']],
+            "assert pathlib.Path(plans[0]['checkpoint_path']) == pathlib.Path(sys.argv[1]) / 'missing/no-load.pth'")
 
 
 if __name__ == "__main__":

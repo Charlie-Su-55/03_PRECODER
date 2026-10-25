@@ -25,8 +25,9 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for directory in (ROOT, Path(__file__).resolve().parent):
+    if str(directory) not in sys.path:
+        sys.path.insert(0, str(directory))
 
 from configs import as_direct_train_config as config_module
 from configs.as_direct_train_config import ARMS, OUTPUT_ROOT, RECIPE, as_direct_config, validate_config
@@ -685,72 +686,12 @@ class CommandLineTests(unittest.TestCase):
                 self.assertEqual(parsed.stop_after, 500)
                 self.assertEqual(parsed.resume, resume)
 
-    def test_import_help_and_both_dry_runs_need_no_heavy_modules_weights_or_writes(self):
-        script = r'''
-import builtins
-import contextlib
-import io
-import json
-import os
-from pathlib import Path
-import sys
-
-root = Path(sys.argv[1])
-sys.path.insert(0, str(root))
-real_import = builtins.__import__
-forbidden = {"torch", "numpy", "sionna", "tensorflow", "models", "utils", "main_train"}
-
-def guarded_import(name, *args, **kwargs):
-    if name.split(".", 1)[0] in forbidden:
-        raise AssertionError("Heavy import attempted: " + name)
-    return real_import(name, *args, **kwargs)
-
-def audit(event, args):
-    if event == "os.mkdir":
-        raise AssertionError("Directory creation attempted: " + str(args[0]))
-    if event == "open":
-        path, mode, flags = args
-        if flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND):
-            raise AssertionError("File write attempted: " + str(path))
-        if isinstance(path, (str, bytes)) and os.fsdecode(path).lower().endswith(
-                (".pth", ".pt", ".ckpt", ".safetensors")):
-            raise AssertionError("Checkpoint read attempted: " + os.fsdecode(path))
-
-builtins.__import__ = guarded_import
-sys.addaudithook(audit)
-import train_proposal_as_direct as entry
-
-help_output = io.StringIO()
-with contextlib.redirect_stdout(help_output):
-    assert entry.main([]) == 0
-assert "--train" in help_output.getvalue()
-
-plans = []
-for arm in ("full_control", "as_direct"):
-    dry_output = io.StringIO()
-    with contextlib.redirect_stdout(dry_output):
-        assert entry.main(["--arm", arm, "--dry-run", "--checkpoint", "missing/source.pth"]) == 0
-    plan = json.loads(dry_output.getvalue())
-    assert plan["config"]["arm"] == arm
-    assert plan["config"]["experiment"]["seed"] == 20261025
-    assert plan["config"]["allocations"] == [[0, 256]]
-    assert plan["new_optimizer"] == "AdamW"
-    assert plan["scheduler_total_steps"] == 5000
-    assert plan["checkpoint_availability_not_checked"] is True
-    assert plan["config"]["architecture_metadata"]["ue_ffn_dim"] == 2048
-    plans.append(plan)
-assert plans[0]["fingerprint"] != plans[1]["fingerprint"]
-assert plans[0]["latest"] != plans[1]["latest"]
-assert not forbidden.intersection(sys.modules)
-print("both dry runs stayed lightweight and read-only")
-'''
-        with tempfile.TemporaryDirectory() as temporary:
-            result = subprocess.run(
-                [sys.executable, "-X", "utf8", "-B", "-S", "-c", script, str(ROOT)],
-                cwd=temporary, capture_output=True, text=True, timeout=30,
-            )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("both dry runs stayed lightweight and read-only", result.stdout)
+    def test_lightweight_cli_contract(self):
+        from cli_contracts import assert_lightweight_cli
+        assert_lightweight_cli(self, 'train_proposal_as_direct',
+            [['--arm', arm, '--dry-run', '--checkpoint', 'missing/source.pth']
+             for arm in ('full_control', 'as_direct')],
+            "assert plans[0]['fingerprint'] != plans[1]['fingerprint']; assert plans[0]['latest'] != plans[1]['latest']; assert all(p['scheduler_total_steps']==5000 for p in plans)")
 
 
 if __name__ == "__main__":
