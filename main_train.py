@@ -547,6 +547,7 @@ def train_proposal(
     *,
     model_factory: Callable[[TrainConfig, torch.device], nn.Module] | None = None,
     channel_data: Any | None = None,
+    optimizer_scheduler_factory: Callable[[TrainConfig, nn.Module], Tuple[optim.Optimizer, Any]] | None = None,
 ) -> None:
     validated_checkpoint = _validate_channel_data_options(cfg, options, channel_data)
     torch.set_float32_matmul_precision("high")
@@ -618,16 +619,19 @@ def train_proposal(
     print(f"[Model]      trainable parameters={n_params / 1e6:.3f} M")
 
     criterion = SumRateLoss()
-    optimizer = optim.AdamW(
-        model.parameters(), lr=cfg.LR, weight_decay=cfg.WEIGHT_DECAY
-    )
-    scheduler = optim.lr_scheduler.OneCycleLR(
-        optimizer,
-        max_lr=cfg.LR,
-        total_steps=cfg.TOTAL_STEPS,
-        pct_start=cfg.WARMUP_PCT,
-        anneal_strategy="cos",
-    )
+    if optimizer_scheduler_factory is None:
+        optimizer = optim.AdamW(
+            model.parameters(), lr=cfg.LR, weight_decay=cfg.WEIGHT_DECAY
+        )
+        scheduler = optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=cfg.LR,
+            total_steps=cfg.TOTAL_STEPS,
+            pct_start=cfg.WARMUP_PCT,
+            anneal_strategy="cos",
+        )
+    else:
+        optimizer, scheduler = optimizer_scheduler_factory(cfg, model)
 
     # start_step = 1
     # best_metric = float("-inf")

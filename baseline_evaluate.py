@@ -996,6 +996,8 @@ def forward_proposed_with_surrogate(
     d_f: int,
     d_a: int,
     cfg_idx: int,
+    *,
+    diagnostic_sink=None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Run the exact deployed proposed path and also recover H_hat for metrics.
@@ -1003,6 +1005,20 @@ def forward_proposed_with_surrogate(
     The hook is read-only. It does not change W, model mode, parameters, random
     numbers, or the checkpoint.
     """
+    if diagnostic_sink is not None and callable(getattr(model, "forward_with_diagnostics", None)):
+        result = model.forward_with_diagnostics(H_dl, H_ul, feedback_snr, d_f, d_a, cfg_idx)
+        if not isinstance(result, dict) or not all(name in result for name in ("precoder", "channel_surrogate", "diagnostics")):
+            raise RuntimeError("Explicit proposal diagnostics returned an invalid interface")
+        W, H_hat = result["precoder"], result["channel_surrogate"]
+        if not torch.is_tensor(W) or not torch.is_tensor(H_hat):
+            raise RuntimeError("Explicit proposal outputs must be tensors")
+        diagnostic_sink(result["diagnostics"])
+        return W, H_hat
+    if callable(getattr(model, "forward_with_representation", None)):
+        W, H_hat = model.forward_with_representation(H_dl, H_ul, feedback_snr, d_f, d_a, cfg_idx)
+        if not torch.is_tensor(W) or not torch.is_tensor(H_hat):
+            raise RuntimeError("Explicit proposal representation outputs must be tensors")
+        return W, H_hat
     captured: Dict[str, torch.Tensor] = {}
 
     if not hasattr(model, "h_estimator"):
@@ -1305,6 +1321,7 @@ def evaluate_scenario(
     device: torch.device,
     *,
     channel_data=None,
+    diagnostic_sink=None,
 ) -> Tuple[List[dict], List[dict]]:
     if channel_data is None:
         generator = build_channel_generator(scenario, device)
@@ -1408,6 +1425,10 @@ def evaluate_scenario(
                             d_f,
                             d_a,
                             cfg_idx,
+                            diagnostic_sink=None if diagnostic_sink is None else lambda payload: diagnostic_sink(
+                                dict(method_key=method.method_key, batch_index=batch_index,
+                                     feedback_snr_db=float(feedback_snr), downlink_snr_db=float(downlink_snr),
+                                     allocation_df=d_f, allocation_da=d_a), payload),
                         )
 
                     elif method.model_key in {"csinet", "swin"}:

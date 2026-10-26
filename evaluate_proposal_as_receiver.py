@@ -168,14 +168,14 @@ def build_method(torch, ev, scenario, entry, payload, device):
     return method
 
 
-def verify_results(summary, samples, plan, count, seed, training_seed):
+def verify_results(summary, samples, plan, count, seed, training_seed, *, method_keys=METHODS):
     validate_seed(training_seed)
     if type(count) is not int or count < 8 or count % 8:
         raise ValueError("Sample count must comprise complete eight-channel batches")
     by_key = {entry["method_key"]: entry for entry in plan}
-    if tuple(by_key) != METHODS or len(plan) != len(METHODS):
-        raise ValueError("Five fixed methods, including the inference-only receiver-off, are required")
-    expected = {(key, fb, 25) for key in METHODS for fb in FB_SNRS}
+    if not method_keys or len(set(method_keys)) != len(method_keys) or tuple(by_key) != tuple(method_keys) or len(plan) != len(method_keys):
+        raise ValueError("Exactly the declared fixed methods, without duplicates, are required")
+    expected = {(key, fb, 25) for key in method_keys for fb in FB_SNRS}
     indexed, summaries = {key: {} for key in expected}, {}
 
     def condition(row):
@@ -221,11 +221,15 @@ def verify_results(summary, samples, plan, count, seed, training_seed):
     return indexed
 
 
-def paired_rows(summary, samples, plan, count, seed, training_seed):
-    indexed = verify_results(summary, samples, plan, count, seed, training_seed)
+def paired_rows(summary, samples, plan, count, seed, training_seed, *, method_keys=METHODS,
+                comparisons=COMPARISONS, primary_pairs=(("as_receiver", "full_control"),)):
+    indexed = verify_results(summary, samples, plan, count, seed, training_seed, method_keys=method_keys)
+    if (len(set(comparisons)) != len(comparisons) or any(a not in method_keys or b not in method_keys or a == b for a,b in comparisons)
+            or any(pair not in comparisons for pair in primary_pairs)):
+        raise ValueError("Invalid declared paired comparisons")
     rows, raw = [], []
     scopes = [("per_snr", (fb,)) for fb in FB_SNRS] + [("low_snr_mean", (0, 5, 10)), ("all_snr_mean", FB_SNRS)]
-    for method, reference in COMPARISONS:
+    for method, reference in comparisons:
         for estimand, snrs in scopes:
             differences = [statistics.fmean(float(indexed[method, fb, 25][i]["sum_rate"])
                                             - float(indexed[reference, fb, 25][i]["sum_rate"])
@@ -237,8 +241,8 @@ def paired_rows(summary, samples, plan, count, seed, training_seed):
                        downlink_snr_db=25, num_samples=count, num_batches=count//8, batch_size=8,
                        batch_ci_estimable=len(batches)>1, sample_ci_unit="complete_multi_user_channel",
                        batch_ci_unit="sample_index//8", training_seeds_pooled=False,
-                       role="primary" if (method, reference, estimand) == ("as_receiver", "full_control", "low_snr_mean")
-                       else "secondary_25db_degradation" if (method, reference, snrs) == ("as_receiver", "full_control", (25,))
+                       role="primary" if (method, reference) in primary_pairs and estimand == "low_snr_mean"
+                       else "secondary_25db_degradation" if (method, reference) in primary_pairs and snrs == (25,)
                        else "inference_intervention" if reference == "as_receiver_off" else "diagnostic")
             row.update({"delta_"+key: value for key, value in sample_statistics(differences).items()})
             row.update({"batch_delta_"+key: value for key, value in sample_statistics(batches).items()})
@@ -260,7 +264,7 @@ def create_output(training_seed, *, preflight=False, output_dir=None, root=OUTPU
     return path
 
 
-def runtime_record(torch=None):
+def runtime_record(torch=None, *, source_files=SOURCE_FILES):
     software = {}
     for package in ("torch", "numpy", "sionna"):
         try:
@@ -268,19 +272,19 @@ def runtime_record(torch=None):
         except importlib.metadata.PackageNotFoundError:
             software[package] = "unavailable"
     return dict(git_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-                source_sha256={p: sha256_file(ROOT / p) for p in SOURCE_FILES}, python=sys.version,
+                source_sha256={p: sha256_file(ROOT / p) for p in source_files}, python=sys.version,
                 platform=platform.platform(), software=software, backend=None if torch is None else _backend_info(torch))
 
 
-def artifact_hashes(output):
+def artifact_hashes(output, *, expected_artifacts=OUTPUT_ARTIFACTS):
     """Bind all completed artifacts to safe basename keys; exclude self-manifest."""
     output = Path(output)
     actual = {path.name for path in output.iterdir()
               if path.name != "manifest.json" and path.name.endswith((".csv", ".csv.gz", ".json"))}
-    if actual != set(OUTPUT_ARTIFACTS):
-        raise ValueError(f"Incomplete/unexpected evaluation artifacts: missing={set(OUTPUT_ARTIFACTS)-actual}, extra={actual-set(OUTPUT_ARTIFACTS)}")
+    if actual != set(expected_artifacts):
+        raise ValueError(f"Incomplete/unexpected evaluation artifacts: missing={set(expected_artifacts)-actual}, extra={actual-set(expected_artifacts)}")
     hashes = {}
-    for name in OUTPUT_ARTIFACTS:
+    for name in expected_artifacts:
         path = output / name
         if (not path.is_file() or path.is_symlink()
                 or (hasattr(path, "is_junction") and path.is_junction())
@@ -291,13 +295,13 @@ def artifact_hashes(output):
     return hashes
 
 
-def evaluation_args(ev, output, p):
+def evaluation_args(ev, output, p, *, tag=TAG):
     args = ev.build_parser().parse_args([
         "--scenario", "4,256,256", "--models", "proposed,swin", "--allocations", "0,256",
         "--checkpoint", "best", "--no-include-proposed-best", "--baseline-objective", "task",
         "--feedback-snr", "0,5,10,15,20,25", "--downlink-snr", "25", "--rzf-reg", "0.001",
         "--batch-size", "8", "--num-batches", str(p["num_batches"]), "--seed", str(p["seed"]),
-        "--extra-metrics", "basic", "--output-dir", str(output), "--tag", TAG,
+        "--extra-metrics", "basic", "--output-dir", str(output), "--tag", tag,
     ])
     if args.include_proposed_best or args.no_save_samples:
         raise ValueError("Oracle output forbidden; individual samples required")
