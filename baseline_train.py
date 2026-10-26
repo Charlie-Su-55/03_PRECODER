@@ -187,6 +187,9 @@ def validate(
     H_ul_val: torch.Tensor,
     criterion: SumRateLoss,
     cfg: BaselineConfig,
+    *,
+    downlink_snr_db: float | None = None,
+    selection_label: str | None = None,
 ) -> dict:
     model.eval()
     rates: Dict[str, float] = {}
@@ -205,7 +208,8 @@ def validate(
             )
         W = output["precoder"]
         H_hat = output["channel_surrogate"]
-        _, rate = criterion(W, H_dl_val, 10.0 ** (-float(snr_db) / 10.0))
+        dl_snr = float(snr_db) if downlink_snr_db is None else float(downlink_snr_db)
+        _, rate = criterion(W, H_dl_val, 10.0 ** (-dl_snr / 10.0))
         rates[str(snr_db)] = float(rate.item())
         nmse_values[str(snr_db)] = nmse_db(H_hat, H_dl_val)
 
@@ -213,12 +217,12 @@ def validate(
     mean_nmse_db = float(np.mean(list(nmse_values.values())))
     if cfg.OBJECTIVE == "task":
         selection_score = mean_rate
-        selection_name = "mean_rate"
+        selection_name = "mean_rate" if selection_label is None else selection_label
     else:
         selection_score = -mean_nmse_db
         selection_name = "negative_mean_nmse_db"
 
-    return {
+    result = {
         "rates": rates,
         "nmse_db": nmse_values,
         "mean_rate": mean_rate,
@@ -226,6 +230,9 @@ def validate(
         "selection_score": selection_score,
         "selection_name": selection_name,
     }
+    if selection_label == "mean_all":
+        result["mean_all"] = mean_rate
+    return result
 
 
 def format_validation(step: int, result: dict, cfg: BaselineConfig) -> str:
@@ -270,15 +277,19 @@ def load_resume(
     optimizer: optim.Optimizer,
     scheduler,
     device: torch.device,
+    *,
+    resume_validator=None,
 ) -> tuple[int, float]:
     checkpoint = torch.load(cfg.SAVE_PATH, map_location="cpu", weights_only=False)
+    if resume_validator is not None:
+        resume_validator(checkpoint, cfg)
     expected = config_fingerprint(cfg)
     actual = checkpoint.get("config_fingerprint")
     if actual is not None and actual != expected:
         raise RuntimeError(
             f"Config fingerprint mismatch: checkpoint={actual}, current={expected}"
         )
-    model.load_state_dict(checkpoint["state"])
+    model.load_state_dict(checkpoint["state"], strict=True)
     optimizer.load_state_dict(checkpoint["optimizer"])
     optimizer_to(optimizer, device)
     scheduler.load_state_dict(checkpoint["scheduler"])
@@ -292,7 +303,17 @@ def train_one(
     stop_after: int | None,
     no_resume: bool,
     skip_existing: bool,
+    model_factory=None,
+    optimizer_scheduler_factory=None,
+    channel_data=None,
+    downlink_snr_db: float | None = None,
+    initial_validation: bool = False,
+    resume_validator=None,
 ) -> None:
+    # Explicit opt-in data declaration; legacy calls do not import this helper.
+    if channel_data is not None or "channel_data_protocol" in cfg.to_dict():
+        from configs.as_receiver_train_config import channel_data_api
+        channel_data_api().validate_channel_data(cfg, channel_data)
     save_dir = Path(cfg.SAVE_DIR)
     log_dir = Path(cfg.LOG_DIR)
     best_path = Path(cfg.BEST_PATH)
@@ -321,7 +342,8 @@ def train_one(
     if not torch.cuda.is_available() or device.type != "cuda":
         raise RuntimeError("CUDA is unavailable. Baseline training is aborted.")
 
-    model = MODEL_REGISTRY[cfg.MODEL_NAME](cfg).to(device)
+    model = (MODEL_REGISTRY[cfg.MODEL_NAME](cfg).to(device) if model_factory is None
+             else model_factory(cfg, device))
     parameter_count = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
     print("=" * 100)
@@ -339,31 +361,58 @@ def train_one(
     print(f"[Model]      trainable parameters={parameter_count/1e6:.3f} M")
     print(f"[Checkpoint] {cfg.SAVE_DIR}")
 
-    optimizer = optim.AdamW(
-        model.parameters(), lr=cfg.LR, weight_decay=cfg.WEIGHT_DECAY
-    )
-    scheduler = optim.lr_scheduler.OneCycleLR(
-        optimizer,
-        max_lr=cfg.LR,
-        total_steps=cfg.TOTAL_STEPS,
-        pct_start=cfg.WARMUP_PCT,
-        anneal_strategy="cos",
-    )
+    if optimizer_scheduler_factory is None:
+        optimizer = optim.AdamW(
+            model.parameters(), lr=cfg.LR, weight_decay=cfg.WEIGHT_DECAY
+        )
+        scheduler = optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            max_lr=cfg.LR,
+            total_steps=cfg.TOTAL_STEPS,
+            pct_start=cfg.WARMUP_PCT,
+            anneal_strategy="cos",
+        )
+    else:
+        optimizer, scheduler = optimizer_scheduler_factory(cfg, model)
 
     start_step = 1
     best_score = -float("inf")
     if latest_path.exists() and not no_resume:
         start_step, best_score = load_resume(
-            cfg, model, optimizer, scheduler, device
+            cfg, model, optimizer, scheduler, device,
+            resume_validator=resume_validator,
         )
         print(f"[Resume] step={start_step}, best_score={best_score:.4f}")
 
-    generator = build_channel_generator(cfg, device)
-    H_dl_val, H_ul_val = generate_channel_batch(
-        generator, cfg.VAL_BATCH, device, cfg.SEED + 500_000
-    )
+    if channel_data is None:
+        generator = build_channel_generator(cfg, device)
+        H_dl_val, H_ul_val = generate_channel_batch(
+            generator, cfg.VAL_BATCH, device, cfg.SEED + 500_000
+        )
+    else:
+        channel_data_api().validate_channel_data(cfg, channel_data, device=device)
+        channel_data.prepare()
+        H_dl_val, H_ul_val = channel_data.validation()
 
     criterion = SumRateLoss()
+    best_step = None
+    if initial_validation:
+        if start_step == 1:
+            initial = validate(model, H_dl_val, H_ul_val, criterion, cfg,
+                               downlink_snr_db=downlink_snr_db, selection_label="mean_all")
+            if not np.isfinite(initial["selection_score"]):
+                raise FloatingPointError("Non-finite source step-0 validation")
+            best_score, best_step = initial["selection_score"], 0
+            payload = checkpoint_payload(cfg, 0, model, optimizer, scheduler, best_score, initial)
+            payload["selected_best_step"] = 0
+            torch.save(payload, best_path)
+            append_jsonl(cfg.METRICS_PATH, dict(step=0, experiment=cfg.EXP_NAME,
+                         objective=cfg.OBJECTIVE, source_step_zero=True, **initial))
+            print(format_validation(0, initial, cfg))
+        else:
+            retained_best = torch.load(best_path, map_location="cpu", weights_only=False)
+            best_step = int(retained_best["step"])
+            del retained_best
     torch.cuda.empty_cache()
     torch.cuda.reset_peak_memory_stats(device)
 
@@ -380,9 +429,12 @@ def train_one(
     last_validation = None
 
     for step in progress:
-        H_dl, H_ul = generate_channel_batch(
-            generator, cfg.BATCH_SIZE, device, cfg.SEED + 10_000_000 + step
-        )
+        if channel_data is None:
+            H_dl, H_ul = generate_channel_batch(
+                generator, cfg.BATCH_SIZE, device, cfg.SEED + 10_000_000 + step
+            )
+        else:
+            H_dl, H_ul = channel_data.training(step)
         snr_db = get_training_snr(step, cfg)
         snr_tensor = torch.tensor(snr_db, dtype=torch.float32, device=device)
 
@@ -393,7 +445,8 @@ def train_one(
 
         W = output["precoder"]
         H_hat = output["channel_surrogate"]
-        rate_loss, train_rate = criterion(W, H_dl, 10.0 ** (-snr_db / 10.0))
+        dl_snr = snr_db if downlink_snr_db is None else float(downlink_snr_db)
+        rate_loss, train_rate = criterion(W, H_dl, 10.0 ** (-dl_snr / 10.0))
         recon_loss = normalized_mse(H_hat, H_dl)
         loss = rate_loss if cfg.OBJECTIVE == "task" else recon_loss
 
@@ -402,6 +455,8 @@ def train_one(
 
         loss.backward()
         grad_norm = nn.utils.clip_grad_norm_(model.parameters(), cfg.GRAD_CLIP)
+        if channel_data is not None and not torch.isfinite(torch.as_tensor(grad_norm)):
+            raise FloatingPointError(f"Non-finite adaptation gradient at step={step}")
         optimizer.step()
         scheduler.step()
 
@@ -418,7 +473,11 @@ def train_one(
         if not should_validate:
             continue
 
-        validation = validate(model, H_dl_val, H_ul_val, criterion, cfg)
+        validation = validate(model, H_dl_val, H_ul_val, criterion, cfg,
+                              downlink_snr_db=downlink_snr_db,
+                              selection_label="mean_all" if initial_validation else None)
+        if initial_validation and not np.isfinite(validation["selection_score"]):
+            raise FloatingPointError(f"Non-finite adaptation validation at step={step}")
         last_validation = validation
         progress.write(format_validation(step, validation, cfg))
 
@@ -433,6 +492,18 @@ def train_one(
                 if torch.is_tensor(grad_norm) else grad_norm
             ),
         })
+
+        if initial_validation:
+            improved = validation["selection_score"] > best_score
+            if improved:
+                best_score, best_step = validation["selection_score"], step
+            payload = checkpoint_payload(cfg, step, model, optimizer, scheduler,
+                                         best_score, validation)
+            payload["selected_best_step"] = best_step
+            if improved:
+                torch.save(payload, best_path)
+            torch.save(payload, latest_path)
+            continue  # Legacy saving/selection below remains unchanged.
 
         payload = checkpoint_payload(
             cfg, step, model, optimizer, scheduler, best_score, validation
@@ -457,14 +528,17 @@ def train_one(
     )
 
     state = "completed" if target_step >= cfg.TOTAL_STEPS else "paused"
-    write_json(status_path, {
+    status = {
         "state": state,
         "experiment": cfg.EXP_NAME,
         "step": target_step,
         "total_steps": cfg.TOTAL_STEPS,
         "best_score": best_score,
         "last_validation": last_validation,
-    })
+    }
+    if initial_validation:
+        status.update(selected_best_step=best_step, best_selection_name="mean_all")
+    write_json(status_path, status)
     print(f"[{state.capitalize()}] {cfg.EXP_NAME}; best_score={best_score:.3f}")
 
 
