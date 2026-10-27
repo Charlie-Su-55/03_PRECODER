@@ -414,16 +414,21 @@ def checkpoint_payload(
         "best_metric": best_metric,
         "config_fingerprint": config_fingerprint(cfg),
         "config": cfg.to_dict(),
-        "allocation_grid": cfg.ALLOCATION_GRID,
         "rng_state": capture_rng_state(),
     }
+    if "execution_protocol" in cfg.to_dict():
+        payload["layout_spec"] = cfg.to_dict()["layout_spec"]
+        payload["execution_protocol"] = cfg.to_dict()["execution_protocol"]
+    else:
+        payload["allocation_grid"] = cfg.ALLOCATION_GRID
     if optimizer is not None:
         payload["optimizer"] = optimizer.state_dict()
     if scheduler is not None:
         payload["scheduler"] = scheduler.state_dict()
     if val_table is not None:
         payload["val_table"] = {
-            f"alloc{idx}_snr{snr}": value
+            (f"layout{idx}_gamma{snr}" if "execution_protocol" in cfg.to_dict()
+             else f"alloc{idx}_snr{snr}"): value
             for (idx, snr), value in val_table.items()
         }
     return payload
@@ -541,6 +546,24 @@ class RunOptions:
 #     stop_after: int | None = None
 
 
+def _validate_execution_protocol(cfg, execution_protocol):
+    """Default-off explicit layouts; reject mismatches before output creation."""
+    declared = cfg.to_dict().get("execution_protocol")
+    if declared is None and execution_protocol is None:
+        return
+    if declared is None or execution_protocol is None:
+        raise ValueError("Execution protocol requires both config declaration and runtime object")
+    if declared != execution_protocol.descriptor:
+        raise ValueError("Config/runtime execution protocol mismatch")
+    if getattr(execution_protocol, "config_snapshot", None) != cfg.to_dict():
+        raise ValueError("Execution protocol is bound to a different experiment/layout")
+    for name in ("training", "validate", "format_validation", "apply_backend"):
+        if not callable(getattr(execution_protocol, name, None)):
+            raise ValueError(f"Execution protocol lacks {name}")
+    if not cfg.to_dict().get("layout_spec") or hasattr(cfg, "ALLOCATION_GRID"):
+        raise ValueError("Independent layouts require layout_spec, not a legacy allocation grid")
+
+
 def train_proposal(
     cfg: TrainConfig,
     options: RunOptions,
@@ -548,13 +571,20 @@ def train_proposal(
     model_factory: Callable[[TrainConfig, torch.device], nn.Module] | None = None,
     channel_data: Any | None = None,
     optimizer_scheduler_factory: Callable[[TrainConfig, nn.Module], Tuple[optim.Optimizer, Any]] | None = None,
+    execution_protocol: Any | None = None,
 ) -> None:
+    if execution_protocol is not None or "execution_protocol" in cfg.to_dict():
+        _validate_execution_protocol(cfg, execution_protocol)
+    if execution_protocol is not None and (model_factory is None or options.init_checkpoint is not None):
+        raise ValueError("Independent protocol requires its explicit model factory and forbids legacy initialization")
     validated_checkpoint = _validate_channel_data_options(cfg, options, channel_data)
     torch.set_float32_matmul_precision("high")
     set_seed(cfg.SEED)
     from utils import setup_gpu
 
     device = setup_gpu()
+    if execution_protocol is not None:
+        execution_protocol.apply_backend(torch)
     if channel_data is not None:
         _channel_data_api().validate_channel_data(cfg, channel_data, device=device)
 
@@ -594,7 +624,10 @@ def train_proposal(
     print(f"[Experiment] {cfg.EXP_NAME}")
     print(f"[Mode]       {cfg.TRAIN_MODE}")
     print(f"[Scenario]   K={cfg.K_USERS}, Nsc={cfg.SUBCARRIERS}, Dfb={cfg.D_TOT}")
-    print(f"[Allocations] {cfg.ALLOCATION_GRID}")
+    if execution_protocol is None:
+        print(f"[Allocations] {cfg.ALLOCATION_GRID}")
+    else:
+        print(f"[Layout] {cfg.to_dict()['layout_spec']}")
     print(
         f"[Recipe]     {cfg.recipe.name}: steps={cfg.TOTAL_STEPS}, "
         f"batch={cfg.BATCH_SIZE}, lr={cfg.LR:g}, warmup={cfg.WARMUP_PCT:.2f}"
@@ -604,7 +637,9 @@ def train_proposal(
         f"snr_stages=({cfg.STAGE1_STEPS}, {cfg.STAGE2_STEPS}, {cfg.TOTAL_STEPS})"
     )
     print(f"[Checkpoint] {cfg.SAVE_DIR}")
-    if cfg.DOWNLINK_SNR_DB is not None:
+    if execution_protocol is not None:
+        print(f"[Feedback protocol] {execution_protocol.descriptor}")
+    elif cfg.DOWNLINK_SNR_DB is not None:
         print(
             f"[SNR protocol] FB stages={cfg.STAGE1_SNR}, {cfg.STAGE2_SNR}, {cfg.STAGE3_SNR}; "
             f"fixed DL SNR={cfg.DOWNLINK_SNR_DB:g} dB"
@@ -786,27 +821,30 @@ def train_proposal(
     for step in progress:
         H_dl_batch, H_ul_batch = get_batch(step)
 
-        cfg_idx = allocation_index_for_step(
-            step, len(cfg.ALLOCATION_GRID), cfg.SEED
-        )
-        d_f, d_a = cfg.ALLOCATION_GRID[cfg_idx]
+        if execution_protocol is None:
+            cfg_idx = allocation_index_for_step(
+                step, len(cfg.ALLOCATION_GRID), cfg.SEED
+            )
+            d_f, d_a = cfg.ALLOCATION_GRID[cfg_idx]
+            case_label = f"({d_f},{d_a})"
+        else:
+            case_label = cfg.arm
 
         model.train()
         optimizer.zero_grad(set_to_none=True)
 
-        fb_snr = get_snr(step, cfg)
-        dl_snr = get_downlink_snr(fb_snr, cfg)
-        noise_power = 10.0 ** (-dl_snr / 10.0)
-        snr_tensor = torch.tensor(fb_snr, device=device, dtype=torch.float32)
-
-        output = model(
-            H_dl_batch,
-            H_ul_batch,
-            snr_tensor,
-            d_f,
-            d_a,
-            cfg_idx,
-        )
+        if execution_protocol is None:
+            fb_snr = get_snr(step, cfg)
+            dl_snr = get_downlink_snr(fb_snr, cfg)
+            noise_power = 10.0 ** (-dl_snr / 10.0)
+            snr_tensor = torch.tensor(fb_snr, device=device, dtype=torch.float32)
+            output = model(
+                H_dl_batch, H_ul_batch, snr_tensor, d_f, d_a, cfg_idx,
+            )
+        else:
+            output, fb_snr = execution_protocol.training(model, H_dl_batch, H_ul_batch, step, device)
+            dl_snr = get_downlink_snr(fb_snr, cfg)
+            noise_power = 10.0 ** (-dl_snr / 10.0)
         # W, H_hat = extract_training_outputs(output)
 
         # sum_rate_loss, train_rate = criterion(W, H_dl_batch, noise_power)
@@ -862,8 +900,8 @@ def train_proposal(
         loss = sum_rate_loss + w_dir * dir_loss + w_mse * mse_loss
         if not torch.isfinite(loss):
             raise FloatingPointError(
-                f"Non-finite loss at step={step}, allocation={(d_f, d_a)}, "
-                f"FB_SNR={fb_snr:.2f}, DL_SNR={dl_snr:.2f}."
+                f"Non-finite loss at step={step}, case={case_label}, "
+                f"feedback_axis={fb_snr:.2f}, DL_SNR={dl_snr:.2f}."
             )
 
         loss.backward()
@@ -877,11 +915,11 @@ def train_proposal(
             progress.set_postfix(
                 {
                     "phase": phase,
-                    "alloc": f"({d_f},{d_a})",
+                    ("alloc" if execution_protocol is None else "layout"): case_label,
                     "SR": f"{train_rate:.2f}",
                     "cos": f"{float(cos_sim.detach()):.3f}",
                     "MSE": f"{float(mse_loss.detach()):.4f}",
-                    "FB_SNR": f"{fb_snr:.1f}",
+                    ("FB_SNR" if execution_protocol is None else "gamma_db"): f"{fb_snr:.1f}",
                     "DL_SNR": f"{dl_snr:.1f}",
                     "lr": f"{scheduler.get_last_lr()[0]:.2e}",
                 }
@@ -889,15 +927,20 @@ def train_proposal(
 
             if cfg.DOWNLINK_SNR_DB is not None:
                 append_jsonl(cfg.METRICS_PATH, {
-                    "event": "train_snr", "step": step,
-                    "feedback_snr_db": fb_snr, "downlink_snr_db": dl_snr,
+                    "event": "train_snr" if execution_protocol is None else "train_gamma", "step": step,
+                    ("feedback_snr_db" if execution_protocol is None else "gamma_db"): fb_snr,
+                    "downlink_snr_db": dl_snr,
                 })
 
         if step % cfg.VAL_INTERVAL == 0 or step == end_step:
-            val_table = validate_proposal(
-                model, H_dl_val, H_ul_val, criterion, cfg, device
-            )
-            text, current_metric = format_val_table(val_table, step, cfg)
+            if execution_protocol is None:
+                val_table = validate_proposal(
+                    model, H_dl_val, H_ul_val, criterion, cfg, device
+                )
+                text, current_metric = format_val_table(val_table, step, cfg)
+            else:
+                val_table = execution_protocol.validate(model, H_dl_val, H_ul_val, criterion, cfg, device)
+                text, current_metric = execution_protocol.format_validation(val_table, step, cfg)
             progress.write(text)
 
             metrics_record = {
@@ -906,14 +949,15 @@ def train_proposal(
                 "selection_metric": current_metric,
                 "best_metric_before_update": best_metric,
                 "table": {
-                    f"alloc{idx}_snr{snr}": value
+                    (f"alloc{idx}_snr{snr}" if execution_protocol is None
+                     else f"layout{idx}_gamma{snr}"): value
                     for (idx, snr), value in val_table.items()
                 },
             }
             if cfg.DOWNLINK_SNR_DB is not None:
                 metrics_record.update({
                     "event": "validation",
-                    "feedback_snr_db": cfg.VAL_SNR_LIST,
+                    ("feedback_snr_db" if execution_protocol is None else "gamma_db"): cfg.VAL_SNR_LIST,
                     "downlink_snr_db": cfg.DOWNLINK_SNR_DB,
                 })
             append_jsonl(cfg.METRICS_PATH, metrics_record)
