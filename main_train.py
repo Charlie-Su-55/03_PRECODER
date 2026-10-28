@@ -442,6 +442,7 @@ def load_latest_checkpoint(
     device: torch.device,
     *,
     validated_checkpoint: Mapping[str, Any] | None = None,
+    lifecycle_protocol: Any | None = None,
 ) -> Tuple[int, float]:
     uses_replayable_data = "channel_data_protocol" in cfg.to_dict()
     path = Path(cfg.SAVE_PATH)
@@ -458,7 +459,10 @@ def load_latest_checkpoint(
     expected = config_fingerprint(cfg)
     actual = checkpoint.get("config_fingerprint")
     if uses_replayable_data:
-        _channel_data_api().validate_resume_config(checkpoint, cfg)
+        if lifecycle_protocol is None:
+            _channel_data_api().validate_resume_config(checkpoint, cfg)
+        else:
+            lifecycle_protocol.validate_resume_checkpoint(checkpoint)
     if actual is not None and actual != expected:
         raise RuntimeError(
             "Checkpoint/config mismatch. Refusing unsafe resume.\n"
@@ -507,7 +511,7 @@ def _channel_data_api():
     return module
 
 
-def _validate_channel_data_options(cfg, options, channel_data):
+def _validate_channel_data_options(cfg, options, channel_data, lifecycle_protocol=None):
     """Fail before outputs/model construction; retain the verified resume payload."""
     api = _channel_data_api()
     protocol = api.validate_channel_data(cfg, channel_data)
@@ -526,7 +530,9 @@ def _validate_channel_data_options(cfg, options, channel_data):
         if not path.is_file():
             raise FileNotFoundError(f"Explicit new-protocol resume requires latest checkpoint: {path}")
         checkpoint = torch.load(path, map_location="cpu", weights_only=False)
-        return api.validate_resume_config(checkpoint, cfg)
+        if lifecycle_protocol is None:
+            return api.validate_resume_config(checkpoint, cfg)
+        return lifecycle_protocol.validate_resume_checkpoint(checkpoint)
     if path.exists():
         raise FileExistsError(f"Checkpoint exists but new-protocol resume is disabled: {path}")
     return None
@@ -564,6 +570,29 @@ def _validate_execution_protocol(cfg, execution_protocol):
         raise ValueError("Independent layouts require layout_spec, not a legacy allocation grid")
 
 
+def _validate_lifecycle_protocol(cfg, lifecycle_protocol):
+    """An opt-in state-commit lifecycle must be declared and bound before outputs."""
+    declared = cfg.to_dict().get("lifecycle_protocol")
+    if declared is None and lifecycle_protocol is None:
+        return
+    if declared is None or lifecycle_protocol is None:
+        raise ValueError("Lifecycle requires both configuration declaration and runtime object")
+    if declared != lifecycle_protocol.descriptor or lifecycle_protocol.config_snapshot != cfg.to_dict():
+        raise ValueError("Lifecycle/configuration mismatch")
+    for name in ("after_optimizer_step", "validate_model_step", "validate_resume_checkpoint"):
+        if not callable(getattr(lifecycle_protocol, name, None)):
+            raise ValueError(f"Lifecycle lacks {name}")
+    if declared.get("initial_validation") is not True or declared.get("best_includes_optimizer_scheduler_rng") is not True:
+        raise ValueError("Opt-in lifecycle requires step-zero selection and complete best state")
+
+
+def _commit_after_optimizer(lifecycle_protocol, model, output, step):
+    """Called only after optimizer.step succeeds; never during forward/validation."""
+    if lifecycle_protocol is not None:
+        lifecycle_protocol.after_optimizer_step(model, output, step)
+        lifecycle_protocol.validate_model_step(model, step)
+
+
 def train_proposal(
     cfg: TrainConfig,
     options: RunOptions,
@@ -572,12 +601,16 @@ def train_proposal(
     channel_data: Any | None = None,
     optimizer_scheduler_factory: Callable[[TrainConfig, nn.Module], Tuple[optim.Optimizer, Any]] | None = None,
     execution_protocol: Any | None = None,
+    lifecycle_protocol: Any | None = None,
 ) -> None:
+    _validate_lifecycle_protocol(cfg, lifecycle_protocol)
+    if lifecycle_protocol is not None and execution_protocol is None:
+        raise ValueError("Lifecycle requires an explicitly declared execution protocol")
     if execution_protocol is not None or "execution_protocol" in cfg.to_dict():
         _validate_execution_protocol(cfg, execution_protocol)
     if execution_protocol is not None and (model_factory is None or options.init_checkpoint is not None):
         raise ValueError("Independent protocol requires its explicit model factory and forbids legacy initialization")
-    validated_checkpoint = _validate_channel_data_options(cfg, options, channel_data)
+    validated_checkpoint = _validate_channel_data_options(cfg, options, channel_data, lifecycle_protocol)
     torch.set_float32_matmul_precision("high")
     set_seed(cfg.SEED)
     from utils import setup_gpu
@@ -696,6 +729,7 @@ def train_proposal(
             scheduler,
             device,
             validated_checkpoint=validated_checkpoint,
+            lifecycle_protocol=lifecycle_protocol,
         )
         validated_checkpoint = None
         print(
@@ -787,6 +821,21 @@ def train_proposal(
         H_dl_val, H_ul_val = generate_validation_set(channel_gen, cfg, device)
     else:
         H_dl_val, H_ul_val = channel_data.validation()
+    if lifecycle_protocol is not None and not options.resume:
+        lifecycle_protocol.validate_model_step(model, 0)
+        val_table = execution_protocol.validate(model, H_dl_val, H_ul_val, criterion, cfg, device)
+        text, best_metric = execution_protocol.format_validation(val_table, 0, cfg)
+        print(text)
+        lifecycle_protocol.validate_model_step(model, 0)
+        initial_payload = checkpoint_payload(cfg=cfg, step=0, model=model,
+            optimizer=optimizer, scheduler=scheduler, best_metric=best_metric, val_table=val_table)
+        atomic_torch_save(initial_payload, cfg.BEST_PATH)
+        atomic_torch_save(initial_payload, cfg.SAVE_PATH)
+        append_jsonl(cfg.METRICS_PATH, dict(event="validation", step=0,
+            selection_metric_name=cfg.BEST_METRIC, selection_metric=best_metric,
+            best_metric_before_update=None, gamma_db=cfg.VAL_SNR_LIST,
+            downlink_snr_db=cfg.DOWNLINK_SNR_DB,
+            table={f"layout{idx}_gamma{snr}": value for (idx,snr),value in val_table.items()}))
     # Reset CUDA peak-memory statistics before the training loop.
     # The fixed validation tensors remain allocated, so their memory is still
     # included in the current baseline.
@@ -909,6 +958,7 @@ def train_proposal(
         if not torch.isfinite(torch.as_tensor(grad_norm)):
             raise FloatingPointError(f"Non-finite gradient norm at step={step}.")
         optimizer.step()
+        _commit_after_optimizer(lifecycle_protocol, model, output, step)
         scheduler.step()
 
         if step % cfg.LOG_INTERVAL == 0:
@@ -972,8 +1022,8 @@ def train_proposal(
                         cfg=cfg,
                         step=step,
                         model=model,
-                        optimizer=None,
-                        scheduler=None,
+                        optimizer=optimizer if lifecycle_protocol is not None else None,
+                        scheduler=scheduler if lifecycle_protocol is not None else None,
                         best_metric=best_metric,
                         val_table=val_table,
                     ),
