@@ -28,7 +28,8 @@ SOURCE_FILES = tuple(dict.fromkeys(COMMON_SOURCE_FILES + (
     'train_grouped_hybrid_anchor.py','configs/grouped_hybrid_anchor_train_config.py',
     'models/grouped_hybrid_anchor.py','utils/grouped_hybrid_feedback.py',
     'models/grouped_codec_fdma.py','configs/grouped_codec_fdma_train_config.py',
-    'train_grouped_codec_fdma.py','evaluate_grouped_codec_fdma.py')))
+    'train_grouped_codec_fdma.py','evaluate_grouped_codec_fdma.py',
+    'grouped_hybrid_resume_compat.py')))
 PRIOR_KEYS = ('power_prior.pi_nodes','power_prior.update_count','power_prior.node_update_mass')
 
 
@@ -280,6 +281,24 @@ def _record(cfg,name,value):
     with path.open('x',encoding='utf-8') as stream:json.dump(value,stream,indent=2,allow_nan=False)
 
 
+def validate_initialization_provenance(cfg,initial,record,compat_path=None):
+    """Actual resume boundary: JSON semantics for metadata, exact bytes for code."""
+    from grouped_hybrid_resume_compat import differences, validate_trainer_transition
+    if _json(initial.get('source'))!=_json(record['source']):
+        raise ValueError('Resume source checkpoint/config metadata changed: '+
+            json.dumps(differences(initial.get('source'),record['source']),sort_keys=True))
+    if initial.get('config_fingerprint')!=fingerprint(cfg) or _json(initial.get('config'))!=_json(cfg.to_dict()):
+        raise ValueError('Resume initialization configuration changed: '+
+            json.dumps(differences(dict(config=initial.get('config'),config_fingerprint=initial.get('config_fingerprint')),
+                dict(config=cfg.to_dict(),config_fingerprint=fingerprint(cfg))),sort_keys=True))
+    if compat_path is not None:
+        return validate_trainer_transition(cfg,initial,record,compat_path)
+    if initial.get('source_sha256')!=record['source_sha256']:
+        raise ValueError('Resume source-code SHA256 changed (explicit registered repair required): '+
+            json.dumps(differences(initial.get('source_sha256'),record['source_sha256']),sort_keys=True))
+    return None
+
+
 def run_training(cfg,args):
     check_run_state(cfg,resume=args.resume)
     import torch
@@ -299,10 +318,8 @@ def run_training(cfg,args):
             full_training_bitwise_resume_verified=False,screening_only=True)
         if args.resume:
             initial=json.loads((Path(cfg.LOG_DIR)/'initialization.json').read_text(encoding='utf-8'))
-            if initial.get('source_sha256')!=record['source_sha256'] or initial.get('source')!=source_record:
-                raise ValueError('Resume code/source checkpoint provenance changed')
-            if initial.get('config_fingerprint')!=fingerprint(cfg) or _json(initial.get('config'))!=_json(cfg.to_dict()):
-                raise ValueError('Resume initialization configuration changed')
+            receipt=validate_initialization_provenance(cfg,initial,record,getattr(args,'resume_compat',None))
+            if receipt is not None:record['resume_compatibility']=receipt
             payload=torch.load(cfg.SAVE_PATH,map_location='cpu',weights_only=False)
             validate_runtime_resume(torch,model,payload,cfg,allow_completed=True)
             best=torch.load(cfg.BEST_PATH,map_location='cpu',weights_only=False);validate_best_metadata(best,payload,cfg)
@@ -349,7 +366,10 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--arm',choices=ARMS);parser.add_argument('--seed',type=int,choices=SEEDS)
     mode=parser.add_mutually_exclusive_group();mode.add_argument('--dry-run',action='store_true');mode.add_argument('--train',action='store_true');mode.add_argument('--stop-after',type=int)
-    parser.add_argument('--resume',action='store_true');args=parser.parse_args(argv)
+    parser.add_argument('--resume',action='store_true')
+    parser.add_argument('--resume-compat',type=Path,help='Exact registered 266d9e5 repair record; not an ignore-hash switch')
+    args=parser.parse_args(argv)
+    if args.resume_compat is not None and (not args.resume or args.dry_run):parser.error('--resume-compat requires actual --resume')
     if not(args.dry_run or args.train or args.stop_after is not None):parser.print_help();return 0
     if args.arm is None or args.seed is None:parser.error('Explicit arm and seed required')
     if args.dry_run and args.resume:parser.error('Dry-run never resumes weights')

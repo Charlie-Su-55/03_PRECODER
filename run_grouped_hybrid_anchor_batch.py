@@ -120,14 +120,16 @@ def preflight(folder):
     return dict(report=report,_evidence=[log,retained,output/'report.json'])
 
 
-def train_one(folder,arm,seed):
+def train_one(folder,arm,seed,compat_path=None):
     cfg=anchor_config(arm,seed);logs=[]
     command=[sys.executable,'-B','-u','train_grouped_hybrid_anchor.py','--arm',arm,'--seed',str(seed)]
     if not Path(cfg.SAVE_PATH).exists():
         if Path(cfg.SAVE_DIR).exists() or Path(cfg.LOG_DIR).exists():raise ValueError('Output exists without latest; preserve and investigate')
         logs.append(_child(folder,f'{arm}_{seed}_first500',command+['--stop-after','500']))
     if read_json(cfg.STATUS_PATH).get('state')!='completed':
-        logs.append(_child(folder,f'{arm}_{seed}_continue',command+['--resume','--train']))
+        continuation=command+['--resume','--train']
+        if compat_path is not None:continuation+=['--resume-compat',str(compat_path)]
+        logs.append(_child(folder,f'{arm}_{seed}_continue',continuation))
     result=stage_child(folder,'training_record',arm,seed)
     result['_evidence']+=logs+[cfg.BEST_PATH,cfg.SAVE_PATH,cfg.STATUS_PATH,cfg.CONFIG_PATH,cfg.METRICS_PATH,Path(cfg.LOG_DIR)/'initialization.json']
     return result
@@ -195,14 +197,27 @@ def package_small(folder,summary):
     save_json(folder/'batch_summary.json',summary,replace=True)
 
 
-def run_batch(resume=False):
+def validate_batch_resume(folder,summary,current,compat_path=None):
+    from grouped_hybrid_resume_compat import differences, validate_controller_transition
+    if compat_path is not None:
+        return validate_controller_transition(folder,summary,current,compat_path)
+    if summary.get('resume_compatibility'):
+        raise ValueError('This repaired batch requires its registered --resume-compat record on every resume')
+    if summary['source']['sha256']!=current['sha256']:
+        raise ValueError('Resume controller source-code SHA256 changed: '+
+            json.dumps(differences(summary['source']['sha256'],current['sha256']),sort_keys=True))
+    return None
+
+
+def run_batch(resume=False,compat_path=None):
     if os.name!='posix':raise RuntimeError('Explicit server CUDA batch only')
     owner=SimpleNamespace(EXP_NAME='grouped_hybrid_anchor_batch_v1',arm='controller',SEED=0)
     with run_lock(owner,resume=resume,allowed_root=OUTPUT_ROOT):
         pointer=OUTPUT_ROOT/'last_batch.json'
         if resume:
             folder=safe_inside(read_json(pointer)['directory'],BATCH_ROOT);summary=read_json(folder/'batch_summary.json')
-            if summary['source']['sha256']!=source_record()['sha256']:raise ValueError('Resume source identity changed')
+            receipt=validate_batch_resume(folder,summary,source_record(),compat_path)
+            if receipt is not None:summary['resume_compatibility']=receipt
         else:
             if pointer.exists():raise FileExistsError('Existing batch; use explicit --resume')
             for seed in SEEDS:
@@ -217,7 +232,7 @@ def run_batch(resume=False):
         summary['status']='running'
         try:
             env=_run_stage(summary,folder,'environment',lambda:stage_child(folder,'environment'))['report']
-            if resume:
+            if resume and compat_path is None:
                 current=stage_child(folder,'environment')['report']
                 for name in ('torch','sionna','matplotlib','channel_backend','cuda'):
                     if current[name]!=env[name]:raise ValueError('Resume environment changed '+name)
@@ -226,7 +241,7 @@ def run_batch(resume=False):
             summary['preflight']=_run_stage(summary,folder,'cuda_preflight',lambda:preflight(folder))['report']
             for seed in SEEDS:
                 for arm in ARMS:
-                    record=_run_stage(summary,folder,f'train_{arm}_{seed}',lambda arm=arm,seed=seed:train_one(folder,arm,seed))['report']
+                    record=_run_stage(summary,folder,f'train_{arm}_{seed}',lambda arm=arm,seed=seed:train_one(folder,arm,seed,compat_path))['report']
                     summary['training'].setdefault(str(seed),{})[arm]=record
             evaluations={str(seed):_run_stage(summary,folder,f'evaluate_{seed}',lambda seed=seed:evaluate_one(folder,seed))['output_directory'] for seed in SEEDS}
             summary['evaluations']=evaluations
@@ -236,7 +251,8 @@ def run_batch(resume=False):
             summary.update(status='completed',finished=now())
         except BaseException as error:
             summary.update(status='failed',error=f'{type(error).__name__}: {error}',traceback=traceback.format_exc(),
-                resume_command='python -B -u run_grouped_hybrid_anchor_batch.py --run --resume')
+                resume_command='python -B -u run_grouped_hybrid_anchor_batch.py --run --resume'+
+                    ('' if compat_path is None else ' --resume-compat '+str(compat_path)))
             raise
         finally:
             try:package_small(folder,summary)
@@ -281,6 +297,7 @@ def print_summary():
     stages={key:value['status'] for key,value in summary.get('stages',{}).items()}
     print(json.dumps(dict(status=summary['status'],error=summary.get('error'),package_error=summary.get('package_error'),
         stages=stages,current_stage=[key for key,value in stages.items() if value in ('running','failed')],
+        resume_compatibility=summary.get('resume_compatibility'),
         summary_path=str(folder/'batch_summary.json'),
         source_hash_acceptance=stages.get('sources','unknown'),cuda_acceptance=stages.get('cuda_preflight','unknown'),
         result_package=summary.get('result_package'),result_package_sha256=summary.get('result_package_sha256'),
@@ -316,10 +333,12 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);mode=parser.add_mutually_exclusive_group()
     for name in ('dry-run','run','summary'):mode.add_argument('--'+name,action='store_true')
     parser.add_argument('--resume',action='store_true')
+    parser.add_argument('--resume-compat',type=Path,help='Exact registered 266d9e5 repair record')
     parser.add_argument('--_stage',choices=('environment','sources','training_record'),help=argparse.SUPPRESS)
     parser.add_argument('--_output',type=Path,help=argparse.SUPPRESS)
     parser.add_argument('--_arm',choices=ARMS,help=argparse.SUPPRESS);parser.add_argument('--_seed',type=int,choices=SEEDS,help=argparse.SUPPRESS)
     args=parser.parse_args(argv)
+    if args.resume_compat is not None and (not args.resume or not args.run):parser.error('--resume-compat requires --run --resume')
     if args._stage:
         if args._output is None or args.run or args.resume or args.dry_run or args.summary:parser.error('Internal stage requires only explicit output/identity')
         if args._stage=='training_record' and(args._arm is None or args._seed is None):parser.error('Training identity required')
@@ -334,7 +353,7 @@ def main(argv=None):
     elif args.resume and not args.run:parser.error('--resume requires --run')
     elif args.dry_run:print(json.dumps(plan(),indent=2))
     elif args.summary:return print_summary()
-    elif args.run:run_batch(args.resume)
+    elif args.run:run_batch(args.resume,args.resume_compat)
     else:parser.print_help()
     return 0
 

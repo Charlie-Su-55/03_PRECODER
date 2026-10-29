@@ -99,3 +99,110 @@ Local checks are limited to syntax, standard-library dry-runs, synthetic statist
 Executed locally for this delivery: `python -B -m unittest tests.test_grouped_hybrid_anchor tests.test_grouped_hybrid_anchor_batch -q` reported `Ran 39 tests`, no failures/errors, and one explicitly skipped server-only full-model test class. The executed lightweight cases cover the actual small CPU physics/anchor/prior code, optional lifecycle order, complete resume schemas, paired statistics, result export, output protection, completed-stage hash rejection and guarded planning CLIs. All11 Python files passed AST syntax checks. Standard-library-only dry-runs passed for all three training arms, preflight, evaluation and controller, with planning import/write/weight-read guards also exercised. No model, checkpoint or CUDA acceptance is claimed by these results.
 
 Server-only acceptance and all performance claims remain pending until this controller finishes and its reports are returned.
+
+## Registered recovery of the 266d9e5 JSON-provenance defect
+
+This section supersedes only the recovery instructions for
+`batch_cf66957ea2914720bbdd9ed15dbf3884`. The user reports that environment,
+source verification and CUDA preflight completed at
+`266d9e52428d136f9de5d44a95da4afeea812fb6`; only `fdma_control/20261030`
+reached update500, with best also500. The other five runs have not started.
+These are user-reported server facts, not locally inspected checkpoint evidence.
+
+The actual `source_identity` contains tuple-valued SNR settings under the saved
+source recipe. JSON turns these into lists. The original direct comparison
+therefore rejected unchanged metadata. The connected trainer resume boundary now
+compares source metadata through the existing `_json` representation, without
+rewriting historical JSON. Actual field changes remain errors, with field paths
+and old/new values. Configuration/fingerprint errors and exact source-code SHA256
+errors are reported separately.
+
+### Narrow authorization, not a hash bypass
+
+`grouped_hybrid_resume_compat.py` accepts only the exact batch above. The explicit
+`--repair-commit` must be the delivered 40-character repair commit, current HEAD,
+and a direct child of the old commit. The complete commit diff must contain only
+the five files in this repair. The two executable replacements are additionally
+pinned by their exact old/new SHA256 inside the tool. The supplied release commit
+pins the compatibility tool itself, tests and documentation; all runtime sources
+must match their Git blobs. Models, configuration, physical protocol, trainer,
+optimizer/scheduler implementation and data/RNG sources retain their original
+hashes. This avoids a self-referential embedded commit hash while still checking
+the tool against the explicitly delivered release. An arbitrary filename match,
+unregistered executable edit, other batch, other commit or edited record is not
+authorization. Unrelated protected plotting changes are not included in the commit.
+
+Registration requires the evidence-owning CUDA server. It acquires the existing
+controller and all six run locks, rejects live owners, verifies old completed
+stage reports and their files, and checks the original result-package hash. It
+then reads actual best/latest and strictly checks the paused500 state, equal
+best/latest model state, full config/fingerprint, same-seed pinned F source,
+prior count/masses, optimizer moments, fixed20k scheduler and complete RNG states.
+It verifies the other five run directories are absent. No optimizer is created,
+no forward/backward is executed, and no checkpoint or saved prior is written or
+reset. A temporary model is constructed solely for strict tensor/state checks.
+Missing or different evidence stops registration; nothing is repaired in place.
+
+The exclusive directory
+`runs_as_screen/grouped_hybrid_anchor_v1/batches/batch_cf66957ea2914720bbdd9ed15dbf3884/resume_compat_266d9e5/`
+contains `record.json`, `record.sha256` and the byte-for-byte
+`batch_summary.before.json`. Original initialization, completed-stage evidence,
+old result package and old logs remain untouched. The record includes exact
+release hashes, evidence hashes and checkpoint verification results. Registration
+compares all active evidence before and after preparation. Existing records are
+verified, not overwritten; an incomplete registration is preserved and rejected.
+
+Both controller and trainer require this same record for repaired-batch resumes.
+The live summary adds its digest and version chain, retaining the original
+`source` and completed-stage records. Every compatible controller resume checks
+the installed runtime/backend against the old environment record without
+rerunning its stage or the CUDA model preflight. The first compatible resume also
+checks that active files still match their registered500-step hashes. Later
+resumes allow normal best/latest/status/metrics updates, while retaining the
+original strict checkpoint restoration checks and immutable evidence checks.
+Source hashes in historical initialization are never replaced with new ones.
+
+The existing500-step run continues at501; the original20k schedule, prior state
+and optimizer/RNG restoration remain unchanged. The remaining five runs each
+perform their original500+19500 plan. Completed stages are hash-verified and
+reused, not rerun. Normal runs without a compatibility record retain strict
+source checking. This repair does not claim bitwise equality with uninterrupted
+training or any new performance result.
+
+### Server use and verification boundary
+
+After safe fast-forward synchronization to the exact delivered repair commit and
+confirmation that the old controller/training processes have exited:
+
+```sh
+python -B grouped_hybrid_resume_compat.py --prepare --repair-commit <delivered-repair-commit>
+# Only if preparation succeeds:
+python -B -u run_grouped_hybrid_anchor_batch.py --run --resume --resume-compat runs_as_screen/grouped_hybrid_anchor_v1/batches/batch_cf66957ea2914720bbdd9ed15dbf3884/resume_compat_266d9e5/record.json
+python -B run_grouped_hybrid_anchor_batch.py --summary
+```
+
+Keep the same explicit `--resume-compat` argument after any later interruption.
+Do not edit JSON, hashes or weights, delete old directories, or restart the500
+updates. The user-facing delivery includes a fully pinned safe-sync/tmux command.
+Local verification uses real source metadata and temporary schema-only evidence,
+not fabricated server acceptance. Actual server checkpoint loading, compatibility
+registration and resumed training remain **not executed locally**.
+
+Executed for this repair: the following standard-library-only regression command
+passed **34 tests, zero failures/errors/skips** (23 new targeted cases plus 11
+existing config/checkpoint-schema/controller cases):
+
+```sh
+python -B -S -m unittest tests.test_grouped_hybrid_resume_compat tests.test_grouped_hybrid_anchor_batch.HybridConfigTests tests.test_grouped_hybrid_anchor_batch.HybridCheckpointTests tests.test_grouped_hybrid_anchor_batch.ControllerContractTests -v
+```
+
+Tests exercise the connected provenance boundary with actual source metadata,
+exact release policy, shared controller/trainer receipt, repeat-resume behavior,
+evidence corruption rejection, completed-stage reuse and continuation commands.
+The actual preparation control flow is exercised on temporary schema fixtures
+with the server-only checkpoint-verification boundary explicitly mocked; original
+fixture bytes and existing registration bytes remain unchanged. This is not a
+real checkpoint/CUDA test. No Torch/Sionna dependencies were faked or installed.
+Guarded help/dry-runs, Python AST syntax and staged whitespace/scope checks are
+also part of local delivery verification. Server-only strict tensor/optimizer/RNG
+validation remains pending and is mandatory in `--prepare` before continuation.
