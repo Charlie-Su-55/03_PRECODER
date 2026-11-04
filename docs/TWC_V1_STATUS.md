@@ -1,21 +1,21 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-04 23:50 CET
-依据：K8 CPU链路验收、Stage B首次GPU运行日志/manifest/checkpoint、step250固定validation 16样本CPU评估、Stage C源码静态检查、Git状态和最近GPU快照。历史更新记录保留当时事实；小样本validation不是独立性能证据。
+最后核查：2026-11-05 00:00 CET
+依据：K8源码结构核对、Stage B运行日志/manifest/checkpoint、CPU评估数据、Stage C静态检查和Git状态。当前接收器是多源条件融合Swin原型；计划中的Joint Transformer＋Swin decoder架构尚未设计/实现。小样本CPU评估不是独立性能证据。
 
 ## 一屏摘要
 
-- **当前阶段：** Stage A完成；Stage B因GPU占用暂停，FDMA seed 20261106为250/10,000；Stage C训练器与lambda诊断代码已实现，但Stage B warmup未完成，Stage C尚不能运行。
+- **当前阶段：** 正在对齐BS decoder目标架构。Stage A完成；现有BS接收器仅是多源条件融合Swin原型。FDMA seed 20261106的250步试跑已暂停并保留，**不计入正式Stage B warmup预算**；正式Stage B应在目标decoder冻结后重新开始。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 2026-11-04 23:05 CET RTX 5090利用率68%、显存3538/32607 MiB；另一个项目Python PID 3175902占3512MiB。我们的训练进程已退出。
-- **代码版本：** 最新已推送HEAD `41e3abc`；Stage C trainer和validation-only lambda诊断已推送。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** Stage C trainer已推送，当前接收器名称/状态修正正在本地整理。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
-- **代码/验收/证据区分：** K8完整反馈链路、Stage B/Stage C训练入口及验证集lambda梯度诊断**代码已实现**；Stage B链路CPU前向和loss反向、Stage C静态编译与CLI参数解析**通过**；FDMA seed 20261106 Stage B运行过250步后暂停；Stage C运行验收和独立codec性能证据均**未开始**。
-- **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。首个codec run本轮更新250/10,000、来源累计更新0；`fdma/seed_20261106/checkpoint_latest.pt`载入核验step250。其余三份warmup未开始。
+- **代码/验收/证据区分：** 物理反馈＋多源条件融合Swin原型＋RZF链路、Stage B/C入口及validation lambda诊断代码已实现；原型CPU前向/反向通过，Stage C静态编译与CLI参数检查通过。计划中的跨用户self-attention、观测cross-attention、软码字残差修正和空间cross-attention**尚未设计/实现**；正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
+- **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
 - **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint在16个CPU validation-role样本上六个gamma均完成核验；DL NMSE均值约`0.4937–0.4957`，sum-rate约`1.609–1.630 bit/s/Hz`。该CPU生成数据ID与CUDA训练manifest的validation数据ID不同；数值仅作链路早期诊断，不作为训练曲线或性能结论。95%区间只按4个batch均值用t分布计算，test未读。
-- **资源与隔离验收：** CPU链路能量最大偏差`7.6294e-6`、RZF功率最大偏差`3.5763e-7`。首个GPU warmup峰值显存`1,899,246,080` bytes（约1.77 GiB）；250步耗时31.28秒，按该初测估算当前run剩余9750步约20.3分钟。未达到500–1000步测速门槛，后续需要重算。test未读取；正式六点完整链路矩阵未知。
+- **资源与隔离验收：** CPU原型链路能量最大偏差`7.6294e-6`、RZF功率最大偏差`3.5763e-7`。接收器原型试跑peak allocated `1,899,246,080` bytes（约1.77 GiB）；不用于估算新架构正式训练。test未读取；目标decoder验收及正式六点完整链路矩阵未知。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** 外部项目进程占GPU约68%；FDMA seed 20261106已在保存的step250 checkpoint暂停，需等GPU空闲后恢复。启动日志目录检查问题已修复并推送；已保存更新未丢失。
+- **主要阻塞：** decoder架构尚未按研究目标对齐；外部项目进程此前占GPU 68–72%。step250原型checkpoint保留作调试，不作为目标架构warmup起点。先完成decoder架构与CPU验收，再排正式Stage B。
 
 ## 阶段状态
 
@@ -28,14 +28,15 @@
 | Ep/Ekey/EAS候选网格 | 完成 | 六个正值候选已配置 | CPU约束检查完成 | 未开始 | Ep={8,16,24}；key:shared={1:3,1:1}；等验证集选优 |
 | K8 CPU物理反馈链路 | 完成 | pilot、LS插值、数据发射、key/shared MMSE软恢复已实现 | `preflight_twc_v1_k8_link.py`通过，G=1/2/4 | 未开始 | 插值不是U-Net；不含CSI重建、预编码或性能结论 |
 | K8 pilot-only U-Net接口 | 完成 | 08共享频率残差U-Net适配为K8/64 pilot RE、03噪声口径；输入含N0/gamma与显式Ep | 随机输入边界及真实CDL LS→U-Net共18种gamma×Ep接口前向通过 | 未开始 | U-Net未训练；LS初值由调用方仅基于pilot构造 |
-| K8 Swin UE编码/BS解码接口 | 完成 | 复用03内Swin窗口块；共享UE权重、显式G条件、key4+shared 160/80/40 | CPU前向G=1/2/4输出有限且维度正确 | 未开始 | 尚未接入真实反馈软恢复、Joint模块或RZF；新增结构无训练证据 |
+| K8 UE编码器与BS接收器原型 | 完成（原型） | UE共享Swin key/shared编码；BS多源条件融合Swin把卷积侧特征加到码字token后做空间Swin处理 | CPU原型前向及端到端反向通过 | 未开始 | 类名为`K8MultiSourceFusionSwinReceiver`；不是目标Joint Transformer＋Swin decoder |
 | K8 CDL分角色数据与重放入口 | 完成 | 新增CE训练/codec训练/CE校准/验证/测试独立seed role和样本地址指纹；复用Sionna RNG隔离 | Sionna 2.0.1 CPU生成五角色各1对K8 CDL；固定验证与训练step地址可复现；未发现角色间指纹碰撞 | 不适用 | 仅小样本地址/重放验收；完整训练checkpoint暂停恢复与大规模数据审计未知 |
 | LS初值方法screen | 完成 | 新增归一化Gram ridge Fourier-delay LS(rank4/rank8)，保留pilot-LS线性插值 | 32帧、6 gamma×3 Ep固定validation screen；线性插值18/18条件胜出 | 有限validation设计证据 | 小样本只用于初值设计，不能当正式UL性能结果；首轮CE暂定固定线性插值 |
 | 完整K8协议/候选冻结 | 运行中 | 几何、六点能量候选已配置 | CPU链路烟雾检查通过；gamma查表策略未选 | 未开始 | 数据namespace、pilot gamma查表和UL状态选优仍待验证集核定 |
 | CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 真实CDL分角色小样本、seed寻址重放和RNG隔离通过；训练/验证/校准已实跑 | 不适用 | 完整大规模namespace碰撞审计未知；test role尚未用于任何选优或训练 |
 | Stage A：LS与LS＋U-Net UL CE预训练及校准 | 完成 | LS初值为pilot-LS＋线性插值；`train_twc_v1_k8_ce.py`只读pilot-only观测，H_UL只作监督目标 | 5000/5000更新；best/latest权重step5000载入核验；独立calibration 18条件通过 | 有限validation设计证据 | validation较同条件LS低约3.57 dB；不代表下行任务或独立测试性能 |
-| 完整端到端CSI反馈到下行预编码 | 完成（代码/CPU验收） | CE冻结、校准软恢复、Hybrid/FDMA、Joint Swin、DL NMSE/RZF和速率指标代码已实现 | CPU真实CDL前向及反向梯度通过；GPU验收未开始 | 未开始 | `preflight_twc_v1_k8_codec_link.py`；仅gamma=10、Ep=16的随机初始化smoke，不是性能证据 |
-| Stage B：FDMA/Hybrid NMSE warmup | 运行中（暂停） | 10k训练入口、固定验证DL NMSE/和速率、checkpoint/resume和manifest已实现 | FDMA seed 20261106更新250/10k，checkpoint step250核验；六点、16样本CPU validation-role推理通过；因外部GPU进程暂停 | 未开始 | CPU数据ID不同于CUDA训练validation ID；其余3份未开始；独立codec性能证据无 |
+| 原型链路：物理反馈到RZF | 完成（原型代码/CPU验收） | CE冻结、校准软恢复、Hybrid/FDMA、多源条件融合Swin、DL NMSE/RZF和速率指标 | CPU原型真实CDL前向及反向梯度通过 | 未开始 | 仅gamma=10、Ep=16原型链路检查；无性能证据 |
+| 目标BS decoder架构设计与实现 | 未开始 | 现有实现仅卷积多源侧信息融合＋空间Swin | 未开始 | 未开始 | 跨用户self-attention、观测cross-attention、软码字残差修正、空间cross-attention均尚未设计/实现 |
+| Stage B：FDMA/Hybrid NMSE warmup | 未开始（正式预算） | 10k训练入口代码已实现 | FDMA seed 20261106原型试跑250步并保存checkpoint，不计正式预算 | 未开始 | 目标decoder冻结后正式warmup重新启动；另3份未开始 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 分叉训练器及validation梯度尺度lambda诊断代码已实现；lambda和Rref不自动猜测 | py_compile与CLI帮助检查通过；无Stage C训练/恢复运行 | 未开始 | 必须先有匹配Stage B 10k checkpoint；lambda候选需验证集诊断后冻结；计划每分支20k |
 | Stage D：资源/能量策略、RZF及WMMSE诊断 | 未开始 | 未知 | 未开始 | 未开始 | 计划先验证集查表/扫描；新协议策略与结果未找到 |
 | 六SNR、两个seed独立正式评估 | 未开始 | 未知 | 未开始 | 未开始 | 独立测试、配对样本和置信区间材料未找到 |
@@ -43,13 +44,13 @@
 
 ## 运行、更新数与checkpoint
 
-- 当前运行状态：Stage A CE训练和自动独立校准均**完成**；本次codec tmux已退出，另有PID 3175902进程使用GPU。
-- K8正式CE更新数：**5000/5000**；CPU smoke的3步没有并入正式训练预算。Stage B FDMA seed 20261106当前250/10k，4个warmup合计实际完成250步/40k计划更新。
+- 当前运行状态：Stage A CE训练和独立校准均**完成**；接收器原型试跑已暂停，无本项目训练进程。
+- K8正式CE更新数：**5000/5000**。接收器原型FDMA seed 20261106实跑250步/保存step250；该250步不计目标decoder冻结后的正式Stage B预算，正式Stage B仍0/40k。
 - 来源checkpoint累计步数：0；CE从新初始化开始。
 - 最后保存且核验checkpoint：latest step5000；best step5000；checkpoint均由PyTorch载入并核验内部step。
 - 训练日志步数与权重步数：manifest、JSONL训练日志和latest权重均完成5000更新；详细日志/checkpoint位于`runs/twc_v1_k8_ce/seed_20261105/`。
 - 首500步与1k步实测耗时约18秒/37秒；完整5000步实测180.06秒，独立校准约13秒。训练CUDA峰值`502,798,848` bytes（约0.47 GiB）。训练后GPU快照0%、18 MiB。
-- Codec首run checkpoint位于`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/checkpoint_latest.pt`，step250可加载；运行时长31.28秒、峰值分配`1,899,246,080` bytes。以250步初测估算本run尚需约20.3分钟；未达到500–1000步要求，ETA为暂定值。
+- 接收器原型checkpoint位于`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/checkpoint_latest.pt`，step250可加载；运行时长31.28秒、峰值分配`1,899,246,080` bytes。该原型checkpoint保留作调试，不直接用于正式warmup/目标decoder。
 - Stage C代码位于`train_twc_v1_k8_codec_stage_c.py`和`diagnose_twc_v1_k8_stage_c_lambda.py`，共用配置`configs/twc_v1_k8_codec_stage_c_config.py`。Stage C入口严格要求对应arm/seed的Stage B step10k checkpoint；NMSE/joint从同一warmup权重分叉，均重新初始化相同AdamW及constant LambdaLR；joint显式要求验证集确定的lambda_target与Rref，并按前5k更新线性升权。诊断器只用validation role，报告共享UE encoder patch层梯度尺度与候选，不自动选参、不读取test。代码未训练，lambda数值未选。
 - CPU在该step250 checkpoint上对16个validation-role样本完成gamma 0/5/10/15/20/25 dB前向；DL NMSE均值0.4937–0.4957，sum-rate均值1.6088–1.6296 bit/s/Hz。4-batch 95% t区间仅作诊断。由于replay data identity把运行设备写入data_id，CPU评估data_id=`f0dec803f6343c9fa5df1d4d122e92923351a7722abf1df2ffe5b6ce67145fbd`，与CUDA训练validation data_id=`addaaee65bbbb48afdab4acc44a3f638430e7572c612479086e4440dd44b786d`不同，因此不是训练时同一固定validation信道集；test未读取，optimizer updates=0。证据：`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/cpu_validation_step250_16samples.json`。
 
@@ -109,13 +110,13 @@
 
 ## 问题与下一步
 
-1. **K8 codec任务链路仍未打通。**CE trainer/calibrator已完成，但软恢复尚未读取UL误差校准并接入Swin，Joint CSI重建/RZF、FDMA匹配训练和评估入口未实现。影响：尚不能训练codec或生成K8下行重建/速率结果。
+1. **目标BS decoder尚未设计/实现。**当前`K8MultiSourceFusionSwinReceiver`只是把观测、估计UL、可靠度和条件经过卷积后加到软码字Swin token，再做空间Swin；跨用户self-attention、观测cross-attention、软码字残差修正、空间cross-attention均未实现。现有端到端CPU验收只证明多源融合原型链路可运行，不代表目标Joint Transformer＋Swin结构已落实。影响：正式Stage B warmup应等目标结构冻结后再启动。
 2. **08接口不能原样移植。**08 U-Net固定K4/32 pilot RE、噪声参考0.125；03需要K8/64 pilot RE及0.25参考。已适配维数和噪声换算，但没有迁移08训练/校准材料，也未证明跨设置泛化。
 3. **选择策略和数据审计未完成。**六个能量候选已配置、样本角色namespace已实现；pilot gamma查表、UL条件下Ekey/EAS/G选择及大规模重叠/暂停恢复审计仍未完成。
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：等GPU外部进程结束并确认利用率低于20%，再从FDMA seed 20261106 step250恢复，随后顺序跑完其余三个warmup。08保持只读；Overleaf论文未修改。
+下一项动作：先完成目标decoder架构设计、接口与CPU梯度验收。原型250步checkpoint保留但不自动恢复；目标架构验收后重新开始正式Stage B四份warmup。08保持只读；Overleaf论文未修改。
 
 ## 更新记录
 
@@ -140,4 +141,5 @@
 - **2026-11-04 23:23 CET：**按用户允许扩大为小评估：step250 FDMA checkpoint在CPU validation-role的16样本（4 batches）上，对六个gamma计算DL NMSE与和速率；CPU全部有限，test未读取、optimizer更新0。4-batch 95% Student-t区间仅属小样本诊断，不作为性能结论。事后核对发现CPU与CUDA训练的replay `data_id`因协议纳入执行设备而不同；这些样本不是训练时同一固定validation集，已在本状态页标明。JSON位于`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/cpu_validation_step250_16samples.json`。
 - **2026-11-04 23:50 CET：**按用户要求补Stage C代码，未训练。新增20k terminal branch trainer（NMSE/joint）、严格要求Stage B对应10k warmup checkpoint、共享训练/验证数据地址、前5k lambda线性渐增、后15k固定、相同fresh AdamW与constant LambdaLR、best/latest与resume状态；新增validation-only共享层梯度尺度诊断，需传入完整warmup checkpoint后才可运行lambda候选。`py_compile`和两个CLI `--help`通过；无optimizer更新、无GPU调用。lambda/Rref数值待验证集诊断，Stage C运行验收未开始。
 - **2026-11-04 23:50 CET：**Stage C训练器、lambda梯度诊断、配置和状态页已选择性推送，commit `41e3abc`；未纳入原有源码删除、Overleaf或历史数据。Stage C仍未训练，待完整10k warmup及验证集lambda/Rref诊断后启动。
+- **2026-11-05 00:00 CET：**根据源码结构复核，澄清原`K8JointFeedbackDecoder`只有卷积多源条件特征加和Swin块，尚无计划的跨用户self-attention、观测cross-attention、软码字残差修正或空间cross-attention。实现类改名为`K8MultiSourceFusionSwinReceiver`，旧类名保留兼容别名，module/state_dict参数层级未变；Stage B step250标记为原型试跑、不计正式warmup预算。未训练、未用GPU；目标decoder设计/CPU验收列为当前首要未完成项。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。

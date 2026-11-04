@@ -1,7 +1,9 @@
-"""K8 neural interfaces adapted from the read-only 08 pilot-U-Net/Swin designs.
+"""K8 models adapted from the read-only 08 pilot-U-Net/Swin designs.
 
-This module provides model interfaces only. It does not train, estimate hidden
-truth at inference, or implement the K8 joint receiver/precoder.
+The module includes a pilot-only CE model, UE Swin encoder/CSI decoder, and a
+multi-source conditioned Swin receiver prototype. The latter is not yet the
+planned full Joint Transformer plus spatial-Swin architecture. Training,
+channel simulation, and precoder design live in separate modules.
 """
 from __future__ import annotations
 
@@ -240,7 +242,7 @@ class K8SwinDecoder(nn.Module):
 
     def tokens_to_channel(self, tokens, batch, *, normalize=True):
         if tuple(tokens.shape) != (batch * K_USERS, self.height * self.width, self.fc.out_features // (self.height * self.width)):
-            raise ValueError("Joint Swin token geometry mismatch")
+            raise ValueError("Swin decoder token geometry mismatch")
         features = self.norm(tokens) if normalize else tokens
         patches = self.final_proj(features)
         p = self.patch_size
@@ -258,12 +260,14 @@ class K8SwinDecoder(nn.Module):
         return self.tokens_to_channel(tokens, batch, normalize=True)
 
 
-class K8JointFeedbackDecoder(nn.Module):
-    """Jointly refine soft codewords using received Y, UL CSI and reliability.
+class K8MultiSourceFusionSwinReceiver(nn.Module):
+    """Runnable multi-source conditioned Swin receiver prototype.
 
-    The BS feature path receives no true DL/UL channel labels. It gets noisy
-    feedback Y, estimated UL CSI, public resource masks, calibration error,
-    LMMSE symbol reliability, N0 and the selected energy/group conditions.
+    The prototype adds convolutional features from received Y, estimated UL
+    CSI, resource masks, calibration error, symbol reliability, N0 and public
+    energy/group conditions to symbol-derived Swin tokens. It does not yet
+    implement the planned cross-user self-attention, observation cross-
+    attention, soft-codeword residual correction, or spatial cross-attention.
     """
 
     def __init__(self, *, embed_dim=128, blocks=2, patch_size=4, window_size=4,
@@ -310,9 +314,9 @@ class K8JointFeedbackDecoder(nn.Module):
         _complex(H_ul_est, "estimated UL CSI", (batch, K_USERS, N_ANTENNAS, N_SUBCARRIERS))
         if len({key.device, shared.device, Y_rx.device, H_ul_est.device,
                 self.base_decoder.fc.weight.device}) != 1:
-            raise ValueError("Joint decoder inputs and parameters must share a device")
+            raise ValueError("Fusion receiver inputs and parameters must share a device")
         if type(layout) not in (_protocol.HybridLayout, _protocol.FDMALayout):
-            raise TypeError("Joint decoder requires an explicit HybridLayout or FDMALayout")
+            raise TypeError("Fusion receiver requires an explicit HybridLayout or FDMALayout")
         if isinstance(layout, _protocol.HybridLayout) and layout.group_count != group_count:
             raise ValueError("Hybrid layout G does not match decoder group_count")
         if isinstance(layout, _protocol.FDMALayout) and group_count != 1:
@@ -388,6 +392,11 @@ class K8JointFeedbackDecoder(nn.Module):
         return self.base_decoder.tokens_to_channel(tokens, batch, normalize=True)
 
 
+# Backward-compatible symbol name. The implementation remains the multi-source
+# fusion prototype above; it is not the planned full Joint Transformer.
+K8JointFeedbackDecoder = K8MultiSourceFusionSwinReceiver
+
+
 class K8SwinCSIModel(nn.Module):
     """Separate encoder/decoder calls for UE encoding and BS reconstruction."""
 
@@ -395,7 +404,7 @@ class K8SwinCSIModel(nn.Module):
         super().__init__()
         self.encoder = K8SwinEncoder(**swin_kwargs)
         self.decoder = K8SwinDecoder(**swin_kwargs)
-        self.joint_decoder = K8JointFeedbackDecoder(base_decoder=self.decoder,
+        self.joint_decoder = K8MultiSourceFusionSwinReceiver(base_decoder=self.decoder,
             embed_dim=swin_kwargs.get("embed_dim", 128),
             patch_size=swin_kwargs.get("patch_size", 4),
             window_size=swin_kwargs.get("window_size", 4),

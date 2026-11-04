@@ -16,7 +16,9 @@
 
 ## 已接通链路
 
-`真实K8 CDL → UL pilot发射 → pilot LS初值 → 冻结CE U-Net → 校准误差方差 → Hybrid/FDMA物理数据发送 → 基于估计UL CSI的软恢复 → Joint Swin融合Y/估计UL/资源mask/可靠度/能量条件 → DL CSI重建 → 8用户联合RZF → DL NMSE与真实信道sum-rate指标`。
+`真实K8 CDL → UL pilot发射 → pilot LS初值 → 冻结CE U-Net → 校准误差方差 → Hybrid/FDMA物理数据发送 → 基于估计UL CSI的软恢复 → 多源条件融合Swin接收器原型（卷积侧特征与软码字token相加，再经空间Swin块）→ DL CSI重建 → 8用户联合RZF → DL NMSE与真实信道sum-rate指标`。
+
+**架构边界：** 该 CPU 验收只覆盖可运行的多源条件融合原型，不代表目标 Joint Transformer＋Swin decoder 已完成。跨用户 self-attention、观测 cross-attention、软码字残差修正和空间 cross-attention 在当时及当前均未实现；正式 codec warmup 应等待目标 decoder 设计冻结。
 
 UE编码器只从仿真器提供的DL信道生成符号。BS的重建器输入中不包含真DL；真DL只传给训练监督和指标函数。DL发射功率按子载波对8用户联合precoder归一化为1。软恢复使用独立`ce_calibration`的标量各向同性误差方差插值；这是接收器近似，不宣称完整误差协方差。
 
