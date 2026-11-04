@@ -8,7 +8,7 @@
 - **当前阶段：** Stage A完成；Stage B已启动后暂停。FDMA seed 20261106 warmup更新250/10,000，checkpoint step250已核验可恢复；其余三份尚未开始。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 2026-11-04 23:05 CET RTX 5090利用率68%、显存3538/32607 MiB；另一个项目Python PID 3175902占3512MiB。我们的训练进程已退出。
-- **代码版本：** 最新HEAD `62c1d35`；链路/报告及warmup入口已推送到GitHub origin `https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** 最新HEAD `ba0fff6`；链路、warmup入口和进度/CPU验证记录已推送到GitHub origin `https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入提交。
 - **代码/验收/证据区分：** K8完整反馈链路及Stage B入口**代码已实现**；端到端CPU前向、loss反向梯度、预算/功率验收**通过**；FDMA seed 20261106运行过250步后暂停；独立codec性能证据**没有**。随机初始化smoke的NMSE/速率不代表方法效果。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。首个codec run本轮更新250/10,000、来源累计更新0；`fdma/seed_20261106/checkpoint_latest.pt`载入核验step250。其余三份warmup未开始。
@@ -136,5 +136,4 @@
 - **2026-11-04 22:16 CET：**上述代码与报告选择性提交并推送到GitHub `main`，commit `4b73017e7f45b1f953459021de3a99b6741babbb`。原有`.gitignore`、5个旧文件删除及Overleaf/历史数据等工作区改动未纳入提交。训练继续保持未启动，待用户检查本报告。
 - **2026-11-04 23:05 CET：**用户批准开始Stage B四份warmup。首次启动因run目录内预建的console log被误认作旧实验产物，在optimizer更新前退出；修复并推送commit `62c1d35`后重启。FDMA seed 20261106完成250/10,000更新，latest checkpoint载入核验step250；耗时31.28秒，峰值CUDA分配`1,899,246,080` bytes。启动时GPU空闲；其后发现另一个项目Python PID 3175902占用约3512MiB、GPU利用率68%。按GPU占用规则发送SIGINT，训练在已保存的step250 checkpoint后退出。其余三份warmup尚未开始；等待用户说明该进程是否属于其任务，或等待GPU空闲后恢复。
 - **2026-11-04 23:13 CET：**应用户要求执行CPU小任务：step250 FDMA checkpoint在固定validation样本、六个gamma上完成推理与DL NMSE/下行和速率计算，结果全有限；没有optimizer更新、没有读取test、没有使用GPU。单样本值只用于早期validation诊断。JSON保存在run目录`cpu_validation_step250.json`。
-- **2026-11-04 23:05 CET：**用户批准开始Stage B四份warmup。首次启动因run目录内预建的console log被误认作旧实验产物，在optimizer更新前退出；修复并推送commit `62c1d35`后重启。FDMA seed 20261106完成250/10,000更新，latest checkpoint载入核验step250；耗时31.28秒，峰值CUDA分配`1,899,246,080` bytes。启动时GPU空闲；其后发现另一个项目Python PID 3175902占用约3512MiB，GPU利用率68%。按用户GPU规则发送SIGINT，训练在step250 checkpoint后退出。其余三份warmup尚未开始；GPU当前仍忙，等待空闲后恢复。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
