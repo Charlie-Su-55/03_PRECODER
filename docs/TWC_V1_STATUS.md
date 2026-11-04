@@ -1,7 +1,7 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-04 23:05 CET
-依据：K8 CPU链路验收、Stage B首次GPU运行日志/manifest/checkpoint、Git状态和GPU快照。历史更新记录保留当时事实；最新状态注明外部GPU任务导致的暂停。不把随机初始化smoke数值当作性能证据。
+最后核查：2026-11-04 23:13 CET
+依据：K8 CPU链路验收、Stage B首次GPU运行日志/manifest/checkpoint、CPU checkpoint validation、Git状态和GPU快照。历史更新记录保留当时事实；最新状态注明外部GPU任务导致的暂停。不把单样本validation当作性能结论。
 
 ## 一屏摘要
 
@@ -12,7 +12,7 @@
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入提交。
 - **代码/验收/证据区分：** K8完整反馈链路及Stage B入口**代码已实现**；端到端CPU前向、loss反向梯度、预算/功率验收**通过**；FDMA seed 20261106运行过250步后暂停；独立codec性能证据**没有**。随机初始化smoke的NMSE/速率不代表方法效果。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。首个codec run本轮更新250/10,000、来源累计更新0；`fdma/seed_20261106/checkpoint_latest.pt`载入核验step250。其余三份warmup未开始。
-- **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。codec smoke在随机初始化权重上同时计算DL NMSE与真实下行和速率，仅验算数值链路，不是性能证据；正式codec六SNR×两seed结果仍未开始。
+- **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint另在固定validation单样本CPU核验六个gamma：DL NMSE约`0.4448–0.4500`，下行和速率约`1.451–1.540 bit/s/Hz`；仅单样本早期validation记录，不作性能结论，test未读。
 - **资源与隔离验收：** CPU链路能量最大偏差`7.6294e-6`、RZF功率最大偏差`3.5763e-7`。首个GPU warmup峰值显存`1,899,246,080` bytes（约1.77 GiB）；250步耗时31.28秒，按该初测估算当前run剩余9750步约20.3分钟。未达到500–1000步测速门槛，后续需要重算。test未读取；正式六点完整链路矩阵未知。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
 - **主要阻塞：** 外部项目进程占GPU约68%；FDMA seed 20261106已在保存的step250 checkpoint暂停，需等GPU空闲后恢复。启动日志目录检查问题已修复并推送；已保存更新未丢失。
@@ -35,7 +35,7 @@
 | CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 真实CDL分角色小样本、seed寻址重放和RNG隔离通过；训练/验证/校准已实跑 | 不适用 | 完整大规模namespace碰撞审计未知；test role尚未用于任何选优或训练 |
 | Stage A：LS与LS＋U-Net UL CE预训练及校准 | 完成 | LS初值为pilot-LS＋线性插值；`train_twc_v1_k8_ce.py`只读pilot-only观测，H_UL只作监督目标 | 5000/5000更新；best/latest权重step5000载入核验；独立calibration 18条件通过 | 有限validation设计证据 | validation较同条件LS低约3.57 dB；不代表下行任务或独立测试性能 |
 | 完整端到端CSI反馈到下行预编码 | 完成（代码/CPU验收） | CE冻结、校准软恢复、Hybrid/FDMA、Joint Swin、DL NMSE/RZF和速率指标代码已实现 | CPU真实CDL前向及反向梯度通过；GPU验收未开始 | 未开始 | `preflight_twc_v1_k8_codec_link.py`；仅gamma=10、Ep=16的随机初始化smoke，不是性能证据 |
-| Stage B：FDMA/Hybrid NMSE warmup | 运行中（暂停） | 10k训练入口、固定验证DL NMSE/和速率、checkpoint/resume和manifest已实现 | FDMA seed 20261106更新250/10k，checkpoint step250核验；因外部GPU进程暂停 | 未开始 | 其余3份未开始；独立codec性能证据无 |
+| Stage B：FDMA/Hybrid NMSE warmup | 运行中（暂停） | 10k训练入口、固定验证DL NMSE/和速率、checkpoint/resume和manifest已实现 | FDMA seed 20261106更新250/10k，checkpoint step250核验；六点单样本CPU validation通过；因外部GPU进程暂停 | 未开始 | 其余3份未开始；单样本仅为早期设计读数，独立codec性能证据无 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 未知 | 未开始 | 未开始 | 计划每分支20k；权重日程、loss曲线与匹配比较未开始 |
 | Stage D：资源/能量策略、RZF及WMMSE诊断 | 未开始 | 未知 | 未开始 | 未开始 | 计划先验证集查表/扫描；新协议策略与结果未找到 |
 | 六SNR、两个seed独立正式评估 | 未开始 | 未知 | 未开始 | 未开始 | 独立测试、配对样本和置信区间材料未找到 |
@@ -50,6 +50,7 @@
 - 训练日志步数与权重步数：manifest、JSONL训练日志和latest权重均完成5000更新；详细日志/checkpoint位于`runs/twc_v1_k8_ce/seed_20261105/`。
 - 首500步与1k步实测耗时约18秒/37秒；完整5000步实测180.06秒，独立校准约13秒。训练CUDA峰值`502,798,848` bytes（约0.47 GiB）。训练后GPU快照0%、18 MiB。
 - Codec首run checkpoint位于`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/checkpoint_latest.pt`，step250可加载；运行时长31.28秒、峰值分配`1,899,246,080` bytes。以250步初测估算本run尚需约20.3分钟；未达到500–1000步要求，ETA为暂定值。
+- CPU在该step250 checkpoint上对固定validation样本完成gamma 0/5/10/15/20/25 dB前向；DL NMSE为0.44485–0.44999，sum-rate为1.4505–1.5396 bit/s/Hz，6点有限，test未读取，optimizer updates=0。证据：`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/cpu_validation_step250.json`。
 
 ## 配置与协议验收
 
@@ -134,5 +135,6 @@
 - **2026-11-04 22:14 CET：**Stage B前置链路代码已实现并做CPU端到端验收：实际CDL codec_train样本经CE step5000权重与18条件校准、Hybrid G=1/2/4及FDMA物理发射/软恢复、Joint Swin重建、DL NMSE、真实信道下行和速率与RZF；4种布局均反向得到有限非零codec梯度，未执行optimizer.step，更新数0。Ep=16、gamma=10时Hybrid与FDMA per-UE总数据能量目标48，最大测得偏差`7.6294e-6`；RZF每子载波总功率目标1，最大偏差`3.5763e-7`。随机未训练网络的DL NMSE/速率值仅是实现smoke，明确不作为性能证据。新增Stage B FDMA/Hybrid 10k NMSE warmup入口；命令行、配置和py_compile通过，未真实训练/恢复。nvidia-smi 22:09 CET为0%、18MiB；没有使用GPU。GPU峰值显存、更新速度、剩余训练时间未知。报告见`docs/TWC_V1_CODEC_LINK_PREFLIGHT_20261104.md`。
 - **2026-11-04 22:16 CET：**上述代码与报告选择性提交并推送到GitHub `main`，commit `4b73017e7f45b1f953459021de3a99b6741babbb`。原有`.gitignore`、5个旧文件删除及Overleaf/历史数据等工作区改动未纳入提交。训练继续保持未启动，待用户检查本报告。
 - **2026-11-04 23:05 CET：**用户批准开始Stage B四份warmup。首次启动因run目录内预建的console log被误认作旧实验产物，在optimizer更新前退出；修复并推送commit `62c1d35`后重启。FDMA seed 20261106完成250/10,000更新，latest checkpoint载入核验step250；耗时31.28秒，峰值CUDA分配`1,899,246,080` bytes。启动时GPU空闲；其后发现另一个项目Python PID 3175902占用约3512MiB、GPU利用率68%。按GPU占用规则发送SIGINT，训练在已保存的step250 checkpoint后退出。其余三份warmup尚未开始；等待用户说明该进程是否属于其任务，或等待GPU空闲后恢复。
+- **2026-11-04 23:13 CET：**应用户要求执行CPU小任务：step250 FDMA checkpoint在固定validation样本、六个gamma上完成推理与DL NMSE/下行和速率计算，结果全有限；没有optimizer更新、没有读取test、没有使用GPU。单样本值只用于早期validation诊断。JSON保存在run目录`cpu_validation_step250.json`。
 - **2026-11-04 23:05 CET：**用户批准开始Stage B四份warmup。首次启动因run目录内预建的console log被误认作旧实验产物，在optimizer更新前退出；修复并推送commit `62c1d35`后重启。FDMA seed 20261106完成250/10,000更新，latest checkpoint载入核验step250；耗时31.28秒，峰值CUDA分配`1,899,246,080` bytes。启动时GPU空闲；其后发现另一个项目Python PID 3175902占用约3512MiB，GPU利用率68%。按用户GPU规则发送SIGINT，训练在step250 checkpoint后退出。其余三份warmup尚未开始；GPU当前仍忙，等待空闲后恢复。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
