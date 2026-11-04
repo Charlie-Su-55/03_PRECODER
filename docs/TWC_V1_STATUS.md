@@ -8,7 +8,7 @@
 - **当前阶段：** 第1–2天的设计与CPU侧核查；首轮K8场景、RE预算和反馈gamma评估点已对齐；独立K8布局/预算配置已实现并通过CPU核对。训练网络、能量候选、CE和数据隔离仍未开始。
 - **状态：** K8首轮训练 **未开始**；当前训练进程 **跳过/无运行**；本次只做只读盘点，没有启动额外训练。
 - **GPU快照：** RTX 5090，GPU利用率0%，显存18 MiB / 32607 MiB；没有Python训练进程。快照时间约11:51 CET。未来每次GPU工作前重新检查；占用超过20%先请示。
-- **代码版本：** `ee58686e55314ac8b09291318fdf9a9806ecfa89`；分支`main`，远程`origin`为`https://github.com/Charlie-Su-55/03_PRECODER.git`。尚未从GitHub远端刷新验证其最新状态。
+- **代码版本：** K8协议代码提交`b1573e2`（分支`main`）；远程`origin`为`https://github.com/Charlie-Su-55/03_PRECODER.git`；推送状态待回执。
 - **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；新增本轮K8协议源码/配置及状态文档；另有未跟踪的清理回执、Overleaf副本及历史数据。
 - **代码/验收/证据区分：** 旧K4分组/功率实验代码保持原样；新K8布局/预算协议层**代码已实现**，CPU预算/分组核对**通过**；K8模型、CE、训练/评估集成**未开始**；独立性能证据**没有**。
 - **训练步数/checkpoint：** K8本轮更新数 0 / 计划预算未知（计划中的codec为4×10k warmup + 8×20k终段，共200k更新；CE另约5k）；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
@@ -85,9 +85,9 @@
 ## 源码、Git与证据路径
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- 基线commit：`ee58686e55314ac8b09291318fdf9a9806ecfa89`。
+- K8协议代码commit：`b1573e2`；本地父commit：`ee58686e55314ac8b09291318fdf9a9806ecfa89`。
 - 当前未提交源码变更：`.gitignore`修改；删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。这些变更不是K8实现；其余未跟踪文件见Git状态，不纳入本报告证据。未暂存任何内容。
-- 本轮记录：新增K8协议/配置层及CPU核对；未改历史K4训练代码、未改Overleaf tex、未启动训练。源码提交/推送状态以后续Git操作回执为准。
+- 本轮记录：新增K8协议/配置层及CPU核对，独立提交`b1573e2`；未改历史K4训练代码、未改Overleaf tex、未启动训练。GitHub推送待回执。
 
 最多4个关键证据文件：
 
@@ -111,4 +111,5 @@
 - **2026-11-04 11:51 CET：**首次建立状态页。直接盘点Git、配置源码、实验输出目录、训练进程、GPU和Overleaf构建产物；未启动训练。记录了K8计划与现有K4代码/历史证据的差别，以及当前未提交改动。
 - **2026-11-04 12:05 CET：**完成首轮场景、Hybrid/FDMA预算算术和反馈SNR点对齐；新建`docs/TWC_V1_PROTOCOL_BASELINE.md`。实测/代码映射、能量候选、噪声、数据隔离仍未验收；未使用GPU。
 - **2026-11-04 12:24 CET：**新增独立K8预算/映射及配置模块；CPU核对静态编译、G分组数、Hybrid/FDMA总RE和六点N0公式均通过。未改旧K4训练模块、未启动GPU；K8模型训练集成仍未开始。
+- **2026-11-04 12:28 CET：**K8协议源码及对应计划/状态文档提交为`b1573e2`；只纳入两份K8源码和三份K8计划/状态文档，未纳入原有删除或Overleaf目录；GitHub推送待确认。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
