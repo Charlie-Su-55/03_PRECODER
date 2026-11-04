@@ -102,7 +102,10 @@ def run(args):
         raise RuntimeError("CUDA requested but unavailable")
     run_dir = args.run_dir.resolve()
     latest = run_dir / "checkpoint_latest.pt"
-    if run_dir.exists() and any(run_dir.iterdir()) and not args.resume:
+    harmless_logs = {"training.console.log"}
+    existing_artifacts = ([path for path in run_dir.iterdir() if path.name not in harmless_logs]
+                          if run_dir.exists() else [])
+    if existing_artifacts and not args.resume:
         raise FileExistsError(f"Run directory is nonempty; pass --resume: {run_dir}")
     run_dir.mkdir(parents=True, exist_ok=True)
     seed = args.seed
