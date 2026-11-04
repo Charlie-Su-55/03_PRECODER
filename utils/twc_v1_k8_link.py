@@ -35,6 +35,7 @@ else:
 
 EnergySplit = protocol.EnergySplit
 HybridLayout = protocol.HybridLayout
+FDMALayout = protocol.FDMALayout
 K_USERS = protocol.K_USERS
 N_ANTENNAS = protocol.N_ANTENNAS
 N_SUBCARRIERS = protocol.N_SUBCARRIERS
@@ -59,6 +60,19 @@ def _validate_split(split):
 def _validate_layout(layout):
     if not isinstance(layout, HybridLayout):
         raise TypeError("An explicit K8 HybridLayout is required")
+
+
+def _channel_error_variance(value, batch, device):
+    value = torch.as_tensor(value, dtype=torch.float32, device=device)
+    if value.ndim == 0:
+        value = value.expand(batch, K_USERS)
+    elif value.shape == (K_USERS,):
+        value = value[None].expand(batch, -1)
+    elif value.shape != (batch, K_USERS):
+        raise ValueError("channel_error_variance must be scalar, [8], or [B,8]")
+    if not bool(torch.isfinite(value).all() & (value >= 0).all()):
+        raise ValueError("channel_error_variance must be finite and nonnegative")
+    return value
 
 
 def _n0(feedback_gamma_db):
@@ -216,8 +230,14 @@ def transmit_feedback_data(H_ul, layout, split, feedback_gamma_db,
     }
 
 
-def recover_feedback_data(Y, H_ul_est, layout, split, feedback_gamma_db):
-    """Per-key scalar MMSE and per-group shared-stream MMSE soft recovery."""
+def recover_feedback_data(Y, H_ul_est, layout, split, feedback_gamma_db,
+                          channel_error_variance=0.0):
+    """Calibration-aware key and group-shared linear-MMSE soft recovery.
+
+    CE error is approximated as independent isotropic complex error. Its
+    measured variance comes from the disjoint calibration role and contributes
+    ``sigma_e^2`` per key stream and ``sum_i sigma_e,i^2`` per shared group.
+    """
     _validate_layout(layout)
     _validate_split(split)
     if Y.ndim != 3 or Y.shape[0] < 1:
@@ -228,20 +248,33 @@ def recover_feedback_data(Y, H_ul_est, layout, split, feedback_gamma_db):
     if Y.device != H_ul_est.device:
         raise ValueError("Y and H_ul_est must share a device")
     n0 = _n0(feedback_gamma_db)
-    key_ridge = n0 / (split.key / protocol.KEY_DIM_PER_USER) + 1e-8
-    shared_ridge = n0 / (split.shared / layout.shared_dimension) + 1e-8
+    ce_var = _channel_error_variance(channel_error_variance, batch, Y.device)
+    key_power = split.key / protocol.KEY_DIM_PER_USER
+    shared_power = split.shared / layout.shared_dimension
+    key_ridge = n0 / key_power + ce_var + 1e-8
     key_estimate = torch.empty((batch, K_USERS, protocol.KEY_DIM_PER_USER),
                                device=Y.device, dtype=torch.complex64)
+    key_reliability = torch.empty((batch, K_USERS, protocol.KEY_DIM_PER_USER),
+                                  device=Y.device, dtype=torch.float32)
+    key_posterior = torch.empty_like(key_reliability)
     for user, positions in enumerate(layout.key_positions):
         q = torch.tensor(positions, device=Y.device, dtype=torch.long)
         h = H_ul_est[:, user].index_select(-1, q)
         y = Y.index_select(-1, q)
-        denominator = h.abs().square().sum(dim=1) + key_ridge
+        channel_power = h.abs().square().sum(dim=1)
+        ridge = key_ridge[:, user, None]
+        denominator = channel_power + ridge
         numerator = (h.conj() * y).sum(dim=1)
         key_estimate[:, user] = numerator / denominator
+        key_reliability[:, user] = channel_power / denominator
+        key_posterior[:, user] = key_power * ridge / denominator
 
     shared_estimate = torch.empty((batch, K_USERS, layout.shared_dimension),
                                   device=Y.device, dtype=torch.complex64)
+    shared_reliability = torch.empty((batch, K_USERS, layout.shared_dimension),
+                                     device=Y.device, dtype=torch.float32)
+    shared_posterior = torch.empty_like(shared_reliability)
+    shared_ridges = []
     for members, positions in zip(layout.groups, layout.shared_positions_by_group):
         users = torch.tensor(members, device=Y.device, dtype=torch.long)
         q = torch.tensor(positions, device=Y.device, dtype=torch.long)
@@ -250,18 +283,103 @@ def recover_feedback_data(Y, H_ul_est, layout, split, feedback_gamma_db):
         y = Y.index_select(-1, q).transpose(1, 2).unsqueeze(-1)
         gh = h.conj().transpose(-2, -1)
         identity = torch.eye(len(members), device=Y.device, dtype=torch.complex64)
-        system = gh @ h + shared_ridge * identity
+        ridge = n0 / shared_power + ce_var.index_select(1, users).sum(dim=1) + 1e-8
+        shared_ridges.append(ridge)
+        system = gh @ h + ridge[:, None, None, None] * identity
         recovered = torch.linalg.solve(system, gh @ y).squeeze(-1)
+        inverse = torch.linalg.inv(system)
+        posterior_diag = (shared_power * ridge[:, None, None]
+                          * inverse.diagonal(dim1=-2, dim2=-1).real).clamp(0.0, shared_power)
         for local_user, user in enumerate(members):
             shared_estimate[:, user] = recovered[:, :, local_user]
-    if not bool(torch.isfinite(key_estimate).all() & torch.isfinite(shared_estimate).all()):
+            shared_posterior[:, user] = posterior_diag[:, :, local_user]
+            shared_reliability[:, user] = (1 - posterior_diag[:, :, local_user] / shared_power).clamp(0, 1)
+    if not bool(torch.isfinite(key_estimate).all() & torch.isfinite(shared_estimate).all()
+                & torch.isfinite(key_reliability).all() & torch.isfinite(shared_reliability).all()):
         raise FloatingPointError("Recovered data symbols contain nonfinite values")
     return {
         "key_symbols_hat": key_estimate,
         "shared_symbols_hat": shared_estimate,
         "key_ridge": key_ridge,
-        "shared_ridge": shared_ridge,
+        "shared_ridge": torch.stack(shared_ridges, dim=1),
+        "key_reliability": key_reliability,
+        "shared_reliability": shared_reliability,
+        "key_posterior_variance": key_posterior,
+        "shared_posterior_variance": shared_posterior,
+        "channel_error_variance": ce_var,
     }
+
+
+def transmit_feedback_fdma_data(H_ul, layout, data_energy_per_ue, feedback_gamma_db,
+                                data_symbols, standard_noise):
+    """Transmit 24 orthogonal data RE per UE for the matched FDMA control."""
+    if not isinstance(layout, FDMALayout):
+        raise TypeError("An explicit K8 FDMALayout is required")
+    if (isinstance(data_energy_per_ue, bool) or not isinstance(data_energy_per_ue, (int, float))
+            or not math.isfinite(data_energy_per_ue) or data_energy_per_ue <= 0):
+        raise ValueError("FDMA per-UE data energy must be finite and positive")
+    if H_ul.ndim != 4 or H_ul.shape[0] < 1:
+        raise ValueError("H_ul must have shape [B,8,32,256]")
+    batch = H_ul.shape[0]
+    _validate_complex(H_ul, "H_ul", (batch, K_USERS, N_ANTENNAS, N_SUBCARRIERS))
+    _validate_complex(data_symbols, "FDMA data symbols", (batch, K_USERS, layout.data_coordinates_per_user))
+    _validate_complex(standard_noise, "FDMA data standard noise", (batch, N_ANTENNAS, N_SUBCARRIERS))
+    if len({H_ul.device, data_symbols.device, standard_noise.device}) != 1:
+        raise ValueError("All FDMA tensors must share a device")
+    data_tx = _normalize_branch(data_symbols, float(data_energy_per_ue), "FDMA data symbols")
+    X = torch.zeros((batch, K_USERS, TOTAL_RE), device=H_ul.device, dtype=torch.complex64)
+    all_positions = []
+    for user, positions in enumerate(layout.data_positions):
+        q = torch.tensor(positions, device=H_ul.device, dtype=torch.long)
+        X[:, user, q] = data_tx[:, user]
+        all_positions.extend(positions)
+    active = torch.zeros(TOTAL_RE, device=H_ul.device, dtype=torch.bool)
+    active[torch.tensor(all_positions, device=H_ul.device, dtype=torch.long)] = True
+    Y_clean = (H_ul * X[:, :, None, :]).sum(dim=1)
+    Y = Y_clean + math.sqrt(_n0(feedback_gamma_db) / 2.0) * standard_noise * active
+    actual = X.abs().square().sum(dim=-1)
+    if not bool(torch.isfinite(actual).all() & ((actual - data_energy_per_ue).abs() <= 1e-4).all()):
+        raise FloatingPointError("FDMA per-UE data energy normalization failed")
+    return {"Y": Y, "Y_clean": Y_clean, "X": X,
+        "data_symbols_tx": data_tx, "actual_data_energy": actual,
+        "N0": _n0(feedback_gamma_db)}
+
+
+def recover_feedback_fdma_data(Y, H_ul_est, layout, data_energy_per_ue,
+                                feedback_gamma_db, channel_error_variance=0.0):
+    """Calibration-aware per-user MRC/LMMSE soft recovery for FDMA."""
+    if not isinstance(layout, FDMALayout):
+        raise TypeError("An explicit K8 FDMALayout is required")
+    if Y.ndim != 3 or Y.shape[0] < 1:
+        raise ValueError("Y must have shape [B,32,256]")
+    batch = Y.shape[0]
+    _validate_complex(Y, "FDMA observation", (batch, N_ANTENNAS, N_SUBCARRIERS))
+    _validate_complex(H_ul_est, "H_ul_est", (batch, K_USERS, N_ANTENNAS, N_SUBCARRIERS))
+    if Y.device != H_ul_est.device:
+        raise ValueError("FDMA observation and estimated UL CSI must share a device")
+    ce_var = _channel_error_variance(channel_error_variance, batch, Y.device)
+    coordinate_power = float(data_energy_per_ue) / layout.data_coordinates_per_user
+    ridge = _n0(feedback_gamma_db) / coordinate_power + ce_var + 1e-8
+    estimate = torch.empty((batch, K_USERS, layout.data_coordinates_per_user),
+                           dtype=torch.complex64, device=Y.device)
+    reliability = torch.empty((batch, K_USERS, layout.data_coordinates_per_user),
+                               dtype=torch.float32, device=Y.device)
+    posterior = torch.empty_like(reliability)
+    for user, positions in enumerate(layout.data_positions):
+        q = torch.tensor(positions, device=Y.device, dtype=torch.long)
+        h = H_ul_est[:, user].index_select(-1, q)
+        y = Y.index_select(-1, q)
+        channel_power = h.abs().square().sum(dim=1)
+        denominator = channel_power + ridge[:, user, None]
+        estimate[:, user] = (h.conj() * y).sum(dim=1) / denominator
+        reliability[:, user] = channel_power / denominator
+        posterior[:, user] = coordinate_power * ridge[:, user, None] / denominator
+    if not bool(torch.isfinite(estimate).all() & torch.isfinite(reliability).all()
+                & torch.isfinite(posterior).all()):
+        raise FloatingPointError("FDMA recovered symbols contain nonfinite values")
+    return {"data_symbols_hat": estimate, "reliability": reliability,
+        "posterior_variance": posterior, "ridge": ridge,
+        "channel_error_variance": ce_var}
 
 
 def protocol_metadata():

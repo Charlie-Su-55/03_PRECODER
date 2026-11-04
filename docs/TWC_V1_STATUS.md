@@ -1,21 +1,21 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-04 17:13 CET
-依据：本地仓库源码、Git状态、配置/输出目录、进程和GPU快照，以及 Overleaf 快照与编译产物。本文不把旧协议结果当作新 K8 证据。
+最后核查：2026-11-04 22:14 CET
+依据：重新读取当前03源码、CE checkpoint/calibration、Git工作区、CPU端到端链路验收和当前nvidia-smi。历史更新记录保留当时事实；下方最新状态覆盖旧段落中“Joint/RZF/训练入口未实现”的描述。本文不把未训练smoke数值当作性能证据。
 
 ## 一屏摘要
 
-- **当前阶段：** Stage A 公共UL CE训练与独立校准**完成**；下一步是补齐估计UL驱动的反馈软恢复→Joint CSI重建→RZF及匹配FDMA任务链路，然后进入codec训练。
+- **当前阶段：** Stage A 公共UL CE训练与独立校准**完成**；Stage B codec链路与NMSE warmup入口代码已实现，CPU链路验收通过；等待用户检查训练前报告，未启动训练。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
-- **GPU快照：** 2026-11-04 21:45 CET训练后快照：RTX 5090利用率0%、显存18/32607 MiB、功耗22.75 W；进程表仅列gnome-shell。训练期间21:41快照为48%、1406 MiB。
-- **代码版本：** 训练源码HEAD `ec7a6fc`，训练manifest记录同一commit；CE训练器及启动目录修正均已推送。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- **未提交变更：** 本轮源码、状态页和CE证据已选择性提交推送；原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及本地V2计划文件仍留在工作区，未纳入本轮。
-- **代码/验收/证据区分：** K8分角色CDL回放、pilot-LS＋插值、Ep条件化pilot-only U-Net、G=1/2/4 Swin接口、CE训练/独立校准器**代码已实现**；CPU更新/恢复、固定验证及独立校准smoke**验收通过**；CE 5000步GPU训练与校准**运行验收完成**；validation曲线是设计证据，独立calibration统计完成但不宣称下行任务性能；Joint接收器/RZF尚未实现。
-- **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；来源累计更新0；latest与best权重载入核验均为step5000。codec更新0/预算200k；codec checkpoint无。
-- **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。DL NMSE/真实下行和速率、正式codec六SNR×两seed结果仍未知/未开始。
-- **资源与隔离验收：** K8 RE/能量CPU映射偏差沿用已验收值：G=1/2/4总预算0 RE、单候选数据能量最大误差`7.63e-6`。分角色数据回放5角色地址/指纹隔离与固定重放通过。CE噪声采用`N0=0.25×10^(-gamma/10)`，CPU 50万复噪声样本/点实测六个gamma的`E|n|²`相对误差最大0.281%；独立calibration role每条件256帧、18/18误差方差有限。训练/验证/校准与test role隔离；test未读取。正式点gamma 0/5/10/15/20/25 dB，DL SNR固定25 dB。
+- **GPU快照：** 2026-11-04 22:09 CET RTX 5090利用率0%、显存18/32607 MiB，进程表仅列gnome-shell。此次只做CPU链路验收，未使用GPU。
+- **代码版本：** 当前基线`7705c0c`；本轮链路代码及报告正在准备选择性提交。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **未提交变更：** 本轮K8新增/修改文件尚未提交；原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件不纳入本轮。
+- **代码/验收/证据区分：** K8分角色CDL回放、CE训练/校准和完整codec→反馈物理链路→UL误差校准软恢复→Joint Swin CSI重建→RZF、匹配FDMA warmup入口**代码已实现**；端到端CPU前向、loss反向梯度、预算/功率数值验收**通过**；Stage B训练运行验收**未开始**；独立codec性能证据**没有**。随机初始化smoke的NMSE/速率不代表方法效果。
+- **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；来源累计更新0；latest与best权重载入核验均为step5000。codec更新0/Stage B计划4×10k warmup；无codec checkpoint。
+- **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。codec smoke在随机初始化权重上同时计算DL NMSE与真实下行和速率，仅验算数值链路，不是性能证据；正式codec六SNR×两seed结果仍未开始。
+- **资源与隔离验收：** K8 RE/能量CPU映射偏差：G=1/2/4总预算0 RE；本次Hybrid/FDMA smoke每UE数据能量最大误差`1.15e-5`；RZF每子载波总功率最大误差`2.98e-7`。分角色数据回放5角色地址/指纹隔离与固定重放通过。噪声`N0=0.25×10^(-gamma/10)`；此前CPU 50万复噪声样本/点实测最大相对偏差0.281%。校准role每条件256帧、18/18误差方差有限。训练/验证/校准与test role隔离；test未读取。本次端到端只测gamma=10、Ep=16；全正式六点端到端验收未知。DL SNR固定25 dB。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** Stage B尚不能启动：K8端到端codec训练目标仍缺估计UL驱动的软恢复接入Swin、Joint接收/CSI重建、8用户RZF与匹配FDMA训练/验证入口及CUDA验收。Stage A CE checkpoint可供后续冻结复用。
+- **主要阻塞：** 代码路径已接通，但正式训练前尚未做GPU侧显存/吞吐验收，且训练器尚未经过真实optimizer更新的CPU smoke/恢复验收。按用户要求，当前先提交训练前报告，训练待用户检查后启动。
 
 ## 阶段状态
 
@@ -34,8 +34,8 @@
 | 完整K8协议/候选冻结 | 运行中 | 几何、六点能量候选已配置 | CPU链路烟雾检查通过；gamma查表策略未选 | 未开始 | 数据namespace、pilot gamma查表和UL状态选优仍待验证集核定 |
 | CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 真实CDL分角色小样本、seed寻址重放和RNG隔离通过；训练/验证/校准已实跑 | 不适用 | 完整大规模namespace碰撞审计未知；test role尚未用于任何选优或训练 |
 | Stage A：LS与LS＋U-Net UL CE预训练及校准 | 完成 | LS初值为pilot-LS＋线性插值；`train_twc_v1_k8_ce.py`只读pilot-only观测，H_UL只作监督目标 | 5000/5000更新；best/latest权重step5000载入核验；独立calibration 18条件通过 | 有限validation设计证据 | validation较同条件LS低约3.57 dB；不代表下行任务或独立测试性能 |
-| 完整端到端CSI反馈到下行预编码 | 未开始 | K8 Swin/CSI重建/RZF链路未实现 | 未开始 | 未开始 | 当前smoke仅验证UL导频和key/shared物理反馈接收 |
-| Stage B：FDMA/Hybrid NMSE warmup | 未开始 | 未知 | 未开始 | 未开始 | 计划每模型/seed 10k；目标K8 checkpoint、日志与曲线未找到 |
+| 完整端到端CSI反馈到下行预编码 | 完成（代码/CPU验收） | CE冻结、校准软恢复、Hybrid/FDMA、Joint Swin、DL NMSE/RZF和速率指标代码已实现 | CPU真实CDL前向及反向梯度通过；GPU验收未开始 | 未开始 | `preflight_twc_v1_k8_codec_link.py`；仅gamma=10、Ep=16的随机初始化smoke，不是性能证据 |
+| Stage B：FDMA/Hybrid NMSE warmup | 未开始 | 10k训练入口、固定验证DL NMSE/和速率、checkpoint/resume和manifest已实现 | 优化更新及完整恢复验收未开始 | 未开始 | `train_twc_v1_k8_codec_warmup.py`；FDMA/Hybrid各自运行，正式训练待用户检查 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 未知 | 未开始 | 未开始 | 计划每分支20k；权重日程、loss曲线与匹配比较未开始 |
 | Stage D：资源/能量策略、RZF及WMMSE诊断 | 未开始 | 未知 | 未开始 | 未开始 | 计划先验证集查表/扫描；新协议策略与结果未找到 |
 | 六SNR、两个seed独立正式评估 | 未开始 | 未知 | 未开始 | 未开始 | 独立测试、配对样本和置信区间材料未找到 |
@@ -112,7 +112,7 @@
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：按V2实现UL误差校准驱动的软恢复→Joint decoder→空间Swin→RZF及匹配FDMA训练/验证入口，完成合并CPU/CUDA验收；之后进入codec warmup。每次GPU任务前刷新利用率，若超过20%先请示。08保持只读。
+下一项动作：用户先检查训练前报告；批准后刷新GPU状态，GPU利用率高于20%时先请示，再进行首个warmup的GPU验收/训练并用实测吞吐重算ETA。08保持只读；Overleaf论文未修改。
 
 ## 更新记录
 
@@ -130,4 +130,5 @@
 - **2026-11-04 21:40 CET：**已选择性提交并推送CE训练器和配置`8342f7c`。首次后台启动尝试在训练开始前安全退出：tmux将console log预先创建在run目录，脚本误将其判为已有训练产物。已修正为忽略这两个console log，`py_compile`通过；此修正尚未提交。失败尝试没有运行优化更新，最近GPU快照0%、18 MiB；正式CE仍未启动。
 - **2026-11-04 21:43 CET：**修正后的启动目录保护提交并推送`ec7a6fc`。后台会话`twc03-ce-seed20261105`启动成功，Stage A CE正式训练至3500/5000更新；latest checkpoint step3500、best step3250均载入核验。固定validation最近值NMSE 0.02705，LS 0.06058；首500/1000步约18/37秒，训练剩余估算70–80秒，随后自动独立校准约0.5–1分钟；峰值CUDA分配502,798,848 bytes。训练时`nvidia-smi`最后一次可读快照48%、1406 MiB，之后无法从当前sandbox连接驱动，但GPU训练仍在tmux运行。所有性能值目前仅是验证集过程值。
 - **2026-11-04 21:45 CET：**Stage A CE训练及校准完成。run ID=`twc_v1_k8_ce_seed_20261105`，新初始化seed 20261105，5000/5000更新，GPU训练180.06秒；latest/best checkpoint内部step均为5000且成功载入，峰值分配502,798,848 bytes。loss为mean per-link UL NMSE，LR=0.001，覆盖gamma 0/5/10/15/20/25 dB与Ep 8/16/24。固定validation 18条件平均U-Net NMSE 0.026625、匹配LS 0.060585（相差约3.57 dB）；每条件512 user-link样本，属验证设计证据。独立calibration role每条件256帧、18条件方差有限；不触碰test。CPU噪声采样每gamma 500,000复样本，经验E|n|²最大相对偏差0.281%。训练后GPU 0%、18 MiB。已生成验证曲线PNG/PDF和CSV、独立校准CSV及带checkpoint hash的JSON回执；论文未修改。下一步为完整codec接收/预编码链路。
+- **2026-11-04 22:14 CET：**Stage B前置链路代码已实现并做CPU端到端验收，commit基线`7705c0c`（本次修改待提交）：实际CDL codec_train样本经CE step5000权重与18条件校准、Hybrid G=1/2/4及FDMA物理发射/软恢复、Joint Swin重建、DL NMSE、真实信道下行和速率与RZF；4种布局均反向得到有限非零codec梯度，未执行optimizer.step，更新数0。Ep=16、gamma=10时Hybrid与FDMA per-UE总数据能量目标48，最大测得偏差`1.15e-5`；RZF每子载波总功率目标1，最大偏差`2.98e-7`。随机未训练网络的DL NMSE/速率值仅是实现smoke，明确不作为性能证据。新增Stage B FDMA/Hybrid 10k NMSE warmup入口；命令行、配置和py_compile通过，未真实训练/恢复。nvidia-smi 22:09 CET为0%、18MiB；没有使用GPU。GPU峰值显存、更新速度、剩余训练时间未知。用户要求训练前报告后验收，当前停止在此等待其检查。报告见`docs/TWC_V1_CODEC_LINK_PREFLIGHT_20261104.md`。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。

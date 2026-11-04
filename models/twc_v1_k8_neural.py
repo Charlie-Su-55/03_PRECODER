@@ -217,7 +217,7 @@ class K8SwinDecoder(nn.Module):
         self.norm = nn.LayerNorm(embed_dim)
         self.final_proj = nn.Linear(embed_dim, 2 * patch_size**2)
 
-    def forward(self, key, shared, *, group_count):
+    def tokens_from_symbols(self, key, shared, *, group_count):
         _groups(group_count)
         batch = key.shape[0] if torch.is_tensor(key) and key.ndim else 0
         active = shared_dimension(group_count)
@@ -236,7 +236,13 @@ class K8SwinDecoder(nn.Module):
         tokens = self.fc(codeword).view(batch * K_USERS, self.height * self.width, -1)
         for block in self.blocks:
             tokens = block(tokens, self.height, self.width)
-        patches = self.final_proj(self.norm(tokens))
+        return tokens
+
+    def tokens_to_channel(self, tokens, batch, *, normalize=True):
+        if tuple(tokens.shape) != (batch * K_USERS, self.height * self.width, self.fc.out_features // (self.height * self.width)):
+            raise ValueError("Joint Swin token geometry mismatch")
+        features = self.norm(tokens) if normalize else tokens
+        patches = self.final_proj(features)
         p = self.patch_size
         patches = patches.view(batch * K_USERS, self.height, self.width, 2, p, p)
         patches = patches.permute(0, 3, 1, 4, 2, 5).contiguous()
@@ -246,6 +252,141 @@ class K8SwinDecoder(nn.Module):
             raise FloatingPointError("K8 Swin decoder produced nonfinite CSI")
         return H_hat
 
+    def forward(self, key, shared, *, group_count):
+        batch = key.shape[0] if torch.is_tensor(key) and key.ndim else 0
+        tokens = self.tokens_from_symbols(key, shared, group_count=group_count)
+        return self.tokens_to_channel(tokens, batch, normalize=True)
+
+
+class K8JointFeedbackDecoder(nn.Module):
+    """Jointly refine soft codewords using received Y, UL CSI and reliability.
+
+    The BS feature path receives no true DL/UL channel labels. It gets noisy
+    feedback Y, estimated UL CSI, public resource masks, calibration error,
+    LMMSE symbol reliability, N0 and the selected energy/group conditions.
+    """
+
+    def __init__(self, *, embed_dim=128, blocks=2, patch_size=4, window_size=4,
+                 heads=4, mlp_ratio=4.0, base_decoder=None):
+        super().__init__()
+        self.base_decoder = base_decoder or K8SwinDecoder(embed_dim=embed_dim, blocks=4,
+            patch_size=patch_size, window_size=window_size, heads=heads,
+            mlp_ratio=mlp_ratio)
+        self.patch_size = patch_size
+        self.height, self.width = self.base_decoder.height, self.base_decoder.width
+        input_channels = 4 * N_ANTENNAS + 3 + 2 + 7
+        self.side_encoder = nn.Sequential(
+            nn.Conv1d(input_channels, embed_dim, kernel_size=7, padding=3),
+            nn.GELU(), nn.Conv1d(embed_dim, embed_dim, kernel_size=5, padding=2),
+            nn.GELU(),
+        )
+        self.joint_blocks = nn.ModuleList([
+            SwinTransformerBlock(embed_dim, heads, window_size, mlp_ratio)
+            for _ in range(blocks)
+        ])
+        self.joint_norm = nn.LayerNorm(embed_dim)
+
+    @staticmethod
+    def _batch_scalar(value, batch, device, name, *, allow_zero=True):
+        result = torch.as_tensor(value, dtype=torch.float32, device=device)
+        if result.ndim == 0:
+            result = result.expand(batch)
+        if result.shape != (batch,) or not bool(torch.isfinite(result).all()):
+            raise ValueError(f"{name} must be a finite scalar or [B]")
+        if not bool((result >= 0 if allow_zero else result > 0).all()):
+            raise ValueError(f"{name} is outside its valid range")
+        return result
+
+    def forward(self, key, shared, *, group_count, Y_rx, H_ul_est, layout,
+                feedback_gamma_db, noise_variance, pilot_energy_per_ue,
+                key_energy_per_ue, shared_energy_per_ue,
+                channel_error_variance, key_reliability, shared_reliability):
+        _groups(group_count)
+        batch = key.shape[0] if torch.is_tensor(key) and key.ndim else 0
+        active_shared = shared_dimension(group_count)
+        _complex(key, "key soft symbols", (batch, K_USERS, 4))
+        _complex(shared, "shared soft symbols", (batch, K_USERS, active_shared))
+        _complex(Y_rx, "received feedback", (batch, N_ANTENNAS, N_SUBCARRIERS))
+        _complex(H_ul_est, "estimated UL CSI", (batch, K_USERS, N_ANTENNAS, N_SUBCARRIERS))
+        if len({key.device, shared.device, Y_rx.device, H_ul_est.device,
+                self.base_decoder.fc.weight.device}) != 1:
+            raise ValueError("Joint decoder inputs and parameters must share a device")
+        if type(layout) not in (_protocol.HybridLayout, _protocol.FDMALayout):
+            raise TypeError("Joint decoder requires an explicit HybridLayout or FDMALayout")
+        if isinstance(layout, _protocol.HybridLayout) and layout.group_count != group_count:
+            raise ValueError("Hybrid layout G does not match decoder group_count")
+        if isinstance(layout, _protocol.FDMALayout) and group_count != 1:
+            raise ValueError("FDMA control uses the G=1 decoder condition")
+
+        key_rel = torch.as_tensor(key_reliability, dtype=torch.float32, device=key.device)
+        shared_rel = torch.as_tensor(shared_reliability, dtype=torch.float32, device=key.device)
+        if key_rel.shape != (batch, K_USERS, 4) or shared_rel.ndim != 3 or shared_rel.shape[:2] != (batch, K_USERS):
+            raise ValueError("Soft-symbol reliability tensors have incompatible shapes")
+        if not bool(torch.isfinite(key_rel).all() & torch.isfinite(shared_rel).all()
+                    & (key_rel >= 0).all() & (key_rel <= 1).all()
+                    & (shared_rel >= 0).all() & (shared_rel <= 1).all()):
+            raise ValueError("Soft-symbol reliabilities must be finite and within [0,1]")
+
+        pilot_mask = torch.zeros((K_USERS, N_SUBCARRIERS), dtype=torch.float32, device=key.device)
+        key_mask = torch.zeros_like(pilot_mask)
+        shared_mask = torch.zeros_like(pilot_mask)
+        key_rel_map = torch.zeros((batch, K_USERS, N_SUBCARRIERS), dtype=torch.float32, device=key.device)
+        shared_rel_map = torch.zeros_like(key_rel_map)
+        for user, positions in enumerate(_protocol.PILOT_POSITIONS_BY_USER):
+            pilot_mask[user, list(positions)] = 1.0
+        if isinstance(layout, _protocol.HybridLayout):
+            for user, positions in enumerate(layout.key_positions):
+                key_mask[user, list(positions)] = 1.0
+                key_rel_map[:, user, list(positions)] = key_rel[:, user]
+            for members, positions in zip(layout.groups, layout.shared_positions_by_group):
+                for user in members:
+                    shared_mask[user, list(positions)] = 1.0
+                    shared_rel_map[:, user, list(positions)] = shared_rel[:, user]
+        else:
+            if shared_rel.shape[-1] != layout.data_coordinates_per_user - 4:
+                raise ValueError("FDMA path expects four packed key coordinates plus 20 shared coordinates")
+            for user, positions in enumerate(layout.data_positions):
+                shared_mask[user, list(positions)] = 1.0
+                packed_rel = torch.cat((key_rel[:, user], shared_rel[:, user]), dim=-1)
+                shared_rel_map[:, user, list(positions)] = packed_rel
+
+        gamma = self._batch_scalar(feedback_gamma_db, batch, key.device, "feedback_gamma_db")
+        n0 = self._batch_scalar(noise_variance, batch, key.device, "noise_variance", allow_zero=False)
+        ep = self._batch_scalar(pilot_energy_per_ue, batch, key.device, "pilot_energy_per_ue", allow_zero=False)
+        ek = self._batch_scalar(key_energy_per_ue, batch, key.device, "key_energy_per_ue")
+        es = self._batch_scalar(shared_energy_per_ue, batch, key.device, "shared_energy_per_ue", allow_zero=False)
+        cev = torch.as_tensor(channel_error_variance, dtype=torch.float32, device=key.device)
+        if cev.ndim == 0:
+            cev = cev.expand(batch, K_USERS)
+        elif cev.shape == (K_USERS,):
+            cev = cev[None].expand(batch, -1)
+        if cev.shape != (batch, K_USERS) or not bool(torch.isfinite(cev).all() & (cev >= 0).all()):
+            raise ValueError("channel_error_variance must be nonnegative [B,8]")
+        ce_context = cev.mean(dim=1)
+        context = torch.stack((gamma / 25.0,
+            torch.log10(n0.clamp_min(1e-12)), ep / 64.0, ek / 64.0,
+            es / 64.0, torch.log10(ce_context.clamp_min(1e-12)),
+            torch.full_like(gamma, group_count / 4.0)), dim=1)
+        context = context[:, None, :, None].expand(-1, K_USERS, -1, N_SUBCARRIERS)
+
+        y_users = Y_rx[:, None].expand(-1, K_USERS, -1, -1)
+        y_features = torch.cat((y_users.real, y_users.imag), dim=2)
+        ul_features = torch.cat((H_ul_est.real, H_ul_est.imag), dim=2)
+        resources = torch.stack((pilot_mask, key_mask, shared_mask), dim=1)[None]
+        resources = resources.expand(batch, -1, -1, -1)
+        reliability = torch.stack((key_rel_map, shared_rel_map), dim=2)
+        features = torch.cat((y_features, ul_features, resources, reliability, context), dim=2)
+        features = features.reshape(batch * K_USERS, features.shape[2], N_SUBCARRIERS)
+
+        latent = self.base_decoder.tokens_from_symbols(key, shared, group_count=group_count)
+        side = torch.nn.functional.avg_pool1d(self.side_encoder(features),
+            kernel_size=self.patch_size, stride=self.patch_size).transpose(1, 2)
+        side = side[:, :, None, :].expand(-1, -1, self.width, -1).reshape_as(latent)
+        tokens = latent + side
+        for block in self.joint_blocks:
+            tokens = block(tokens, self.height, self.width)
+        return self.base_decoder.tokens_to_channel(tokens, batch, normalize=True)
+
 
 class K8SwinCSIModel(nn.Module):
     """Separate encoder/decoder calls for UE encoding and BS reconstruction."""
@@ -254,9 +395,36 @@ class K8SwinCSIModel(nn.Module):
         super().__init__()
         self.encoder = K8SwinEncoder(**swin_kwargs)
         self.decoder = K8SwinDecoder(**swin_kwargs)
+        self.joint_decoder = K8JointFeedbackDecoder(base_decoder=self.decoder,
+            embed_dim=swin_kwargs.get("embed_dim", 128),
+            patch_size=swin_kwargs.get("patch_size", 4),
+            window_size=swin_kwargs.get("window_size", 4),
+            heads=swin_kwargs.get("heads", 4),
+            mlp_ratio=swin_kwargs.get("mlp_ratio", 4.0))
 
     def encode(self, H_dl, *, group_count):
         return self.encoder(H_dl, group_count=group_count)
 
     def decode(self, key, shared, *, group_count):
         return self.decoder(key, shared, group_count=group_count)
+
+    def encode_fdma(self, H_dl):
+        """Pack the first 24 complex encoder coordinates for FDMA data REs."""
+        key, shared = self.encode(H_dl, group_count=1)
+        return torch.cat((key, shared), dim=-1)[..., :24]
+
+    def decode_feedback(self, key, shared, **receiver_inputs):
+        return self.joint_decoder(key, shared, **receiver_inputs)
+
+    def decode_fdma_feedback(self, data_symbols_hat, **receiver_inputs):
+        if (data_symbols_hat.dtype != torch.complex64 or data_symbols_hat.ndim != 3
+                or tuple(data_symbols_hat.shape[1:]) != (K_USERS, 24)):
+            raise ValueError("FDMA recovered code must be complex64 [B,8,24]")
+        key = data_symbols_hat[..., :4]
+        shared = torch.zeros((data_symbols_hat.shape[0], K_USERS, shared_dimension(1)),
+            dtype=data_symbols_hat.dtype, device=data_symbols_hat.device)
+        shared[..., :20] = data_symbols_hat[..., 4:]
+        reliability = receiver_inputs.pop("reliability")
+        return self.joint_decoder(key, shared, group_count=1,
+            key_reliability=reliability[..., :4],
+            shared_reliability=reliability[..., 4:], **receiver_inputs)

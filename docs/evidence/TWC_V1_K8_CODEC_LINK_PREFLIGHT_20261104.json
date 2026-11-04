@@ -1,0 +1,47 @@
+{
+  "N0": 0.025,
+  "calibration_csv": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/calibration.csv",
+  "ce_checkpoint_step": 5000,
+  "device": "cpu",
+  "frozen_ce_checkpoint": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/checkpoint_latest.pt",
+  "gamma_db": 10,
+  "layouts": [
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 11220.603520971024,
+      "dl_nmse": 7.682960510253906,
+      "layout": "Hybrid-G1",
+      "rzf_power_max_abs_error": 3.5762786865234375e-07,
+      "sum_rate_bps_hz": 1.6700916290283203
+    },
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 9351.465419048676,
+      "dl_nmse": 7.8352952003479,
+      "layout": "Hybrid-G2",
+      "rzf_power_max_abs_error": 2.384185791015625e-07,
+      "sum_rate_bps_hz": 1.598175048828125
+    },
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 8285.987894515973,
+      "dl_nmse": 7.776187419891357,
+      "layout": "Hybrid-G4",
+      "rzf_power_max_abs_error": 2.384185791015625e-07,
+      "sum_rate_bps_hz": 1.6669284105300903
+    },
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 6855.260085971793,
+      "dl_nmse": 7.919965744018555,
+      "layout": "FDMA",
+      "rzf_power_max_abs_error": 2.980232238769531e-07,
+      "sum_rate_bps_hz": 1.6378148794174194
+    }
+  ],
+  "pilot_energy_per_ue": 16,
+  "sample_fingerprint": "0b0da435b0286ab8fd038e6227f171cd18c8582e2b0ef7e77ae9ed1c97a90ff5",
+  "sample_role": "codec_train",
+  "status": "CPU_CODEC_LINK_PREFLIGHT_PASS",
+  "training_updates": 0
+}
