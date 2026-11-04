@@ -10,7 +10,7 @@
 - **seed与版本：** CPU样本来自`codec_train`独立角色，数据seed=`20261104`；固定CE来源seed=`20261105`、CE更新5000/5000。代码基线commit=`7705c0cc5a382d4ad242e8cd649ceeb1b03e4cbd`；本轮相关源码修改待选择性提交。codec seed尚未启动。
 - **更新/checkpoint：** Stage B更新`0/4×10,000`；来源累计codec更新0；无codec checkpoint。CE checkpoint `checkpoint_latest.pt`载入并核验step 5000；该来源checkpoint路径见下方证据。
 - **loss/对照：** 新入口暂实现Stage B NMSE warmup（NMSE权重1、速率权重0，AdamW LR=`2e-4`）；验证固定信道上记录DL NMSE与真实下行和速率，覆盖六个gamma。G为1/2/4的Hybrid各记录，FDMA单独记录。没有训练曲线或匹配性能结论。
-- **实际验收数值：** RE映射总预算偏差0；每UE数据能量目标48的最大绝对偏差`1.1444e-5`；RZF每子载波总发射功率目标1的最大偏差`2.9802e-7`；4种布局均有有限且非零codec梯度。CPU无显存数据，GPU峰值显存、吞吐与剩余时间均为“未知”。
+- **实际验收数值：** RE映射总预算偏差0；每UE数据能量目标48的最大绝对偏差`7.6294e-6`；RZF每子载波总发射功率目标1的最大偏差`3.5763e-7`；4种布局均有有限且非零codec梯度。CPU无显存数据，GPU峰值显存、吞吐与剩余时间均为“未知”。
 - **资源状态：** 2026-11-04 22:09 CET `nvidia-smi`显示GPU利用率0%、显存18/32607 MiB；只运行CPU preflight，无GPU训练。
 - **最重要限制：** smoke里的随机初始化codec DL NMSE和sum-rate仅证明张量链路可计算，不表示模型有效，也不能与CE的UL validation证据混为一谈。测试role未读取。
 
@@ -22,7 +22,7 @@ UE编码器只从仿真器提供的DL信道生成符号。BS的重建器输入�
 
 ## CPU验收结果与边界
 
-使用实际Sionna K8 CDL `codec_train`样本和已训练/冻结的CE step-5000权重，在Hybrid G=1/2/4以及FDMA上完成前向、指标与反向梯度检查。每种布局损失和梯度有限、梯度非零，RZF功率归一化误差低于`3e-7`。Hybrid和FDMA每UE数据能量均按Ep=16计算为48，最大实现偏差低于`1.2e-5`。完整数据及随机未训练网络指标见机器可读JSON；不得引用其中的NMSE/sum-rate作为实验效果。
+使用实际Sionna K8 CDL `codec_train`样本和已训练/冻结的CE step-5000权重，在Hybrid G=1/2/4以及FDMA上完成前向、指标与反向梯度检查。每种布局损失和梯度有限、梯度非零，RZF功率归一化最大误差`3.5763e-7`。Hybrid和FDMA每UE数据能量均按Ep=16计算为48，最大实现偏差`7.6294e-6`。完整数据及随机未训练网络指标见机器可读JSON；不得引用其中的NMSE/sum-rate作为实验效果。
 
 噪声口径仍为复噪声`E|n|²=N0=0.25×10^(-gamma/10)`。此前已验收的CPU噪声抽样最大相对偏差0.281%；本次链路只用gamma=10。训练/验证/校准/test沿用分角色寻址和隔离机制；本次只读取`codec_train`样本及CE校准材料，没有读取test。
 
