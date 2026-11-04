@@ -23,9 +23,23 @@ DOWNLINK_SNR_DB = 25.0
 TRAIN_FEEDBACK_GAMMA_DB = (0.0, 25.0)
 EVALUATION_FEEDBACK_GAMMA_DB = (0.0, 5.0, 10.0, 15.0, 20.0, 25.0)
 SUPPORTED_GROUP_COUNTS = (1, 2, 4)
-_PILOT_START = 0
-_KEY_START = TOTAL_PILOT_RE
-_SHARED_START = TOTAL_PILOT_RE + TOTAL_KEY_RE
+# Spread each UE's eight pilot REs uniformly across the 256-subcarrier grid.
+# Reserve 64 distinct physical positions, then divide the remaining positions
+# into the 32 exclusive key REs and 160 group-shared REs.
+PILOT_POSITIONS_BY_USER = tuple(
+    tuple(32 * pilot_index + 4 * user for pilot_index in range(PILOTS_PER_USER))
+    for user in range(K_USERS)
+)
+_PILOT_POSITION_SET = frozenset(position for row in PILOT_POSITIONS_BY_USER for position in row)
+_NONPILOT_POSITIONS = tuple(position for position in range(TOTAL_RE)
+                            if position not in _PILOT_POSITION_SET)
+KEY_POSITIONS_BY_USER = tuple(
+    tuple(_NONPILOT_POSITIONS[user * KEY_DIM_PER_USER:(user + 1) * KEY_DIM_PER_USER])
+    for user in range(K_USERS)
+)
+_KEY_POSITION_SET = frozenset(position for row in KEY_POSITIONS_BY_USER for position in row)
+_SHARED_POSITIONS = tuple(position for position in _NONPILOT_POSITIONS
+                          if position not in _KEY_POSITION_SET)
 
 
 def shared_dimension(group_count):
@@ -38,6 +52,38 @@ def shared_dimension(group_count):
 def _validate_group_count(group_count):
     if type(group_count) is not int or group_count not in SUPPORTED_GROUP_COUNTS:
         raise ValueError(f"group_count must be one of {SUPPORTED_GROUP_COUNTS}")
+
+
+@dataclass(frozen=True)
+class EnergySplit:
+    """Per-UE Ep/Ekey/EAS allocation; candidate values are supplied separately."""
+    pilot: float
+    key: float
+    shared: float
+
+    def __post_init__(self):
+        values = (self.pilot, self.key, self.shared)
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
+            raise TypeError("Ep, Ekey and EAS must be real scalars")
+        if any(not math.isfinite(value) for value in values):
+            raise ValueError("Ep, Ekey and EAS must be finite")
+        if any(value <= 0 for value in values):
+            raise ValueError("Hybrid energy split must retain positive pilot, key and shared energy")
+        if abs(sum(values) - TOTAL_FRAME_ENERGY_PER_USER) > 1e-9:
+            raise ValueError("Ep + Ekey + EAS must equal 64 per UE")
+
+    @property
+    def pilot_energy_per_re(self):
+        return self.pilot / PILOTS_PER_USER
+
+    def to_dict(self):
+        return {
+            "Ep_per_ue_frame": self.pilot,
+            "Ekey_per_ue_frame": self.key,
+            "EAS_per_ue_frame": self.shared,
+            "pilot_energy_per_re": self.pilot_energy_per_re,
+            "total_per_ue_frame_energy": self.pilot + self.key + self.shared,
+        }
 
 
 def enumerate_partitions(group_count):
@@ -87,12 +133,12 @@ class HybridLayout:
             raise ValueError("Hybrid RE budget does not equal 256")
         occupancy = [sum(re in self.resource_positions[user] for user in range(K_USERS))
                      for re in range(TOTAL_RE)]
-        if tuple(occupancy[:TOTAL_PILOT_RE]) != (1,) * TOTAL_PILOT_RE:
+        if any(occupancy[position] != 1 for position in _PILOT_POSITION_SET):
             raise ValueError("Each pilot RE must be assigned to exactly one UE")
-        if tuple(occupancy[_KEY_START:_SHARED_START]) != (1,) * TOTAL_KEY_RE:
+        if any(occupancy[position] != 1 for position in _KEY_POSITION_SET):
             raise ValueError("Each key RE must be assigned to exactly one UE")
         expected_shared_occupancy = K_USERS // self.group_count
-        if tuple(occupancy[_SHARED_START:]) != (expected_shared_occupancy,) * (TOTAL_RE - _SHARED_START):
+        if any(occupancy[position] != expected_shared_occupancy for position in _SHARED_POSITIONS):
             raise ValueError("Shared RE occupancy must equal the group size")
 
     @property
@@ -117,21 +163,16 @@ class HybridLayout:
 
     @property
     def pilot_positions(self):
-        return tuple(tuple(range(_PILOT_START + user * PILOTS_PER_USER,
-                                 _PILOT_START + (user + 1) * PILOTS_PER_USER))
-                     for user in range(K_USERS))
+        return PILOT_POSITIONS_BY_USER
 
     @property
     def key_positions(self):
-        return tuple(tuple(range(_KEY_START + user * KEY_DIM_PER_USER,
-                                 _KEY_START + (user + 1) * KEY_DIM_PER_USER))
-                     for user in range(K_USERS))
+        return KEY_POSITIONS_BY_USER
 
     @property
     def shared_positions_by_group(self):
         dimension = self.shared_dimension
-        return tuple(tuple(range(_SHARED_START + group_index * dimension,
-                                 _SHARED_START + (group_index + 1) * dimension))
+        return tuple(tuple(_SHARED_POSITIONS[group_index * dimension:(group_index + 1) * dimension])
                      for group_index in range(self.group_count))
 
     @property
@@ -166,6 +207,7 @@ class HybridLayout:
             "key_positions_by_user": [list(row) for row in self.key_positions],
             "shared_positions_by_group": [list(row) for row in self.shared_positions_by_group],
             "user_resource_positions": [list(row) for row in self.resource_positions],
+            "pilot_mapping": "pilot_q=32*pilot_index+4*user; eight tones per UE spread across the full band",
             "occupancy_rule": "pilot/key RE exclusive; shared RE reused within one group",
             "total_occupied_re_check": self.total_occupied_re,
         }
@@ -181,14 +223,12 @@ class FDMALayout:
 
     @property
     def pilot_positions(self):
-        return tuple(tuple(range(user * PILOTS_PER_USER, (user + 1) * PILOTS_PER_USER))
-                     for user in range(K_USERS))
+        return PILOT_POSITIONS_BY_USER
 
     @property
     def data_positions(self):
         width = self.data_coordinates_per_user
-        start = TOTAL_PILOT_RE
-        return tuple(tuple(range(start + user * width, start + (user + 1) * width))
+        return tuple(tuple(_NONPILOT_POSITIONS[user * width:(user + 1) * width])
                      for user in range(K_USERS))
 
     @property
@@ -209,6 +249,7 @@ class FDMALayout:
             "data_coordinates_per_user": self.data_coordinates_per_user,
             "pilot_positions_by_user": [list(row) for row in self.pilot_positions],
             "data_positions_by_user": [list(row) for row in self.data_positions],
+            "pilot_mapping": "pilot_q=32*pilot_index+4*user; eight tones per UE spread across the full band",
             "total_occupied_re_check": self.total_occupied_re,
         }
 

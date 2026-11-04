@@ -1,10 +1,10 @@
 """Configuration surface for the TWC 1.0 K8 protocol baseline.
 
-Energy candidates, model recipe, channel-data seeds and train/validation/test
-namespaces are intentionally left to subsequent plan stages.
+The finite energy grid is a screening candidate set, not a chosen policy or an
+optimal allocation. Model recipe and train/validation/test namespaces remain
+for subsequent plan stages.
 """
 from dataclasses import dataclass
-import math
 import importlib.util
 from pathlib import Path
 import sys
@@ -30,6 +30,7 @@ else:
 
 (
     DOWNLINK_SNR_DB,
+    EnergySplit,
     EVALUATION_FEEDBACK_GAMMA_DB,
     K_USERS,
     KEY_DIM_PER_USER,
@@ -48,32 +49,13 @@ else:
     feedback_noise_variance,
     protocol_metadata,
 ) = tuple(getattr(_protocol, name) for name in (
-    "DOWNLINK_SNR_DB", "EVALUATION_FEEDBACK_GAMMA_DB", "K_USERS",
+    "DOWNLINK_SNR_DB", "EnergySplit", "EVALUATION_FEEDBACK_GAMMA_DB", "K_USERS",
     "KEY_DIM_PER_USER", "N_ANTENNAS", "N_SUBCARRIERS", "PILOTS_PER_USER",
     "SUPPORTED_GROUP_COUNTS", "TOTAL_FRAME_ENERGY_PER_USER", "TOTAL_PILOT_RE",
     "TOTAL_RE", "TRAIN_FEEDBACK_GAMMA_DB", "FDMALayout", "HybridLayout",
     "default_hybrid_layout", "enumerate_partitions", "feedback_noise_variance",
     "protocol_metadata",
 ))
-
-
-@dataclass(frozen=True)
-class EnergySplit:
-    """Per-UE Ep/Ekey/EAS point; values must be supplied by a later plan step."""
-    pilot: float
-    key: float
-    shared: float
-
-    def __post_init__(self):
-        values = (self.pilot, self.key, self.shared)
-        if any(isinstance(value, bool) or not isinstance(value, (int, float)) for value in values):
-            raise TypeError("Ep, Ekey and EAS must be real scalars")
-        if any(not math.isfinite(value) for value in values):
-            raise ValueError("Ep, Ekey and EAS must be finite")
-        if any(value <= 0 for value in values):
-            raise ValueError("Hybrid energy split must retain positive pilot, key and shared energy")
-        if abs(sum(values) - TOTAL_FRAME_ENERGY_PER_USER) > 1e-9:
-            raise ValueError("Ep + Ekey + EAS must equal 64 per UE")
 
 
 @dataclass(frozen=True)
@@ -100,6 +82,9 @@ class TWCv1K8Config:
         result = protocol_metadata()
         result["active_layout"] = self.layout.to_dict()
         result["fdma_control_layout"] = FDMALayout().to_dict()
+        result["energy_screen_grid"] = [split.to_dict() for split in candidate_energy_splits()]
+        result["pilot_energy_policy"] = "select Ep from {8,16,24} by feedback-gamma validation lookup; lookup not selected yet"
+        result["key_shared_policy"] = "screen K:EAS ratios 1:3 and 1:1 on validation data"
         return result
 
 
@@ -117,6 +102,8 @@ def _partitions_of_pairs(users):
 
 def all_groupings(group_count):
     """Return the complete unlabeled grouping set required for CPU scoring."""
+    if type(group_count) is not int:
+        raise ValueError(f"group_count must be one of {SUPPORTED_GROUP_COUNTS}")
     if group_count == 1:
         return enumerate_partitions(1)
     if group_count == 2:
@@ -126,12 +113,32 @@ def all_groupings(group_count):
     raise ValueError(f"group_count must be one of {SUPPORTED_GROUP_COUNTS}")
 
 
+PILOT_ENERGY_CANDIDATES = (8.0, 16.0, 24.0)
+KEY_SHARED_RATIO_CANDIDATES = ((1, 3), (1, 1))
+
+
+def candidate_energy_splits():
+    """Small validation-screen grid; it makes no claim of an optimal choice."""
+    splits = []
+    for pilot_energy in PILOT_ENERGY_CANDIDATES:
+        data_energy = TOTAL_FRAME_ENERGY_PER_USER - pilot_energy
+        for key_weight, shared_weight in KEY_SHARED_RATIO_CANDIDATES:
+            denominator = key_weight + shared_weight
+            splits.append(EnergySplit(
+                pilot_energy,
+                data_energy * key_weight / denominator,
+                data_energy * shared_weight / denominator,
+            ))
+    return tuple(splits)
+
+
 __all__ = [
     "DOWNLINK_SNR_DB", "EVALUATION_FEEDBACK_GAMMA_DB", "EnergySplit",
     "FDMALayout", "HybridLayout", "K_USERS", "KEY_DIM_PER_USER",
     "N_ANTENNAS", "N_SUBCARRIERS", "PILOTS_PER_USER", "SUPPORTED_GROUP_COUNTS",
     "TOTAL_FRAME_ENERGY_PER_USER", "TOTAL_PILOT_RE", "TOTAL_RE",
     "TRAIN_FEEDBACK_GAMMA_DB", "TWCv1K8Config", "all_groupings",
+    "PILOT_ENERGY_CANDIDATES", "KEY_SHARED_RATIO_CANDIDATES", "candidate_energy_splits",
     "default_hybrid_layout", "enumerate_partitions", "feedback_noise_variance",
     "protocol_metadata",
 ]
