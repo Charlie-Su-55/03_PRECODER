@@ -1,21 +1,21 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-04 15:40 CET（本机时间）
+最后核查：2026-11-04 17:13 CET
 依据：本地仓库源码、Git状态、配置/输出目录、进程和GPU快照，以及 Overleaf 快照与编译产物。本文不把旧协议结果当作新 K8 证据。
 
 ## 一屏摘要
 
-- **当前阶段：** 按V2完成K8数据隔离/重放入口、LS初值screen和LS→U-Net CPU链路检查；首轮CE输入契约已固定。Joint接收、完整训练器、预编码和正式数据隔离审计仍未完成。
-- **状态：** 数据/LS/U-Net接口 **完成并通过 CPU 检查**；K8训练 **未开始**，本轮优化更新0。
-- **GPU快照：** 本轮未查询或使用GPU；最近历史快照仍为11:51 CET（0%、18 MiB / 32607 MiB），不可代表当前状态。未来每次GPU工作前重新检查；占用超过20%先请示。
-- **代码版本：** 本轮K8数据/LS/CE CPU接口已推送至`e5a27e5`。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **当前阶段：** K8 Stage A CE训练代码已实现；CPU smoke覆盖更新、验证、checkpoint恢复和独立校准。CUDA训练尚未开始，sandbox中的训练进程看不到`/dev/nvidia0`；完整Joint/RZF与codec训练仍未完成。
+- **状态：** 数据/LS/U-Net接口和CE训练器 **代码已实现**；CPU训练/恢复/校准小样本验收 **完成**；正式5k CE训练 **未开始**，正式优化更新0。
+- **GPU快照：** 2026-11-04 21:12 CET读取：RTX 5090利用率0%、显存1124/32607 MiB；`nvidia-smi`列出外部计算进程约1098 MiB，归属未知。容器内PyTorch为`2.11.0+cu130`、CUDA 13.0，但`torch.cuda.device_count()`为0且`/dev/nvidia0`不存在；因此sandbox内不能启动CUDA训练。
+- **代码版本：** 仓库HEAD为`518467d`（包含K8工作最新已推送版本`e5a27e5`及其后续状态回执）。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** K8工作已提交推送；原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及本地V2计划文件仍留在工作区，未纳入本轮。
-- **代码/验收/证据区分：** K8分角色CDL回放、pilot-LS＋插值、Ep条件化pilot-only U-Net及G=1/2/4 Swin接口**代码已实现**；小批CPU回放和接口验收**通过**；CE训练/校准、Joint接收器/RZF及独立性能证据**未开始/没有**。
+- **代码/验收/证据区分：** K8分角色CDL回放、pilot-LS＋插值、Ep条件化pilot-only U-Net、G=1/2/4 Swin接口、CE训练/独立校准器**代码已实现**；CPU小批更新、18条件验证、checkpoint恢复及18条件校准流程**验收通过**；正式5k CE训练、Joint接收器/RZF及独立性能证据**未开始/没有**。
 - **训练步数/checkpoint：** K8本轮更新数 0 / 暂定计划预算200k codec更新、约5k CE更新（尚未进入训练配置验收）；本轮loss/LR未运行；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
 - **训练曲线和性能：** K8固定验证集DL NMSE、真实下行和速率、loss阶段/权重/学习率均**未知（尚未训练）**；六SNR×两个seed正式测试、配对差值与置信区间均**未知**。
-- **资源与隔离验收：** CPU smoke核对G=1/2/4映射总预算偏差0 RE；所用候选每UE数据能量最大误差`7.63e-6`。gamma=10 dB时N0=0.025；经验噪声方差、其他gamma链路和train/validation/test隔离仍未知。正式点是反馈gamma 0/5/10/15/20/25 dB，DL SNR固定25 dB。
+- **资源与隔离验收：** CPU smoke核对G=1/2/4映射总预算偏差0 RE；所用候选每UE数据能量最大误差`7.63e-6`。本次重新验收五个数据role各1个独立地址/样本，跨role指纹碰撞0；固定validation重放、训练step寻址重放及Python/NumPy/Torch CPU RNG状态恢复通过。CE链路2帧×6 gamma×3 Ep共18例的LS/U-Net输出维度正确且有限，`U-Net`权重未训练。gamma=10 dB时N0=0.025；经验噪声功率统计、完整训练/验证/测试规模审计仍未知。正式点是反馈gamma 0/5/10/15/20/25 dB，DL SNR固定25 dB。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** 真实K8 CDL的LS→未训练U-Net前向已在CPU跑通，但CE训练/校准、反馈软恢复接入Swin、Joint CSI重建/RZF和完整数据集隔离审计仍缺，因此尚无K8 learned-link性能证据。
+- **主要阻塞：** sandbox未挂载NVIDIA设备，PyTorch CUDA设备数为0，正式GPU训练无法在此执行。CE trainer CPU验收通过；GPU训练须在可访问GPU的host/tmux会话启动。后续codec阶段仍缺反馈软恢复接入Swin、Joint CSI重建/RZF。
 
 ## 阶段状态
 
@@ -33,7 +33,7 @@
 | LS初值方法screen | 完成 | 新增归一化Gram ridge Fourier-delay LS(rank4/rank8)，保留pilot-LS线性插值 | 32帧、6 gamma×3 Ep固定validation screen；线性插值18/18条件胜出 | 有限validation设计证据 | 小样本只用于初值设计，不能当正式UL性能结果；首轮CE暂定固定线性插值 |
 | 完整K8协议/候选冻结 | 运行中 | 几何、六点能量候选已配置 | CPU链路烟雾检查通过；gamma查表策略未选 | 未开始 | 数据namespace、pilot gamma查表和UL状态选优仍待验证集核定 |
 | CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 单次CPU smoke通过；数据隔离未知 | 不适用 | 当前为合成CPU输入，真实可回放数据接口尚未接入 |
-| Stage A：LS与LS＋U-Net UL CE预训练及校准 | 运行中 | LS方法screen暂定冻结为pilot-LS＋线性插值；U-Net输入含pilot mask、LS初值、N0/gamma、Ep；监督目标应为H_UL | 真实CDL端到端前向CPU验收通过；trainer/校准未实现 | 未开始 | 训练约5k更新未运行；当前screen不等于U-Net收益证据 |
+| Stage A：LS与LS＋U-Net UL CE预训练及校准 | 未开始 | LS方法screen暂定冻结为pilot-LS＋线性插值；新增`train_twc_v1_k8_ce.py`及冻结配置；pilot-only观测训练，H_UL只作监督目标 | CPU限步更新/18条件验证、checkpoint续训、18条件独立校准通过；CUDA不可见，CUDA smoke未通过启动检查 | 未开始 | 正式5k更新未运行；screen和CPU smoke不等于CE收益证据 |
 | 完整端到端CSI反馈到下行预编码 | 未开始 | K8 Swin/CSI重建/RZF链路未实现 | 未开始 | 未开始 | 当前smoke仅验证UL导频和key/shared物理反馈接收 |
 | Stage B：FDMA/Hybrid NMSE warmup | 未开始 | 未知 | 未开始 | 未开始 | 计划每模型/seed 10k；目标K8 checkpoint、日志与曲线未找到 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 未知 | 未开始 | 未开始 | 计划每分支20k；权重日程、loss曲线与匹配比较未开始 |
@@ -43,12 +43,12 @@
 
 ## 运行、更新数与checkpoint
 
-- 当前运行状态：训练**跳过**（本次没有训练进程；不是训练失败）；K8 CDL/CE接口CPU preflight**完成**。本轮未读取GPU快照。
-- K8新实验本轮更新数：**0**。训练尚未开始；计划预算暂按CE约5k、codec 4份warmup×10k加8个终段×20k（共200k codec更新）记录，尚未配置化验收。
+- 当前运行状态：正式CE训练**未开始**；CUDA smoke**启动检查失败（sandbox无GPU设备）**，不是模型计算失败；CPU小批训练/恢复/校准**完成**。无后台GPU训练进程。
+- K8正式实验更新数：**0**。CPU验收checkpoint位于`/tmp/twc03_ce_cpu_smoke_v2/`，3个smoke更新不计入实验预算，也不是正式权重；CE计划5000更新，codec预算200k。
 - 来源checkpoint累计步数：**未知/未适用**。新K8训练未声明或核验任何初始化来源。
 - 最后保存并核验的K8权重步数：**无**。现有旧K4权重/结果不属于K8协议，且本次未加载核验。
 - 训练日志步数与权重步数：目前没有K8训练日志；无可报告日志步数。
-- 首个500–1000步耗时、剩余时间估算、训练峰值显存：**未知**。待GPU验收阶段按真实吞吐计算；之后不要求每500步停下确认。
+- 首个500–1000步耗时、正式训练ETA和峰值显存：**未知**。V2预估CE训练/校准约1.5–4 GPU小时；当前sandbox没有GPU设备，未取得新路径吞吐。进入可访问GPU host后以首500–1000步实测更新ETA。
 
 ## 配置与协议验收
 
@@ -124,4 +124,6 @@
 - **2026-11-04 14:41 CET：**只读审阅08 U-Net/Swin源码与CPU审计材料（08当前commit `bfa0427`、工作区干净）；据接口在03新增K8 residual U-Net、G条件化Swin编解码器及CPU preflight。py_compile通过，CPU smoke通过：pilot=64 RE、data-only Y置NaN不影响U-Net输出、G=1/2/4码字和CSI形状正确。08材料记载102项CPU验收但0次优化更新；本轮没有使用GPU、训练、改08或产生性能证据。commit `b1fadcf`已推送到GitHub `main`。
 - **2026-11-04 15:36 CET：**按V2完成CPU工作批：新增K8 Sionna2.0.1分角色可重放数据入口，五角色真实CDL CPU生成/重放、seed隔离及全局RNG恢复检查通过；新增rank4/rank8 Fourier-delay LS候选并用32帧validation×6 gamma×3 Ep比较，线性插值18/18条件最低（平均per-link NMSE ratio依次0.05975/0.14266/0.18292）。确定首轮CE初值暂用pilot-LS＋线性插值；U-Net加显式Ep输入；真实CDL LS→未训练U-Net在18条件CPU前向通过。发现并消除新preflight对`utils/__init__.py` GPU setup副作用的触发。训练更新0，未使用GPU，未做正式性能结论。CSV/JSON位于`docs/evidence/`。
 - **2026-11-04 15:40 CET：**选择性提交并推送本轮11个K8数据/LS/CE源码、preflight、状态页及screen CSV/JSON，commit `e5a27e5`；远端`main`从`12a605a`前进。`git diff --cached --check`通过；未包含`.gitignore`、旧源码删除、V2计划文件、Overleaf或历史数据。
+- **2026-11-04 17:13 CET：**按用户要求重跑CPU小任务，设置`CUDA_VISIBLE_DEVICES=`，无GPU训练/推理。`preflight_twc_v1_k8_data.py`通过：5个角色独立地址、交叉指纹碰撞0、validation固定重放与训练step重放一致、全局CPU RNG状态未改变；`preflight_twc_v1_k8_ce_chain.py`通过：2帧验证样本、6个gamma×3个Ep共18例，LS和未训练U-Net输出均为[B,8,32,256]且有限，优化更新0。第一次进程产生不可写Matplotlib默认缓存提示，之后CE检查将缓存重定向至`/tmp/mpl-twc03`且通过；该提示不影响检查。另核对现有评估入口：其规范和checkpoint仍属旧grouped-hybrid-power协议，K8正式评估/曲线产出代码尚未具备；需后续实现。未改源码和论文，未提交或推送；工作区原有修改保持不动。最近可见GPU快照为15:46 CET的76%，占用进程归属仍未知。
+- **2026-11-04 21:20 CET：**新增K8 CE训练器`train_twc_v1_k8_ce.py`和冻结配置`configs/twc_v1_k8_ce_train_config.py`。按step循环覆盖6 gamma×3 Ep；每次固定验证复用相同信道，记录LS/U-Net NMSE、loss、梯度、学习率、耗时及峰值显存；支持原子best/latest checkpoint及optimizer/RNG续训；独立`ce_calibration` role输出18条件误差方差/NMSE。CPU smoke完成3次临时更新、18条件验证、续训和18条件独立校准；临时checkpoint不计正式更新。CUDA smoke启动检查失败：sandbox内`torch.cuda.is_available()==False`、device_count=0且`/dev/nvidia0`不存在；主机`nvidia-smi` 21:12 CET快照为GPU利用率0%、显存1124 MiB，存在约1098 MiB的未知计算进程。正式CE未启动。代码补齐与CPU验收估计约2–4小时（本阶段已完成）；正式CE约5k更新及校准按V2预留1.5–4 GPU小时，ETA和显存待在可访问GPU host测得首批500–1000更新后更新。代码待选择性提交/推送。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
