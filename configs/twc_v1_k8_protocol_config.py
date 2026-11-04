@@ -37,6 +37,7 @@ else:
     N_ANTENNAS,
     N_SUBCARRIERS,
     PILOTS_PER_USER,
+    PILOT_POSITIONS_BY_USER,
     SUPPORTED_GROUP_COUNTS,
     TOTAL_FRAME_ENERGY_PER_USER,
     TOTAL_PILOT_RE,
@@ -48,13 +49,15 @@ else:
     enumerate_partitions,
     feedback_noise_variance,
     protocol_metadata,
+    shared_dimension,
 ) = tuple(getattr(_protocol, name) for name in (
     "DOWNLINK_SNR_DB", "EnergySplit", "EVALUATION_FEEDBACK_GAMMA_DB", "K_USERS",
     "KEY_DIM_PER_USER", "N_ANTENNAS", "N_SUBCARRIERS", "PILOTS_PER_USER",
+    "PILOT_POSITIONS_BY_USER",
     "SUPPORTED_GROUP_COUNTS", "TOTAL_FRAME_ENERGY_PER_USER", "TOTAL_PILOT_RE",
     "TOTAL_RE", "TRAIN_FEEDBACK_GAMMA_DB", "FDMALayout", "HybridLayout",
     "default_hybrid_layout", "enumerate_partitions", "feedback_noise_variance",
-    "protocol_metadata",
+    "protocol_metadata", "shared_dimension",
 ))
 
 
@@ -135,10 +138,11 @@ def candidate_energy_splits():
 __all__ = [
     "DOWNLINK_SNR_DB", "EVALUATION_FEEDBACK_GAMMA_DB", "EnergySplit",
     "FDMALayout", "HybridLayout", "K_USERS", "KEY_DIM_PER_USER",
-    "N_ANTENNAS", "N_SUBCARRIERS", "PILOTS_PER_USER", "SUPPORTED_GROUP_COUNTS",
+    "N_ANTENNAS", "N_SUBCARRIERS", "PILOTS_PER_USER", "PILOT_POSITIONS_BY_USER",
+    "SUPPORTED_GROUP_COUNTS",
     "TOTAL_FRAME_ENERGY_PER_USER", "TOTAL_PILOT_RE", "TOTAL_RE",
     "TRAIN_FEEDBACK_GAMMA_DB", "TWCv1K8Config", "all_groupings",
     "PILOT_ENERGY_CANDIDATES", "KEY_SHARED_RATIO_CANDIDATES", "candidate_energy_splits",
     "default_hybrid_layout", "enumerate_partitions", "feedback_noise_variance",
-    "protocol_metadata",
+    "protocol_metadata", "shared_dimension",
 ]

@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import json
+import sys
 
 import torch
 
 from models.twc_v1_k8_neural import K8PilotResidualUNet, K8SwinCSIModel
-from utils.twc_v1_k8_protocol import (
+from configs.twc_v1_k8_protocol_config import (
     N_ANTENNAS, N_SUBCARRIERS, PILOT_POSITIONS_BY_USER, shared_dimension,
 )
+
+if "utils" in sys.modules:
+    raise AssertionError("Neural preflight must not execute the side-effectful utils package initializer")
 
 
 def main():
@@ -29,10 +33,11 @@ def main():
 
     unet = K8PilotResidualUNet().eval()
     with torch.no_grad():
-        H_hat = unet(Y, pilots, H_initial, noise_variance=0.025)
+        H_hat = unet(Y, pilots, H_initial, pilot_energy_per_ue=16.0, noise_variance=0.025)
         Y_changed = Y.clone()
         Y_changed[:, :, ~mask.any(0)] = complex(float("nan"), float("nan"))
-        H_hat_data_nan = unet(Y_changed, pilots, H_initial, noise_variance=0.025)
+        H_hat_data_nan = unet(Y_changed, pilots, H_initial,
+                              pilot_energy_per_ue=16.0, noise_variance=0.025)
     if not torch.equal(H_hat, H_hat_data_nan):
         raise AssertionError("Data-only Y positions affected the pilot U-Net output")
 

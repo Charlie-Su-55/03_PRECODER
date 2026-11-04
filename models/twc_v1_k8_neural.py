@@ -5,16 +5,42 @@ truth at inference, or implement the K8 joint receiver/precoder.
 """
 from __future__ import annotations
 
+import importlib.util
+from pathlib import Path
+import sys
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 from models.baseline_common import angular_delay_transform, inverse_angular_delay_transform
 from models.swin_precoder import PatchEmbedding, SwinTransformerBlock
-from utils.twc_v1_k8_protocol import (
-    K_USERS, N_ANTENNAS, N_SUBCARRIERS, PILOT_POSITIONS_BY_USER,
-    SUPPORTED_GROUP_COUNTS, shared_dimension,
-)
+
+
+_PROTOCOL_NAME = "_twc_v1_k8_protocol"
+_PROTOCOL_PATH = Path(__file__).resolve().parents[1] / "utils" / "twc_v1_k8_protocol.py"
+if _PROTOCOL_NAME in sys.modules:
+    _protocol = sys.modules[_PROTOCOL_NAME]
+    if Path(_protocol.__file__).resolve() != _PROTOCOL_PATH:
+        raise RuntimeError("TWC K8 protocol module identity collision")
+else:
+    _spec = importlib.util.spec_from_file_location(_PROTOCOL_NAME, _PROTOCOL_PATH)
+    if _spec is None or _spec.loader is None:
+        raise RuntimeError("Cannot load TWC K8 protocol module")
+    _protocol = importlib.util.module_from_spec(_spec)
+    sys.modules[_PROTOCOL_NAME] = _protocol
+    try:
+        _spec.loader.exec_module(_protocol)
+    except BaseException:
+        del sys.modules[_PROTOCOL_NAME]
+        raise
+
+K_USERS = _protocol.K_USERS
+N_ANTENNAS = _protocol.N_ANTENNAS
+N_SUBCARRIERS = _protocol.N_SUBCARRIERS
+PILOT_POSITIONS_BY_USER = _protocol.PILOT_POSITIONS_BY_USER
+SUPPORTED_GROUP_COUNTS = _protocol.SUPPORTED_GROUP_COUNTS
+shared_dimension = _protocol.shared_dimension
 
 
 def _complex(value, name, shape):
@@ -43,7 +69,7 @@ class _UNetBlock(nn.Module):
 class K8PilotResidualUNet(nn.Module):
     """One UE-shared BS frequency U-Net; only the 64 pilot RE of Y are read."""
 
-    feature_channels = 4 * N_ANTENNAS + 5
+    feature_channels = 4 * N_ANTENNAS + 6
 
     def __init__(self):
         super().__init__()
@@ -77,7 +103,7 @@ class K8PilotResidualUNet(nn.Module):
             raise ValueError("K8 U-Net noise variance must map to feedback gamma in [0,25] dB")
         return value, ((gamma - 12.5) / 12.5).clamp(-1.0, 1.0)
 
-    def forward(self, Y, pilots, H_initial, *, noise_variance):
+    def forward(self, Y, pilots, H_initial, *, pilot_energy_per_ue, noise_variance):
         batch = Y.shape[0] if torch.is_tensor(Y) and Y.ndim else 0
         if (not torch.is_tensor(Y) or Y.dtype != torch.complex64
                 or tuple(Y.shape) != (batch, N_ANTENNAS, N_SUBCARRIERS)):
@@ -95,6 +121,15 @@ class K8PilotResidualUNet(nn.Module):
                                            atol=1e-5, rtol=1e-5)).all())):
             raise ValueError("Known pilots must be unit-modulus on each UE's own pilot REs and zero elsewhere")
         _, snr = self._noise(noise_variance, batch, Y.device)
+        pilot_energy = torch.as_tensor(pilot_energy_per_ue, dtype=torch.float32, device=Y.device)
+        if pilot_energy.ndim == 0:
+            pilot_energy = pilot_energy.expand(batch)
+        if (pilot_energy.shape != (batch,) or not bool(torch.isfinite(pilot_energy).all())
+                or not bool(((pilot_energy > 0) & (pilot_energy < 64)).all())):
+            raise ValueError("pilot_energy_per_ue must be positive finite scalar or [B] and below 64")
+        # Ep candidates 8/16/24 map to -1/0/+1; energy is explicit context,
+        # not inferred from a noisy pilot observation.
+        ep_feature = ((pilot_energy - 16.0) / 8.0).clamp(-1.0, 1.0)
         common = torch.cat((pilot_Y.real, pilot_Y.imag), dim=1)[:, None].expand(-1, K_USERS, -1, -1)
         initial = torch.cat((H_initial.real, H_initial.imag), dim=2)
         features = torch.cat((
@@ -103,6 +138,7 @@ class K8PilotResidualUNet(nn.Module):
             own[None, :, None].expand(batch, -1, -1, -1),
             union[None, None, None].expand(batch, K_USERS, -1, -1),
             snr[:, None, None, None].expand(-1, K_USERS, 1, N_SUBCARRIERS),
+            ep_feature[:, None, None, None].expand(-1, K_USERS, 1, N_SUBCARRIERS),
         ), dim=2).reshape(batch * K_USERS, self.feature_channels, N_SUBCARRIERS)
         x0 = self.encoder0(features)
         x1 = self.encoder1(self.down1(x0))

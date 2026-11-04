@@ -118,6 +118,47 @@ def estimate_ul_ls_interpolated(pilot_observation, pilot_energy_per_ue):
     return estimate
 
 
+def estimate_ul_ls_fourier(pilot_observation, pilot_energy_per_ue, *, rank=4, ridge=1e-3):
+    """Regularized pilot-only delay-basis LS; no channel labels are accepted.
+
+    The dictionary is ``exp(-j 2 pi q l / Nsc)`` for l=0..rank-1. Ridge is
+    applied to the pilot-normalized Gram matrix ``AᴴA/P``. The eight evenly
+    spaced pilot tones can alias delays separated by eight delay bins, so this
+    estimator is a candidate to compare, not an assumed improvement.
+    """
+    if isinstance(pilot_energy_per_ue, bool) or not isinstance(pilot_energy_per_ue, (int, float)):
+        raise TypeError("pilot_energy_per_ue must be a real scalar")
+    if not math.isfinite(pilot_energy_per_ue) or not 0 < pilot_energy_per_ue < protocol.TOTAL_FRAME_ENERGY_PER_USER:
+        raise ValueError("pilot energy must be positive and leave positive data energy")
+    if type(rank) is not int or not 1 <= rank <= PILOTS_PER_USER:
+        raise ValueError(f"rank must be an integer in [1,{PILOTS_PER_USER}]")
+    if isinstance(ridge, bool) or not isinstance(ridge, (int, float)) or not math.isfinite(ridge) or ridge < 0:
+        raise ValueError("ridge must be finite and nonnegative")
+    if pilot_observation.ndim != 3 or pilot_observation.shape[0] < 1:
+        raise ValueError("Pilot observation must have shape [B,32,256]")
+    batch = pilot_observation.shape[0]
+    _validate_complex(pilot_observation, "pilot observation", (batch, N_ANTENNAS, N_SUBCARRIERS))
+    estimate = torch.empty((batch, K_USERS, N_ANTENNAS, N_SUBCARRIERS),
+                           device=pilot_observation.device, dtype=torch.complex64)
+    q_all = torch.arange(N_SUBCARRIERS, device=pilot_observation.device, dtype=torch.float32)
+    taps = torch.arange(rank, device=pilot_observation.device, dtype=torch.float32)
+    basis_all = torch.exp((-2j * math.pi / N_SUBCARRIERS) * q_all[:, None] * taps[None, :])
+    identity = torch.eye(rank, dtype=torch.complex64, device=pilot_observation.device)
+    amplitude = math.sqrt(float(pilot_energy_per_ue) / PILOTS_PER_USER)
+    for user, positions in enumerate(protocol.PILOT_POSITIONS_BY_USER):
+        q = torch.tensor(positions, device=pilot_observation.device, dtype=torch.long)
+        basis_pilot = basis_all.index_select(0, q)
+        gram = basis_pilot.conj().transpose(0, 1) @ basis_pilot / PILOTS_PER_USER
+        rhs = basis_pilot.conj().transpose(0, 1)
+        observed = pilot_observation.index_select(-1, q) / amplitude
+        coefficients = torch.linalg.solve(gram + float(ridge) * identity,
+                                            rhs @ observed.transpose(1, 2) / PILOTS_PER_USER)
+        estimate[:, user] = (basis_all @ coefficients).transpose(1, 2)
+    if not bool(torch.isfinite(estimate).all()):
+        raise FloatingPointError("Fourier pilot-LS channel estimate contains nonfinite values")
+    return estimate
+
+
 def _normalize_branch(raw, target_energy, name):
     if raw.ndim != 3 or raw.shape[0] < 1:
         raise ValueError(f"{name} must have shape [B,8,D]")

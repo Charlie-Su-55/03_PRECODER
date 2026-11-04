@@ -1,0 +1,116 @@
+{
+  "Ep_candidates": [
+    8,
+    16,
+    24
+  ],
+  "H_ul_shape": [
+    32,
+    8,
+    32,
+    256
+  ],
+  "channels": "d9b875edcf1c7d08e2e1ee4ee4c57dcbd72f606dd28172628e67deb1d62baed5",
+  "csv_path": "/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_LS_validation_screen_20261104.csv",
+  "data_protocol": {
+    "address": {
+      "fixed_index": "0-based batch index within calibration/validation/test role",
+      "formula": "(role_tag << 29) | ((offset + index) mod 2**29)",
+      "index_bits": 29,
+      "role_offsets": "SHA256(canonical protocol identity + role) mod 2**29",
+      "training_index": "1-based optimizer global_step"
+    },
+    "base_seed": 20261104,
+    "batch_sizes": {
+      "ce_calibration": 1,
+      "ce_train": 1,
+      "codec_train": 1,
+      "test": 1,
+      "validation": 32
+    },
+    "data_id": "2586b638d1a41020e993f2c5256a04bb454e8a76b5285f384a8bad531e4b9dda",
+    "execution": {
+      "device": "cpu",
+      "sionna_precision": "single"
+    },
+    "physical": {
+      "H_dl_and_H_ul": "independent snapshots from same CDL profile",
+      "antenna_pattern": "38.901",
+      "bs_array": [
+        4,
+        8
+      ],
+      "carrier_freq": 3500000000.0,
+      "cdl_model": "C",
+      "cir_normalize": true,
+      "delay_spread": 3e-07,
+      "direction": "downlink",
+      "k_users": 8,
+      "normalization_epsilon": 1e-12,
+      "nsc": 256,
+      "nt": 32,
+      "num_time_steps": 1,
+      "per_user_mean_power_normalize": true,
+      "single_polarized_vertical": true,
+      "speed": 1.0,
+      "subcarrier_spacing": 30000.0,
+      "ue_array": [
+        1,
+        1
+      ]
+    },
+    "protocol_version": "twc-v1-k8-replayable-cdl-v1",
+    "rng_isolation": "sionna-rng-isolation-v1",
+    "role_offsets": {
+      "ce_calibration": 478604082,
+      "ce_train": 163921914,
+      "codec_train": 516345332,
+      "constructor": 482033392,
+      "test": 122907179,
+      "validation": 138863017
+    },
+    "roles": {
+      "ce_calibration": 3,
+      "ce_train": 1,
+      "codec_train": 2,
+      "constructor": 0,
+      "test": 5,
+      "validation": 4
+    },
+    "seed_namespace": "twc_v1_k8_data_v1",
+    "sionna_version": "2.0.1"
+  },
+  "device": "cpu",
+  "gamma_points": [
+    0.0,
+    5.0,
+    10.0,
+    15.0,
+    20.0,
+    25.0
+  ],
+  "interpretation": "Small fixed validation design screen; not formal CE validation, not test, not a performance claim",
+  "methods": [
+    {
+      "conditions": 18,
+      "delay_rank": null,
+      "equal_weight_mean_NMSE_ratio_over_18_conditions": 0.05975437619619899,
+      "method": "linear_interpolation"
+    },
+    {
+      "conditions": 18,
+      "delay_rank": 4,
+      "equal_weight_mean_NMSE_ratio_over_18_conditions": 0.14266430255439547,
+      "method": "fourier_delay_ls"
+    },
+    {
+      "conditions": 18,
+      "delay_rank": 8,
+      "equal_weight_mean_NMSE_ratio_over_18_conditions": 0.18291545576519436,
+      "method": "fourier_delay_ls"
+    }
+  ],
+  "optimizer_updates": 0,
+  "rows": 54,
+  "status": "K8_LS_METHOD_DESIGN_SCREEN_PASS"
+}
