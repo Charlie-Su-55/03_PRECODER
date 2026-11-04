@@ -1,0 +1,126 @@
+{
+  "calibration": {
+    "batches_per_condition": 16,
+    "conditions": 18,
+    "csv": "/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_calibration_20261104.csv",
+    "finite_error_variance": true,
+    "independent_from_training_and_validation": true,
+    "role": "ce_calibration",
+    "sample_manifest_sha256": "8c31a179237975451b92f816fbadfcf9b9ced0a4999805946a3ab0391d04a611",
+    "samples_per_condition": 256,
+    "status": "completed"
+  },
+  "calibration_report": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/calibration.json",
+  "checkpoint_best": {
+    "bytes": 3637725,
+    "loaded_step": 5000,
+    "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/checkpoint_best.pt",
+    "sha256": "ab9ab68717d560a3abb6729582ecca5afff54a5b9ef7db8a252dafc8e347b460"
+  },
+  "checkpoint_latest": {
+    "bytes": 3638113,
+    "loaded_step": 5000,
+    "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/checkpoint_latest.pt",
+    "sha256": "0a5dc2e445e1d127252a6f0bfea488258a59e89fe767c9ee7dad99c9c488103f"
+  },
+  "code_commit": "ec7a6fc1db5af913c48a6846d2548734b0b4c021",
+  "interpretation": "Validation improvement is not an independent final test claim. Calibration is independent by role. No codec or DL-rate metrics were measured.",
+  "noise_variance_cpu_check": [
+    {
+      "E_abs_n_sq_measured": 0.24983328580856323,
+      "N0_expected": 0.25,
+      "device": "cpu",
+      "gamma_db": 0,
+      "relative_error": -0.0006668567657470703,
+      "samples": 500000
+    },
+    {
+      "E_abs_n_sq_measured": 0.0790289044380188,
+      "N0_expected": 0.07905694150420949,
+      "device": "cpu",
+      "gamma_db": 5,
+      "relative_error": -0.0003546439522858799,
+      "samples": 500000
+    },
+    {
+      "E_abs_n_sq_measured": 0.024998068809509277,
+      "N0_expected": 0.025,
+      "device": "cpu",
+      "gamma_db": 10,
+      "relative_error": -7.724761962896176e-05,
+      "samples": 500000
+    },
+    {
+      "E_abs_n_sq_measured": 0.007907561026513577,
+      "N0_expected": 0.007905694150420948,
+      "device": "cpu",
+      "gamma_db": 15,
+      "relative_error": 0.00023614322248088337,
+      "samples": 500000
+    },
+    {
+      "E_abs_n_sq_measured": 0.002492982428520918,
+      "N0_expected": 0.0025,
+      "device": "cpu",
+      "gamma_db": 20,
+      "relative_error": -0.002807028591632864,
+      "samples": 500000
+    },
+    {
+      "E_abs_n_sq_measured": 0.0007902678335085511,
+      "N0_expected": 0.0007905694150420948,
+      "device": "cpu",
+      "gamma_db": 25,
+      "relative_error": -0.00038147381849786054,
+      "samples": 500000
+    }
+  ],
+  "protocol": {
+    "K": 8,
+    "Nsc": 256,
+    "Nt": 32,
+    "feedback_gamma_db": [
+      0,
+      5,
+      10,
+      15,
+      20,
+      25
+    ],
+    "pilot_RE": 64,
+    "pilot_energy_per_ue": [
+      8,
+      16,
+      24
+    ]
+  },
+  "run_id": "twc_v1_k8_ce_seed_20261105",
+  "run_manifest": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/manifest.json",
+  "seed": 20261105,
+  "status": "completed",
+  "training": {
+    "actual_updates": 5000,
+    "batch_size": 16,
+    "best_checkpoint_step": 5000,
+    "best_validation_nmse": 0.02662514200912685,
+    "elapsed_seconds": 180.05538794095628,
+    "last_checkpoint_step": 5000,
+    "learning_rate": 0.001,
+    "loss": "mean per-link UL NMSE",
+    "peak_cuda_allocated_bytes": 502798848,
+    "source_updates": 0,
+    "target_updates": 5000
+  },
+  "validation": {
+    "conditions": 18,
+    "csv": "/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.csv",
+    "evidence_scope": "fixed validation set only; design/selection evidence, not final independent performance evidence",
+    "mean_ls_nmse_across_conditions": 0.06058452925127414,
+    "mean_nmse_across_conditions": 0.02662514200912685,
+    "plot_pdf": "/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.pdf",
+    "plot_png": "/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.png",
+    "role": "validation",
+    "step": 5000,
+    "user_link_samples_per_condition": 512
+  }
+}

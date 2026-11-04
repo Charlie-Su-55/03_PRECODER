@@ -5,17 +5,17 @@
 
 ## 一屏摘要
 
-- **当前阶段：** K8 Stage A CE训练代码已实现；CPU smoke覆盖更新、验证、checkpoint恢复和独立校准。CUDA训练尚未开始，sandbox中的训练进程看不到`/dev/nvidia0`；完整Joint/RZF与codec训练仍未完成。
-- **状态：** 数据/LS/U-Net接口和CE训练器 **代码已实现**；CPU训练/恢复/校准小样本验收 **完成**；正式5k CE训练 **未开始**，正式优化更新0。
-- **GPU快照：** 2026-11-04 21:12 CET读取：RTX 5090利用率0%、显存1124/32607 MiB；`nvidia-smi`列出外部计算进程约1098 MiB，归属未知。容器内PyTorch为`2.11.0+cu130`、CUDA 13.0，但`torch.cuda.device_count()`为0且`/dev/nvidia0`不存在；因此sandbox内不能启动CUDA训练。
-- **代码版本：** 仓库HEAD为`518467d`（包含K8工作最新已推送版本`e5a27e5`及其后续状态回执）。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- **未提交变更：** K8工作已提交推送；原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及本地V2计划文件仍留在工作区，未纳入本轮。
-- **代码/验收/证据区分：** K8分角色CDL回放、pilot-LS＋插值、Ep条件化pilot-only U-Net、G=1/2/4 Swin接口、CE训练/独立校准器**代码已实现**；CPU小批更新、18条件验证、checkpoint恢复及18条件校准流程**验收通过**；正式5k CE训练、Joint接收器/RZF及独立性能证据**未开始/没有**。
-- **训练步数/checkpoint：** K8本轮更新数 0 / 暂定计划预算200k codec更新、约5k CE更新（尚未进入训练配置验收）；本轮loss/LR未运行；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
-- **训练曲线和性能：** K8固定验证集DL NMSE、真实下行和速率、loss阶段/权重/学习率均**未知（尚未训练）**；六SNR×两个seed正式测试、配对差值与置信区间均**未知**。
-- **资源与隔离验收：** CPU smoke核对G=1/2/4映射总预算偏差0 RE；所用候选每UE数据能量最大误差`7.63e-6`。本次重新验收五个数据role各1个独立地址/样本，跨role指纹碰撞0；固定validation重放、训练step寻址重放及Python/NumPy/Torch CPU RNG状态恢复通过。CE链路2帧×6 gamma×3 Ep共18例的LS/U-Net输出维度正确且有限，`U-Net`权重未训练。gamma=10 dB时N0=0.025；经验噪声功率统计、完整训练/验证/测试规模审计仍未知。正式点是反馈gamma 0/5/10/15/20/25 dB，DL SNR固定25 dB。
+- **当前阶段：** Stage A 公共UL CE训练与独立校准**完成**；下一步是补齐估计UL驱动的反馈软恢复→Joint CSI重建→RZF及匹配FDMA任务链路，然后进入codec训练。
+- **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
+- **GPU快照：** 2026-11-04 21:45 CET训练后快照：RTX 5090利用率0%、显存18/32607 MiB、功耗22.75 W；进程表仅列gnome-shell。训练期间21:41快照为48%、1406 MiB。
+- **代码版本：** 训练源码HEAD `ec7a6fc`，训练manifest记录同一commit；CE训练器及启动目录修正均已推送。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **未提交变更：** 本轮无未提交源码；新生成的CE证据文件待选择性提交。原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及本地V2计划文件仍留在工作区，未纳入本轮。
+- **代码/验收/证据区分：** K8分角色CDL回放、pilot-LS＋插值、Ep条件化pilot-only U-Net、G=1/2/4 Swin接口、CE训练/独立校准器**代码已实现**；CPU更新/恢复、固定验证及独立校准smoke**验收通过**；CE 5000步GPU训练与校准**运行验收完成**；validation曲线是设计证据，独立calibration统计完成但不宣称下行任务性能；Joint接收器/RZF尚未实现。
+- **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；来源累计更新0；latest与best权重载入核验均为step5000。codec更新0/预算200k；codec checkpoint无。
+- **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。DL NMSE/真实下行和速率、正式codec六SNR×两seed结果仍未知/未开始。
+- **资源与隔离验收：** K8 RE/能量CPU映射偏差沿用已验收值：G=1/2/4总预算0 RE、单候选数据能量最大误差`7.63e-6`。分角色数据回放5角色地址/指纹隔离与固定重放通过。CE噪声采用`N0=0.25×10^(-gamma/10)`，CPU 50万复噪声样本/点实测六个gamma的`E|n|²`相对误差最大0.281%；独立calibration role每条件256帧、18/18误差方差有限。训练/验证/校准与test role隔离；test未读取。正式点gamma 0/5/10/15/20/25 dB，DL SNR固定25 dB。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** sandbox未挂载NVIDIA设备，PyTorch CUDA设备数为0，正式GPU训练无法在此执行。CE trainer CPU验收通过；GPU训练须在可访问GPU的host/tmux会话启动。后续codec阶段仍缺反馈软恢复接入Swin、Joint CSI重建/RZF。
+- **主要阻塞：** Stage B尚不能启动：K8端到端codec训练目标仍缺估计UL驱动的软恢复接入Swin、Joint接收/CSI重建、8用户RZF与匹配FDMA训练/验证入口及CUDA验收。Stage A CE checkpoint可供后续冻结复用。
 
 ## 阶段状态
 
@@ -33,7 +33,7 @@
 | LS初值方法screen | 完成 | 新增归一化Gram ridge Fourier-delay LS(rank4/rank8)，保留pilot-LS线性插值 | 32帧、6 gamma×3 Ep固定validation screen；线性插值18/18条件胜出 | 有限validation设计证据 | 小样本只用于初值设计，不能当正式UL性能结果；首轮CE暂定固定线性插值 |
 | 完整K8协议/候选冻结 | 运行中 | 几何、六点能量候选已配置 | CPU链路烟雾检查通过；gamma查表策略未选 | 未开始 | 数据namespace、pilot gamma查表和UL状态选优仍待验证集核定 |
 | CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 单次CPU smoke通过；数据隔离未知 | 不适用 | 当前为合成CPU输入，真实可回放数据接口尚未接入 |
-| Stage A：LS与LS＋U-Net UL CE预训练及校准 | 未开始 | LS方法screen暂定冻结为pilot-LS＋线性插值；新增`train_twc_v1_k8_ce.py`及冻结配置；pilot-only观测训练，H_UL只作监督目标 | CPU限步更新/18条件验证、checkpoint续训、18条件独立校准通过；CUDA不可见，CUDA smoke未通过启动检查 | 未开始 | 正式5k更新未运行；screen和CPU smoke不等于CE收益证据 |
+| Stage A：LS与LS＋U-Net UL CE预训练及校准 | 完成 | LS初值为pilot-LS＋线性插值；`train_twc_v1_k8_ce.py`只读pilot-only观测，H_UL只作监督目标 | 5000/5000更新；best/latest权重step5000载入核验；独立calibration 18条件通过 | 有限validation设计证据 | validation较同条件LS低约3.57 dB；不代表下行任务或独立测试性能 |
 | 完整端到端CSI反馈到下行预编码 | 未开始 | K8 Swin/CSI重建/RZF链路未实现 | 未开始 | 未开始 | 当前smoke仅验证UL导频和key/shared物理反馈接收 |
 | Stage B：FDMA/Hybrid NMSE warmup | 未开始 | 未知 | 未开始 | 未开始 | 计划每模型/seed 10k；目标K8 checkpoint、日志与曲线未找到 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 未知 | 未开始 | 未开始 | 计划每分支20k；权重日程、loss曲线与匹配比较未开始 |
@@ -43,12 +43,12 @@
 
 ## 运行、更新数与checkpoint
 
-- 当前运行状态：正式CE训练**未开始**；CUDA smoke**启动检查失败（sandbox无GPU设备）**，不是模型计算失败；CPU小批训练/恢复/校准**完成**。无后台GPU训练进程。
-- K8正式实验更新数：**0**。CPU验收checkpoint位于`/tmp/twc03_ce_cpu_smoke_v2/`，3个smoke更新不计入实验预算，也不是正式权重；CE计划5000更新，codec预算200k。
-- 来源checkpoint累计步数：**未知/未适用**。新K8训练未声明或核验任何初始化来源。
-- 最后保存并核验的K8权重步数：**无**。现有旧K4权重/结果不属于K8协议，且本次未加载核验。
-- 训练日志步数与权重步数：目前没有K8训练日志；无可报告日志步数。
-- 首个500–1000步耗时、正式训练ETA和峰值显存：**未知**。V2预估CE训练/校准约1.5–4 GPU小时；当前sandbox没有GPU设备，未取得新路径吞吐。进入可访问GPU host后以首500–1000步实测更新ETA。
+- 当前运行状态：Stage A CE训练和自动独立校准均**完成**；后台tmux已退出，无GPU作业运行。
+- K8正式CE更新数：**5000/5000**；CPU smoke的3步没有并入正式训练预算。Codec仍为0/200k。
+- 来源checkpoint累计步数：0；CE从新初始化开始。
+- 最后保存且核验checkpoint：latest step5000；best step5000；checkpoint均由PyTorch载入并核验内部step。
+- 训练日志步数与权重步数：manifest、JSONL训练日志和latest权重均完成5000更新；详细日志/checkpoint位于`runs/twc_v1_k8_ce/seed_20261105/`。
+- 首500步与1k步实测耗时约18秒/37秒；完整5000步实测180.06秒，独立校准约13秒。训练CUDA峰值`502,798,848` bytes（约0.47 GiB）。训练后GPU快照0%、18 MiB。
 
 ## 配置与协议验收
 
@@ -70,7 +70,8 @@
 
 | 材料 | 状态 | 关键数值/偏差 | 所需证据 |
 |---|---|---|---|
-| LS、LS＋U-Net UL NMSE–SNR曲线 | 运行中 | 有32帧K8 CDL validation设计screen：线性插值平均per-link NMSE ratio 0.05975；Fourier-delay rank4 0.14266、rank8 0.18292（18条件等权平均）。U-Net未训练，无其NMSE | `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_LS_validation_screen_20261104.csv`；后续需正式CE训练/独立校准曲线 |
+| LS、LS＋U-Net UL NMSE–SNR曲线 | 完成（validation设计证据） | 18个gamma×Ep条件；最终跨条件U-Net NMSE 0.02663，LS 0.06058；每条件512 user-link样本。Ep=8/16/24，pilot总数64 RE | `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.csv`和PNG/PDF；run ID `twc_v1_k8_ce_seed_20261105` |
+| CE独立校准误差统计 | 完成 | 独立role 18条件×256帧；误差方差均有限 | `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_calibration_20261104.csv`；报告记录hash |
 | 固定验证集DL NMSE和真实下行和速率曲线 | 未开始 | 未知；loss阶段、lambda权重和LR未运行 | 每步/验证日志、配置、权重和阶段标记 |
 | 正式评估六SNR×两seed | 未开始 | 六点均未知 | 独立测试CSV及run ID |
 | 相对匹配FDMA、NMSE控制的配对差值/置信区间 | 未开始 | 未知 | 同一测试信道实现上的逐样本结果及统计脚本 |
@@ -91,27 +92,27 @@
 ## 源码、Git与证据路径
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- 最近已推送commit：`e5a27e5`（K8 replayable CDL、LS初值screen与CE CPU preflight）。
-- 当前未提交源码变更：无本轮K8源码待提交；工作区仍有`.gitignore`修改及5个旧文件删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。这些既有变更及其他未跟踪文件未纳入本轮备份提交。
+- 最近已推送commit：`ec7a6fc`（K8 CE训练/校准管线与启动目录修正）；Stage A代码前一提交为`8342f7c`。
+- 当前未提交源码变更：无；CE结果报告、曲线和calibration CSV待选择性提交。工作区仍有`.gitignore`修改及5个旧文件删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。这些既有变更及其他未跟踪文件未纳入本轮备份提交。
 - **2026-11-04 14:31 CET：** 选择性提交并推送K8候选能量网格、CPU反馈链路和preflight；commit `629ae85`，远端`main`从`72f6792`前进。`git diff --check`通过；原有旧文件删除、`.gitignore`和未跟踪目录未纳入。
 - `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_LS_validation_screen_20261104.csv`及同名JSON记录32帧screen及数据指纹；该结果不是正式CE曲线。
 
 最多4个关键证据文件：
 
-1. `/home/r50037942/project/03_PRECODER/docs/TWC_1_0_K8_two_week_plan_20261103_V2.md`
-2. `/home/r50037942/project/03_PRECODER/utils/twc_v1_k8_replayable_data.py`
-3. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_LS_validation_screen_20261104.csv`
-4. `/home/r50037942/project/03_PRECODER/preflight_twc_v1_k8_ce_chain.py`
+1. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_run_20261104.json`
+2. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.csv`
+3. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.pdf`
+4. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_calibration_20261104.csv`
 
 ## 问题与下一步
 
-1. **K8训练链路仍未打通。**新增U-Net/Swin目前只通过CPU前向，不含CE trainer/calibrator、软恢复联合解码或RZF。影响：尚不能训练模型或生成K8重建/速率结果。
+1. **K8 codec任务链路仍未打通。**CE trainer/calibrator已完成，但软恢复尚未读取UL误差校准并接入Swin，Joint CSI重建/RZF、FDMA匹配训练和评估入口未实现。影响：尚不能训练codec或生成K8下行重建/速率结果。
 2. **08接口不能原样移植。**08 U-Net固定K4/32 pilot RE、噪声参考0.125；03需要K8/64 pilot RE及0.25参考。已适配维数和噪声换算，但没有迁移08训练/校准材料，也未证明跨设置泛化。
 3. **选择策略和数据审计未完成。**六个能量候选已配置、样本角色namespace已实现；pilot gamma查表、UL条件下Ekey/EAS/G选择及大规模重叠/暂停恢复审计仍未完成。
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：按V2补CE约5k更新训练器与独立校准入口；并行实现软恢复→Joint decoder→空间Swin→RZF及匹配FDMA，完成合并CPU验收。之后在GPU使用前检查实时占用，超过20%先请示；CE训练/校准需要GPU。08保持只读。
+下一项动作：按V2实现UL误差校准驱动的软恢复→Joint decoder→空间Swin→RZF及匹配FDMA训练/验证入口，完成合并CPU/CUDA验收；之后进入codec warmup。每次GPU任务前刷新利用率，若超过20%先请示。08保持只读。
 
 ## 更新记录
 
@@ -127,4 +128,6 @@
 - **2026-11-04 17:13 CET：**按用户要求重跑CPU小任务，设置`CUDA_VISIBLE_DEVICES=`，无GPU训练/推理。`preflight_twc_v1_k8_data.py`通过：5个角色独立地址、交叉指纹碰撞0、validation固定重放与训练step重放一致、全局CPU RNG状态未改变；`preflight_twc_v1_k8_ce_chain.py`通过：2帧验证样本、6个gamma×3个Ep共18例，LS和未训练U-Net输出均为[B,8,32,256]且有限，优化更新0。第一次进程产生不可写Matplotlib默认缓存提示，之后CE检查将缓存重定向至`/tmp/mpl-twc03`且通过；该提示不影响检查。另核对现有评估入口：其规范和checkpoint仍属旧grouped-hybrid-power协议，K8正式评估/曲线产出代码尚未具备；需后续实现。未改源码和论文，未提交或推送；工作区原有修改保持不动。最近可见GPU快照为15:46 CET的76%，占用进程归属仍未知。
 - **2026-11-04 21:20 CET：**新增K8 CE训练器`train_twc_v1_k8_ce.py`和冻结配置`configs/twc_v1_k8_ce_train_config.py`。按step循环覆盖6 gamma×3 Ep；每次固定验证复用相同信道，记录LS/U-Net NMSE、loss、梯度、学习率、耗时及峰值显存；支持原子best/latest checkpoint及optimizer/RNG续训；独立`ce_calibration` role输出18条件误差方差/NMSE。CPU smoke完成3次临时更新、18条件验证、续训和18条件独立校准；临时checkpoint不计正式更新。CUDA smoke启动检查失败：sandbox内`torch.cuda.is_available()==False`、device_count=0且`/dev/nvidia0`不存在；主机`nvidia-smi` 21:12 CET快照为GPU利用率0%、显存1124 MiB，存在约1098 MiB的未知计算进程。正式CE未启动。代码补齐与CPU验收估计约2–4小时（本阶段已完成）；正式CE约5k更新及校准按V2预留1.5–4 GPU小时，ETA和显存待在可访问GPU host测得首批500–1000更新后更新。代码待选择性提交/推送。
 - **2026-11-04 21:40 CET：**已选择性提交并推送CE训练器和配置`8342f7c`。首次后台启动尝试在训练开始前安全退出：tmux将console log预先创建在run目录，脚本误将其判为已有训练产物。已修正为忽略这两个console log，`py_compile`通过；此修正尚未提交。失败尝试没有运行优化更新，最近GPU快照0%、18 MiB；正式CE仍未启动。
+- **2026-11-04 21:43 CET：**修正后的启动目录保护提交并推送`ec7a6fc`。后台会话`twc03-ce-seed20261105`启动成功，Stage A CE正式训练至3500/5000更新；latest checkpoint step3500、best step3250均载入核验。固定validation最近值NMSE 0.02705，LS 0.06058；首500/1000步约18/37秒，训练剩余估算70–80秒，随后自动独立校准约0.5–1分钟；峰值CUDA分配502,798,848 bytes。训练时`nvidia-smi`最后一次可读快照48%、1406 MiB，之后无法从当前sandbox连接驱动，但GPU训练仍在tmux运行。所有性能值目前仅是验证集过程值。
+- **2026-11-04 21:45 CET：**Stage A CE训练及校准完成。run ID=`twc_v1_k8_ce_seed_20261105`，新初始化seed 20261105，5000/5000更新，GPU训练180.06秒；latest/best checkpoint内部step均为5000且成功载入，峰值分配502,798,848 bytes。loss为mean per-link UL NMSE，LR=0.001，覆盖gamma 0/5/10/15/20/25 dB与Ep 8/16/24。固定validation 18条件平均U-Net NMSE 0.026625、匹配LS 0.060585（相差约3.57 dB）；每条件512 user-link样本，属验证设计证据。独立calibration role每条件256帧、18条件方差有限；不触碰test。CPU噪声采样每gamma 500,000复样本，经验E|n|²最大相对偏差0.281%。训练后GPU 0%、18 MiB。已生成验证曲线PNG/PDF和CSV、独立校准CSV及带checkpoint hash的JSON回执；论文未修改。下一步为完整codec接收/预编码链路。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
