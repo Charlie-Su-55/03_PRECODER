@@ -8,8 +8,8 @@
 - **当前阶段：** K8 CPU协议与神经网络接口搭建；预算链路、K8 pilot-only U-Net、G条件化Swin UE编码/BS解码接口均已在CPU smoke跑通。训练、联合接收、预编码和数据隔离未开始。
 - **状态：** K8训练 **未开始**；物理反馈原型与U-Net/Swin形状接口 **完成并通过 CPU smoke**；没有启动训练。
 - **GPU快照：** 最近一次快照为11:51 CET：GPU利用率0%、显存18 MiB / 32607 MiB。本轮新增工作只用CPU，未重新采集GPU快照。未来每次GPU工作前重新检查；占用超过20%先请示。
-- **代码版本：** 适配工作开始前最近已推送commit为`d282bb3`；本轮U-Net/Swin接口待提交。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；本轮K8 U-Net/Swin接口及状态页修改尚未提交；另有清理回执、SSH交接文档、Overleaf副本及历史数据未跟踪。
+- **代码版本：** 本轮K8 U-Net/Swin接口已推送至`b1fadcf`。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；K8 U-Net/Swin接口已提交推送；另有清理回执、SSH交接文档、Overleaf副本及历史数据未跟踪。
 - **代码/验收/证据区分：** K8预算/布局、候选能量、pilot-only U-Net与G=1/2/4 UE Swin/BS Swin接口**代码已实现**；CPU smoke **通过**；独立性能证据、训练权重、Joint接收器与RZF**没有**。
 - **训练步数/checkpoint：** K8本轮更新数 0 / 暂定计划预算200k codec更新、约5k CE更新（尚未进入训练配置验收）；本轮loss/LR未运行；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
 - **训练曲线和性能：** K8固定验证集DL NMSE、真实下行和速率、loss阶段/权重/学习率均**未知（尚未训练）**；六SNR×两个seed正式测试、配对差值与置信区间均**未知**。
@@ -89,7 +89,7 @@
 ## 源码、Git与证据路径
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- 最近已推送commit：`d282bb3`（K8 CPU链路与状态页）。
+- 最近已推送commit：`b1fadcf`（K8 U-Net/Swin接口与CPU preflight）。
 - 当前未提交源码变更：新增/修改K8协议、配置和链路文件；`.gitignore`修改；删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。旧删除与其他未跟踪文件不是K8实现，不纳入后续源码备份提交。
 - **2026-11-04 14:31 CET：** 选择性提交并推送K8候选能量网格、CPU反馈链路和preflight；commit `629ae85`，远端`main`从`72f6792`前进。`git diff --check`通过；原有旧文件删除、`.gitignore`和未跟踪目录未纳入。
 - 本轮未改历史K4训练代码、未改Overleaf tex、未启动GPU或训练。
@@ -119,5 +119,5 @@
 - **2026-11-04 12:09 CET：**K8协议源码及对应计划/状态文档提交为`b1573e2`，状态页更新提交为`016e489`；只纳入两份K8源码和三份K8计划/状态文档，未纳入原有删除或Overleaf目录。推送`origin main`成功，远端回执`ee58686..016e489`。
 - **2026-11-04 12:09 CET：**状态记录修正并推送，远端从`016e489`前进至`bcb52ef`；未提交的旧删除、Overleaf、清理和历史数据仍保留在工作区。
 - **2026-11-04 14:20 CET：**配置Ep/Ekey/EAS六候选，新增分散pilot的LS插值、key/shared发送及MMSE软恢复；`conda run -n precoder python preflight_twc_v1_k8_link.py`以CPU验证G=1/2/4均通过。该smoke未测性能，不含U-Net、DL CSI重建和预编码。新源码待选择性提交/推送。
-- **2026-11-04 14:41 CET：**只读审阅08 U-Net/Swin源码与CPU审计材料（08当前commit `bfa0427`、工作区干净）；据接口在03新增K8 residual U-Net、G条件化Swin编解码器及CPU preflight。py_compile通过，CPU smoke通过：pilot=64 RE、data-only Y置NaN不影响U-Net输出、G=1/2/4码字和CSI形状正确。08材料记载102项CPU验收但0次优化更新；本轮没有使用GPU、训练、改08或产生性能证据。新03源码待提交/推送。
+- **2026-11-04 14:41 CET：**只读审阅08 U-Net/Swin源码与CPU审计材料（08当前commit `bfa0427`、工作区干净）；据接口在03新增K8 residual U-Net、G条件化Swin编解码器及CPU preflight。py_compile通过，CPU smoke通过：pilot=64 RE、data-only Y置NaN不影响U-Net输出、G=1/2/4码字和CSI形状正确。08材料记载102项CPU验收但0次优化更新；本轮没有使用GPU、训练、改08或产生性能证据。commit `b1fadcf`已推送到GitHub `main`。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
