@@ -8,8 +8,8 @@
 - **当前阶段：** Stage A完成；Stage B因GPU占用暂停，FDMA seed 20261106为250/10,000；Stage C训练器与lambda诊断代码已实现，但Stage B warmup未完成，Stage C尚不能运行。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 2026-11-04 23:05 CET RTX 5090利用率68%、显存3538/32607 MiB；另一个项目Python PID 3175902占3512MiB。我们的训练进程已退出。
-- **代码版本：** 最近已推送HEAD `468874a`；本轮Stage C代码和状态更新待选择性提交。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- **未提交变更：** 本轮Stage C两份源码/配置/状态页尚未提交；原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件也未纳入本轮。
+- **代码版本：** 最新已推送HEAD `41e3abc`；Stage C trainer和validation-only lambda诊断已推送。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
 - **代码/验收/证据区分：** K8完整反馈链路、Stage B/Stage C训练入口及验证集lambda梯度诊断**代码已实现**；Stage B链路CPU前向和loss反向、Stage C静态编译与CLI参数解析**通过**；FDMA seed 20261106 Stage B运行过250步后暂停；Stage C运行验收和独立codec性能证据均**未开始**。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。首个codec run本轮更新250/10,000、来源累计更新0；`fdma/seed_20261106/checkpoint_latest.pt`载入核验step250。其余三份warmup未开始。
 - **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint在16个固定validation样本上六个gamma均完成CPU核验；DL NMSE均值约`0.4937–0.4957`，sum-rate约`1.609–1.630 bit/s/Hz`。95%区间只按4个batch均值用t分布计算，属于早期小样本诊断，不作性能结论；test未读。
@@ -139,4 +139,5 @@
 - **2026-11-04 23:13 CET：**应用户要求执行CPU小任务：step250 FDMA checkpoint在固定validation样本、六个gamma上完成推理与DL NMSE/下行和速率计算，结果全有限；没有optimizer更新、没有读取test、没有使用GPU。单样本值只用于早期validation诊断。JSON保存在run目录`cpu_validation_step250.json`。
 - **2026-11-04 23:23 CET：**按用户允许扩大为小评估：step250 FDMA checkpoint在固定validation role的16个样本（4 batches）上，对六个gamma计算DL NMSE与和速率；CPU全部有限，test未读取、optimizer更新0。报告4个batch均值的95% Student-t区间，仅属小样本诊断，不作为性能结论。JSON位于`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/cpu_validation_step250_16samples.json`。
 - **2026-11-04 23:50 CET：**按用户要求补Stage C代码，未训练。新增20k terminal branch trainer（NMSE/joint）、严格要求Stage B对应10k warmup checkpoint、共享训练/验证数据地址、前5k lambda线性渐增、后15k固定、相同fresh AdamW与constant LambdaLR、best/latest与resume状态；新增validation-only共享层梯度尺度诊断，需传入完整warmup checkpoint后才可运行lambda候选。`py_compile`和两个CLI `--help`通过；无optimizer更新、无GPU调用。lambda/Rref数值待验证集诊断，Stage C运行验收未开始。
+- **2026-11-04 23:50 CET：**Stage C训练器、lambda梯度诊断、配置和状态页已选择性推送，commit `41e3abc`；未纳入原有源码删除、Overleaf或历史数据。Stage C仍未训练，待完整10k warmup及验证集lambda/Rref诊断后启动。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
