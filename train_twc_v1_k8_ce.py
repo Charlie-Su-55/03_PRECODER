@@ -236,7 +236,11 @@ def _truncate_validation_csv(path, max_step):
 
 def train(args):
     run_dir = args.run_dir.resolve()
-    if run_dir.exists() and any(run_dir.iterdir()) and not args.resume:
+    harmless_console_logs = {"training.console.log", "calibration.console.log"}
+    existing_artifacts = ([path for path in run_dir.iterdir()
+                           if path.name not in harmless_console_logs]
+                          if run_dir.exists() else [])
+    if existing_artifacts and not args.resume:
         raise FileExistsError(f"Run directory already contains files; use --resume: {run_dir}")
     run_dir.mkdir(parents=True, exist_ok=True)
     device = torch.device(args.device)
