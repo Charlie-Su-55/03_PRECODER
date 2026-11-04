@@ -8,7 +8,7 @@
 - **当前阶段：** 正在对齐BS decoder目标架构。Stage A完成；现有BS接收器仅是多源条件融合Swin原型。FDMA seed 20261106的250步试跑已暂停并保留，**不计入正式Stage B warmup预算**；正式Stage B应在目标decoder冻结后重新开始。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 2026-11-04 23:05 CET RTX 5090利用率68%、显存3538/32607 MiB；另一个项目Python PID 3175902占3512MiB。我们的训练进程已退出。
-- **代码版本：** Stage C trainer已推送，当前接收器名称/状态修正正在本地整理。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** 最新已推送HEAD `2cdbc18`；接收器原型名称和架构状态已修正。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
 - **代码/验收/证据区分：** 物理反馈＋多源条件融合Swin原型＋RZF链路、Stage B/C入口及validation lambda诊断代码已实现；原型CPU前向/反向通过，Stage C静态编译与CLI参数检查通过。计划中的跨用户self-attention、观测cross-attention、软码字残差修正和空间cross-attention**尚未设计/实现**；正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
@@ -142,4 +142,5 @@
 - **2026-11-04 23:50 CET：**按用户要求补Stage C代码，未训练。新增20k terminal branch trainer（NMSE/joint）、严格要求Stage B对应10k warmup checkpoint、共享训练/验证数据地址、前5k lambda线性渐增、后15k固定、相同fresh AdamW与constant LambdaLR、best/latest与resume状态；新增validation-only共享层梯度尺度诊断，需传入完整warmup checkpoint后才可运行lambda候选。`py_compile`和两个CLI `--help`通过；无optimizer更新、无GPU调用。lambda/Rref数值待验证集诊断，Stage C运行验收未开始。
 - **2026-11-04 23:50 CET：**Stage C训练器、lambda梯度诊断、配置和状态页已选择性推送，commit `41e3abc`；未纳入原有源码删除、Overleaf或历史数据。Stage C仍未训练，待完整10k warmup及验证集lambda/Rref诊断后启动。
 - **2026-11-05 00:00 CET：**根据源码结构复核，澄清原`K8JointFeedbackDecoder`只有卷积多源条件特征加和Swin块，尚无计划的跨用户self-attention、观测cross-attention、软码字残差修正或空间cross-attention。实现类改名为`K8MultiSourceFusionSwinReceiver`，旧类名保留兼容别名，module/state_dict参数层级未变；Stage B step250标记为原型试跑、不计正式warmup预算。未训练、未用GPU；目标decoder设计/CPU验收列为当前首要未完成项。
+- **2026-11-05 00:02 CET：**接收器原型重命名、训练状态页与preflight报告更正已选择性提交并推送，commit `2cdbc18`。权重参数层级保持不变；没有运行训练或GPU任务。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
