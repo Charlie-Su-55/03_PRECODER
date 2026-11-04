@@ -1,21 +1,21 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-04 14:20 CET（本机时间）
+最后核查：2026-11-04 14:41 CET（本机时间）
 依据：本地仓库源码、Git状态、配置/输出目录、进程和GPU快照，以及 Overleaf 快照与编译产物。本文不把旧协议结果当作新 K8 证据。
 
 ## 一屏摘要
 
-- **当前阶段：** 第1–2天的CPU协议和基本链路搭建；K8预算/布局与六点能量候选已配置，pilot→插值LS→key/shared发射→组内软恢复的原型已在CPU跑通。U-Net、CSI重建、预编码和数据隔离未开始。
-- **状态：** K8训练 **未开始**；CPU物理链路原型 **完成并通过 smoke**；没有启动训练。
+- **当前阶段：** K8 CPU协议与神经网络接口搭建；预算链路、K8 pilot-only U-Net、G条件化Swin UE编码/BS解码接口均已在CPU smoke跑通。训练、联合接收、预编码和数据隔离未开始。
+- **状态：** K8训练 **未开始**；物理反馈原型与U-Net/Swin形状接口 **完成并通过 CPU smoke**；没有启动训练。
 - **GPU快照：** 最近一次快照为11:51 CET：GPU利用率0%、显存18 MiB / 32607 MiB。本轮新增工作只用CPU，未重新采集GPU快照。未来每次GPU工作前重新检查；占用超过20%先请示。
-- **代码版本：** 本轮K8 CPU链路已推送至`629ae85`。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；K8源码已提交推送，状态页之外无本轮K8源码待提交；另有清理回执、SSH交接文档、Overleaf副本及历史数据未跟踪。
-- **代码/验收/证据区分：** K8预算/布局和六点能量候选**代码已实现**；CPU物理反馈链路 smoke **通过**；LS＋U-Net、UE Swin、BS CSI重建、预编码、正式训练/评估**未开始**；独立性能证据**没有**。
-- **训练步数/checkpoint：** K8本轮更新数 0 / 暂定计划预算200k codec更新、约5k CE更新（尚未进入训练配置验收）；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
+- **代码版本：** 适配工作开始前最近已推送commit为`d282bb3`；本轮U-Net/Swin接口待提交。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；本轮K8 U-Net/Swin接口及状态页修改尚未提交；另有清理回执、SSH交接文档、Overleaf副本及历史数据未跟踪。
+- **代码/验收/证据区分：** K8预算/布局、候选能量、pilot-only U-Net与G=1/2/4 UE Swin/BS Swin接口**代码已实现**；CPU smoke **通过**；独立性能证据、训练权重、Joint接收器与RZF**没有**。
+- **训练步数/checkpoint：** K8本轮更新数 0 / 暂定计划预算200k codec更新、约5k CE更新（尚未进入训练配置验收）；本轮loss/LR未运行；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
 - **训练曲线和性能：** K8固定验证集DL NMSE、真实下行和速率、loss阶段/权重/学习率均**未知（尚未训练）**；六SNR×两个seed正式测试、配对差值与置信区间均**未知**。
 - **资源与隔离验收：** CPU smoke核对G=1/2/4映射总预算偏差0 RE；所用候选每UE数据能量最大误差`7.63e-6`。gamma=10 dB时N0=0.025；经验噪声方差、其他gamma链路和train/validation/test隔离仍未知。正式点是反馈gamma 0/5/10/15/20/25 dB，DL SNR固定25 dB。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** K8的预算映射和CPU物理反馈原型已跑通；但真实K8信道/U-Net、CSI重建、预编码及数据隔离尚未实现，因此尚无K8性能证据。
+- **主要阻塞：** 真实K8信道/U-Net训练与校准、反馈接收和联合CSI重建/RZF、数据隔离尚未实现；当前只有随机输入CPU形状验收，因此尚无K8性能证据。
 
 ## 阶段状态
 
@@ -27,6 +27,8 @@
 | K8布局/预算配置模块 | 完成 | 完成（协议层） | CPU检查完成 | 不适用 | `utils/twc_v1_k8_protocol.py`与`configs/twc_v1_k8_protocol_config.py`；不是训练就绪实现 |
 | Ep/Ekey/EAS候选网格 | 完成 | 六个正值候选已配置 | CPU约束检查完成 | 未开始 | Ep={8,16,24}；key:shared={1:3,1:1}；等验证集选优 |
 | K8 CPU物理反馈链路 | 完成 | pilot、LS插值、数据发射、key/shared MMSE软恢复已实现 | `preflight_twc_v1_k8_link.py`通过，G=1/2/4 | 未开始 | 插值不是U-Net；不含CSI重建、预编码或性能结论 |
+| K8 pilot-only U-Net接口 | 完成 | 08共享频率残差U-Net适配为K8/64 pilot RE、03噪声口径 | `preflight_twc_v1_k8_neural.py`通过；data-only NaN扰动不影响输出 | 未开始 | LS初值由调用方提供；尚无CE训练或校准权重 |
+| K8 Swin UE编码/BS解码接口 | 完成 | 复用03内Swin窗口块；共享UE权重、显式G条件、key4+shared 160/80/40 | CPU前向G=1/2/4输出有限且维度正确 | 未开始 | 尚未接入真实反馈软恢复、Joint模块或RZF；新增结构无训练证据 |
 | 完整K8协议/候选冻结 | 运行中 | 几何、六点能量候选已配置 | CPU链路烟雾检查通过；gamma查表策略未选 | 未开始 | 数据namespace、pilot gamma查表和UL状态选优仍待验证集核定 |
 | CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 单次CPU smoke通过；数据隔离未知 | 不适用 | 当前为合成CPU输入，真实可回放数据接口尚未接入 |
 | Stage A：LS与LS＋U-Net UL CE预训练及校准 | 未开始 | LS＋插值占位已实现；U-Net未实现 | 未开始 | 未开始 | 需要接入K8真信道、训练CE并独立校准 |
@@ -87,7 +89,7 @@
 ## 源码、Git与证据路径
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- 最近已推送commit：`629ae85`（K8 CPU链路）。
+- 最近已推送commit：`d282bb3`（K8 CPU链路与状态页）。
 - 当前未提交源码变更：新增/修改K8协议、配置和链路文件；`.gitignore`修改；删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。旧删除与其他未跟踪文件不是K8实现，不纳入后续源码备份提交。
 - **2026-11-04 14:31 CET：** 选择性提交并推送K8候选能量网格、CPU反馈链路和preflight；commit `629ae85`，远端`main`从`72f6792`前进。`git diff --check`通过；原有旧文件删除、`.gitignore`和未跟踪目录未纳入。
 - 本轮未改历史K4训练代码、未改Overleaf tex、未启动GPU或训练。
@@ -95,19 +97,19 @@
 最多4个关键证据文件：
 
 1. `/home/r50037942/project/03_PRECODER/docs/TWC_1_0_K8_two_week_plan_20261103.md`
-2. `/home/r50037942/project/03_PRECODER/configs/twc_v1_k8_protocol_config.py`
-3. `/home/r50037942/project/03_PRECODER/utils/twc_v1_k8_link.py`
+2. `/home/r50037942/project/03_PRECODER/models/twc_v1_k8_neural.py`
+3. `/home/r50037942/project/03_PRECODER/preflight_twc_v1_k8_neural.py`
 4. `/home/r50037942/project/03_PRECODER/preflight_twc_v1_k8_link.py`
 
 ## 问题与下一步
 
-1. **K8现有训练网络仍缺失。**当前成熟分组codec和hybrid power配置为K=4；新原型只到UL软码字恢复。影响：尚不能训练K8 Swin codec或生成下行CSI重建结果。
-2. **真实K8信道和U-Net未接入。**当前smoke使用合成CPU信道和LS线性插值。影响：不提供UL NMSE/CE性能或真实CDL链路证据。
+1. **K8训练链路仍未打通。**新增U-Net/Swin目前只通过接口和张量前向，不含trainer、软恢复联合解码或RZF。影响：尚不能训练模型或生成K8重建/速率结果。
+2. **08接口不能原样移植。**08 U-Net固定K4/32 pilot RE、噪声参考0.125；03需要K8/64 pilot RE及0.25参考。已适配维数和噪声换算，但没有迁移08训练/校准材料，也未证明跨设置泛化。
 3. **选择策略和数据隔离未完成。**六个能量候选已配置，但pilot gamma查表、UL条件下Ekey/EAS/G选择及train/validation/test namespace均未确定。
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：接入可回放K8 CDL信道并实现计划中的LS＋U-Net CE；配置独立数据namespace与采样记录；再补K8 CSI编码/重建/预编码接口。CPU链路验收通过后，进入GPU前置验收前先重新检查占用，超过20%请示。08目录不读取、不写入。
+下一项动作：接入可回放K8 CDL信道，配置独立train/validation/test namespace与采样记录；用真实K8 LS初值训练/校准U-Net，再把key/shared软恢复接入Swin解码器并补RZF。CPU接口验收已完成；进入GPU前重新检查占用，超过20%请示。08保持只读。
 
 ## 更新记录
 
@@ -117,4 +119,5 @@
 - **2026-11-04 12:09 CET：**K8协议源码及对应计划/状态文档提交为`b1573e2`，状态页更新提交为`016e489`；只纳入两份K8源码和三份K8计划/状态文档，未纳入原有删除或Overleaf目录。推送`origin main`成功，远端回执`ee58686..016e489`。
 - **2026-11-04 12:09 CET：**状态记录修正并推送，远端从`016e489`前进至`bcb52ef`；未提交的旧删除、Overleaf、清理和历史数据仍保留在工作区。
 - **2026-11-04 14:20 CET：**配置Ep/Ekey/EAS六候选，新增分散pilot的LS插值、key/shared发送及MMSE软恢复；`conda run -n precoder python preflight_twc_v1_k8_link.py`以CPU验证G=1/2/4均通过。该smoke未测性能，不含U-Net、DL CSI重建和预编码。新源码待选择性提交/推送。
+- **2026-11-04 14:41 CET：**只读审阅08 U-Net/Swin源码与CPU审计材料（08当前commit `bfa0427`、工作区干净）；据接口在03新增K8 residual U-Net、G条件化Swin编解码器及CPU preflight。py_compile通过，CPU smoke通过：pilot=64 RE、data-only Y置NaN不影响U-Net输出、G=1/2/4码字和CSI形状正确。08材料记载102项CPU验收但0次优化更新；本轮没有使用GPU、训练、改08或产生性能证据。新03源码待提交/推送。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
