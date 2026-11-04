@@ -8,7 +8,7 @@
 - **当前阶段：** 第1–2天的CPU协议和基本链路搭建；K8预算/布局与六点能量候选已配置，pilot→插值LS→key/shared发射→组内软恢复的原型已在CPU跑通。U-Net、CSI重建、预编码和数据隔离未开始。
 - **状态：** K8训练 **未开始**；CPU物理链路原型 **完成并通过 smoke**；没有启动训练。
 - **GPU快照：** 最近一次快照为11:51 CET：GPU利用率0%、显存18 MiB / 32607 MiB。本轮新增工作只用CPU，未重新采集GPU快照。未来每次GPU工作前重新检查；占用超过20%先请示。
-- **代码版本：** 最近已推送基线为`72f6792`；本轮新增K8链路修改尚未提交。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** 本轮K8 CPU链路已推送至`629ae85`。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；本轮K8协议、配置和链路源码处于未提交状态；另有清理回执、SSH交接文档、Overleaf副本及历史数据未跟踪。
 - **代码/验收/证据区分：** K8预算/布局和六点能量候选**代码已实现**；CPU物理反馈链路 smoke **通过**；LS＋U-Net、UE Swin、BS CSI重建、预编码、正式训练/评估**未开始**；独立性能证据**没有**。
 - **训练步数/checkpoint：** K8本轮更新数 0 / 计划预算未知（计划中的codec为4×10k warmup + 8×20k终段，共200k更新；CE另约5k）；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
@@ -87,9 +87,10 @@
 ## 源码、Git与证据路径
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- 最近已推送commit：`72f6792`；本轮K8链路源码尚未提交（待本次选择性备份）。
+- 最近已推送commit：`629ae85`（K8 CPU链路）。
 - 当前未提交源码变更：新增/修改K8协议、配置和链路文件；`.gitignore`修改；删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。旧删除与其他未跟踪文件不是K8实现，不纳入后续源码备份提交。
-- 本轮记录：增加能量网格和CPU物理反馈链路；未改历史K4训练代码、未改Overleaf tex、未启动GPU或训练。新K8源码与状态材料将单独提交并推送。
+- **2026-11-04 14:31 CET：** 选择性提交并推送K8候选能量网格、CPU反馈链路和preflight；commit `629ae85`，远端`main`从`72f6792`前进。`git diff --check`通过；原有旧文件删除、`.gitignore`和未跟踪目录未纳入。
+- 本轮未改历史K4训练代码、未改Overleaf tex、未启动GPU或训练。
 
 最多4个关键证据文件：
 
