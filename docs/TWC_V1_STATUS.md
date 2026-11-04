@@ -9,9 +9,9 @@
 - **状态：** K8训练 **未开始**；CPU物理链路原型 **完成并通过 smoke**；没有启动训练。
 - **GPU快照：** 最近一次快照为11:51 CET：GPU利用率0%、显存18 MiB / 32607 MiB。本轮新增工作只用CPU，未重新采集GPU快照。未来每次GPU工作前重新检查；占用超过20%先请示。
 - **代码版本：** 本轮K8 CPU链路已推送至`629ae85`。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；本轮K8协议、配置和链路源码处于未提交状态；另有清理回执、SSH交接文档、Overleaf副本及历史数据未跟踪。
+- **未提交变更：** `.gitignore`已修改；5个旧诊断/旧训练源码文件处于删除状态；K8源码已提交推送，状态页之外无本轮K8源码待提交；另有清理回执、SSH交接文档、Overleaf副本及历史数据未跟踪。
 - **代码/验收/证据区分：** K8预算/布局和六点能量候选**代码已实现**；CPU物理反馈链路 smoke **通过**；LS＋U-Net、UE Swin、BS CSI重建、预编码、正式训练/评估**未开始**；独立性能证据**没有**。
-- **训练步数/checkpoint：** K8本轮更新数 0 / 计划预算未知（计划中的codec为4×10k warmup + 8×20k终段，共200k更新；CE另约5k）；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
+- **训练步数/checkpoint：** K8本轮更新数 0 / 暂定计划预算200k codec更新、约5k CE更新（尚未进入训练配置验收）；来源累计步数：不适用/未知；最后保存且核验的K8 checkpoint：无。没有仅凭日志声称权重已核验。
 - **训练曲线和性能：** K8固定验证集DL NMSE、真实下行和速率、loss阶段/权重/学习率均**未知（尚未训练）**；六SNR×两个seed正式测试、配对差值与置信区间均**未知**。
 - **资源与隔离验收：** CPU smoke核对G=1/2/4映射总预算偏差0 RE；所用候选每UE数据能量最大误差`7.63e-6`。gamma=10 dB时N0=0.025；经验噪声方差、其他gamma链路和train/validation/test隔离仍未知。正式点是反馈gamma 0/5/10/15/20/25 dB，DL SNR固定25 dB。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
