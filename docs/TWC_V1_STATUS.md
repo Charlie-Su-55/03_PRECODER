@@ -9,7 +9,7 @@
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 2026-11-04 21:45 CET训练后快照：RTX 5090利用率0%、显存18/32607 MiB、功耗22.75 W；进程表仅列gnome-shell。训练期间21:41快照为48%、1406 MiB。
 - **代码版本：** 训练源码HEAD `ec7a6fc`，训练manifest记录同一commit；CE训练器及启动目录修正均已推送。远程为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- **未提交变更：** 本轮无未提交源码；新生成的CE证据文件待选择性提交。原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及本地V2计划文件仍留在工作区，未纳入本轮。
+- **未提交变更：** 本轮源码、状态页和CE证据已选择性提交推送；原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及本地V2计划文件仍留在工作区，未纳入本轮。
 - **代码/验收/证据区分：** K8分角色CDL回放、pilot-LS＋插值、Ep条件化pilot-only U-Net、G=1/2/4 Swin接口、CE训练/独立校准器**代码已实现**；CPU更新/恢复、固定验证及独立校准smoke**验收通过**；CE 5000步GPU训练与校准**运行验收完成**；validation曲线是设计证据，独立calibration统计完成但不宣称下行任务性能；Joint接收器/RZF尚未实现。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；来源累计更新0；latest与best权重载入核验均为step5000。codec更新0/预算200k；codec checkpoint无。
 - **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。DL NMSE/真实下行和速率、正式codec六SNR×两seed结果仍未知/未开始。
@@ -32,7 +32,7 @@
 | K8 CDL分角色数据与重放入口 | 完成 | 新增CE训练/codec训练/CE校准/验证/测试独立seed role和样本地址指纹；复用Sionna RNG隔离 | Sionna 2.0.1 CPU生成五角色各1对K8 CDL；固定验证与训练step地址可复现；未发现角色间指纹碰撞 | 不适用 | 仅小样本地址/重放验收；完整训练checkpoint暂停恢复与大规模数据审计未知 |
 | LS初值方法screen | 完成 | 新增归一化Gram ridge Fourier-delay LS(rank4/rank8)，保留pilot-LS线性插值 | 32帧、6 gamma×3 Ep固定validation screen；线性插值18/18条件胜出 | 有限validation设计证据 | 小样本只用于初值设计，不能当正式UL性能结果；首轮CE暂定固定线性插值 |
 | 完整K8协议/候选冻结 | 运行中 | 几何、六点能量候选已配置 | CPU链路烟雾检查通过；gamma查表策略未选 | 未开始 | 数据namespace、pilot gamma查表和UL状态选优仍待验证集核定 |
-| CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 单次CPU smoke通过；数据隔离未知 | 不适用 | 当前为合成CPU输入，真实可回放数据接口尚未接入 |
+| CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 真实CDL分角色小样本、seed寻址重放和RNG隔离通过；训练/验证/校准已实跑 | 不适用 | 完整大规模namespace碰撞审计未知；test role尚未用于任何选优或训练 |
 | Stage A：LS与LS＋U-Net UL CE预训练及校准 | 完成 | LS初值为pilot-LS＋线性插值；`train_twc_v1_k8_ce.py`只读pilot-only观测，H_UL只作监督目标 | 5000/5000更新；best/latest权重step5000载入核验；独立calibration 18条件通过 | 有限validation设计证据 | validation较同条件LS低约3.57 dB；不代表下行任务或独立测试性能 |
 | 完整端到端CSI反馈到下行预编码 | 未开始 | K8 Swin/CSI重建/RZF链路未实现 | 未开始 | 未开始 | 当前smoke仅验证UL导频和key/shared物理反馈接收 |
 | Stage B：FDMA/Hybrid NMSE warmup | 未开始 | 未知 | 未开始 | 未开始 | 计划每模型/seed 10k；目标K8 checkpoint、日志与曲线未找到 |
@@ -58,8 +58,8 @@
 | 反馈预算 | 256 RE；64 pilot RE；每UE key d=4 | CPU链路映射通过；总占用偏差0 RE |
 | 分组预算 | G=1/2/4；每组共享维数a=160/80/40；预算64+8d+Ga=256 | CPU链路 smoke通过；RE偏差0；能量映射最大误差7.63e-6 |
 | FDMA比较 | 不含key；64 pilot RE + 每UE24数据坐标×8 | 几何/预算映射CPU检查通过，偏差0 RE；FDMA无线链路尚未在smoke中执行 |
-| SNR点 | 正式反馈gamma=0/5/10/15/20/25 dB；DL SNR固定25 dB | 配置已记录；CPU smoke只运行gamma=10 dB，N0=0.025 |
-| DL/UL与噪声 | UE完美DL CSI；BS使用LS＋U-Net UL CSI；N0=0.25×10^(-gamma/10) | CPU真实CDL在gamma=0/5/10/15/20/25与Ep=8/16/24上完成LS→未训练U-Net有限值前向；复噪声经验方差统计尚未做 |
+| SNR点 | 正式反馈gamma=0/5/10/15/20/25 dB；DL SNR固定25 dB | CE训练覆盖六个gamma与Ep全组合；DL链路未开始 |
+| DL/UL与噪声 | UE完美DL CSI；BS使用LS＋U-Net UL CSI；N0=0.25×10^(-gamma/10) | CE训练真实CDL六gamma×Ep全覆盖；复噪声每点50万样本实测，最大相对方差偏差0.281%；DL任务链路未开始 |
 | 能量 | 每UE总能量64；候选Ep={8,16,24}，key:shared={1:3,1:1} | 六个候选合计64；CPU smoke单个候选实际数据能量最大绝对误差7.63e-6；尚未验证集选优 |
 | 数据隔离 | 独立CE训练、codec训练、CE校准、验证、测试namespace；测试仅用于最终报告 | 五个角色CPU样本地址各异，固定validation和ce_train step地址可重复；5对中跨角色SHA碰撞0。完整namespace规模审计、正式checkpoint恢复检查未知 |
 | 控制时序 | pilot后先估UL，再选择组员/数据能量并通知UE，随后发key和共享数据 | CPU smoke按pilot调用、LS估计、数据调用顺序执行；无控制消息开销模型；相干假设为UL在两阶段间不变 |
@@ -87,13 +87,13 @@
 - 编译日志：`/home/r50037942/project/03_PRECODER/overleaf/build/TWC_progress_updated_analog_superposition.log`；LaTeX Workshop已设onFileChange、3秒间隔、build输出目录、tab预览器。
 - 编译结果：日志包含`Output written on ... (18 pages)`，构建成功。主要warning：未识别全局选项`lettersize`；pgfplots处于backward compatibility模式；2处Overfull hbox（约9.02pt、2.55pt）；多处Underfull hbox/vbox；amsmath提示公式起始处方括号组。未发现未定义引用/文献警告；视觉检查状态未知。
 - 保留的上传基线PDF：`/home/r50037942/project/03_PRECODER/overleaf/TWC_progress_updated_analog_superposition.pdf`，18页，原始上传快照manifest记录SHA256；与build下新生成文件分开保留。
-- TWC K8计划论文数字：未开始；目前无可对应的新K8 CSV/run ID。旧稿里数字需逐项追溯，不能作为新协议性能证据。
+- TWC K8论文材料：Stage A的UL NMSE验证曲线已有CSV/PDF及run ID `twc_v1_k8_ce_seed_20261105`；新协议下行NMSE/速率、FDMA配对和正式测试数字尚无CSV/run ID。旧稿里数字需逐项追溯，不能作为新协议性能证据。
 
 ## 源码、Git与证据路径
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- 最近已推送commit：`ec7a6fc`（K8 CE训练/校准管线与启动目录修正）；Stage A代码前一提交为`8342f7c`。
-- 当前未提交源码变更：无；CE结果报告、曲线和calibration CSV待选择性提交。工作区仍有`.gitignore`修改及5个旧文件删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。这些既有变更及其他未跟踪文件未纳入本轮备份提交。
+- 最近已推送commit：`026aaaf`（CE run报告、validation曲线与独立校准材料）；训练源码commit为`ec7a6fc`，其前一提交为`8342f7c`。
+- 当前未提交源码变更：无；本轮CE报告、曲线、图和校准CSV已选择性提交推送。工作区仍有`.gitignore`修改及5个旧文件删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。这些既有变更及其他未跟踪文件未纳入本轮备份提交。
 - **2026-11-04 14:31 CET：** 选择性提交并推送K8候选能量网格、CPU反馈链路和preflight；commit `629ae85`，远端`main`从`72f6792`前进。`git diff --check`通过；原有旧文件删除、`.gitignore`和未跟踪目录未纳入。
 - `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_LS_validation_screen_20261104.csv`及同名JSON记录32帧screen及数据指纹；该结果不是正式CE曲线。
 
