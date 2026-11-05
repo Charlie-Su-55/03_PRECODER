@@ -8,7 +8,7 @@
 - **当前阶段：** 首轮网络设计冻结；BS Joint Transformer＋空间Swin已实现并通过CPU链路验收，等待可读GPU环境进行CUDA资源/吞吐验收。Stage A完成。旧FDMA seed 20261106的250步试跑属于旧原型，**不计入正式Stage B warmup预算，也不兼容新接收器参数结构**。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 本轮`nvidia-smi`无法与驱动通信，占用未知；未启动GPU作业。最近历史快照为2026-11-04 23:05 CET，RTX 5090利用率68%、显存3538/32607 MiB。
-- **代码版本：** BS receiver实现`8f8fa82`与状态页更新`87e7507`已推送到GitHub `main`；本轮源码基线为`6bf5ffc`。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** BS receiver实现`8f8fa82`、状态页更新`87e7507`及最终状态修订`27402c3`已推送到GitHub `main`；当前HEAD为`27402c3`。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
 - **代码/验收/证据区分：** 目标BS receiver已实现跨用户self-attention、观测cross-attention、软符号残差、4096空间query cross-attention和全256-tap Swin输出；旧多源融合实现保留为原型类。CPU四布局端到端前向/梯度验收通过；冻结默认width128/four-block另完成Hybrid G=4前向/反向。正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
@@ -97,17 +97,17 @@
 ## 源码、Git与证据路径
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
-- 最近已推送commit：`026aaaf`（CE run报告、validation曲线与独立校准材料）；训练源码commit为`ec7a6fc`，其前一提交为`8342f7c`。
-- 当前待提交源码变更：`models/twc_v1_k8_joint_decoder.py`、`models/twc_v1_k8_neural.py`、`utils/twc_v1_k8_system.py`、`utils/twc_v1_k8_downlink.py`、`preflight_twc_v1_k8_codec_link.py`；CPU证据JSON及文档也待本轮选择性推送。既有`.gitignore`修改、5个旧源码删除及Overleaf/历史数据等保持未纳入。
+- 最近已推送commit：`27402c3`（K8 BS receiver状态与验收回执）；receiver源码commit为`8f8fa82`。历史CE材料提交为`026aaaf`。
+- 本轮receiver源码、CPU preflight及两份JSON证据已选择性提交并推送。工作区仍有既有`.gitignore`修改、5个旧源码删除、V2计划文件、Overleaf副本和历史数据等未纳入本轮备份。
 - **2026-11-04 14:31 CET：** 选择性提交并推送K8候选能量网格、CPU反馈链路和preflight；commit `629ae85`，远端`main`从`72f6792`前进。`git diff --check`通过；原有旧文件删除、`.gitignore`和未跟踪目录未纳入。
 - `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_LS_validation_screen_20261104.csv`及同名JSON记录32帧screen及数据指纹；该结果不是正式CE曲线。
 
 最多4个关键证据文件：
 
-1. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_run_20261104.json`
-2. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.csv`
-3. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.pdf`
-4. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_calibration_20261104.csv`
+1. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_validation_curve_20261104.csv`
+2. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_CE_calibration_20261104.csv`
+3. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_small.json`
+4. `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_full.json`
 
 ## 问题与下一步
 
@@ -117,7 +117,7 @@
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：选择性推送本轮源码/CPU验收回执；之后在可读`nvidia-smi`的GPU主机核验占用，按超过20%先请示的规则执行目标网络CUDA显存/吞吐验收，再开始正式Stage B四份warmup。08保持只读；Overleaf论文未修改。
+下一项动作：在可读`nvidia-smi`的GPU主机核验占用；若利用率超过20%，先向用户请示。通过资源核验后执行目标网络CUDA显存/吞吐验收，再开始正式Stage B四份warmup。08保持只读；Overleaf论文未修改。
 
 ## 更新记录
 
