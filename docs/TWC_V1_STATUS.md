@@ -1,21 +1,21 @@
 # TWC 1.0 K8 科研进度
 
 最后核查：2026-11-05（本轮补记）
-依据：K8源码与V2计划核查、现有03 K4 Joint decoder结构文档/源码、旧Stage B运行日志/manifest/checkpoint、Git状态。本轮冻结首轮网络设计；目标decoder尚未实现/验收，未启动GPU作业。
+依据：K8源码与V2计划、Joint decoder实现、CPU preflight回执、旧Stage B日志/manifest/checkpoint及Git状态。目标BS decoder已实现并通过CPU验收；未启动GPU作业。
 
 ## 一屏摘要
 
-- **当前阶段：** 首轮网络设计已冻结，进入目标BS decoder实现与CPU验收。Stage A完成；现有BS接收器代码仍是多源条件融合Swin原型，尚未按冻结规格改造。旧FDMA seed 20261106的250步试跑已暂停并保留，**不计入正式Stage B warmup预算**。
+- **当前阶段：** 首轮网络设计冻结；BS Joint Transformer＋空间Swin已实现并通过CPU链路验收，等待可读GPU环境进行CUDA资源/吞吐验收。Stage A完成。旧FDMA seed 20261106的250步试跑属于旧原型，**不计入正式Stage B warmup预算，也不兼容新接收器参数结构**。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 本轮`nvidia-smi`无法与驱动通信，占用未知；未启动GPU作业。最近历史快照为2026-11-04 23:05 CET，RTX 5090利用率68%、显存3538/32607 MiB。
-- **代码版本：** 源码基线HEAD `6bf5ffc`；本轮仅更新设计/状态文档，备份提交`66ddd98`已推送至GitHub `main`，没有修改源码。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** BS receiver实现提交`8f8fa82`已生成并待推送；源码基线为`6bf5ffc`。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
-- **代码/验收/证据区分：** 物理反馈＋多源条件融合Swin原型＋RZF链路、Stage B/C入口及validation lambda诊断代码已实现；原型CPU前向/反向通过，Stage C静态编译与CLI参数检查通过。首轮网络设计规格已冻结于`docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`，但目标Joint decoder代码实现与CPU运行验收**尚未开始**；正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
+- **代码/验收/证据区分：** 目标BS receiver已实现跨用户self-attention、观测cross-attention、软符号残差、4096空间query cross-attention和全256-tap Swin输出；旧多源融合实现保留为原型类。CPU四布局端到端前向/梯度验收通过；冻结默认width128/four-block另完成Hybrid G=4前向/反向。正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
 - **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint在16个CPU validation-role样本上六个gamma均完成核验；DL NMSE均值约`0.4937–0.4957`，sum-rate约`1.609–1.630 bit/s/Hz`。该CPU生成数据ID与CUDA训练manifest的validation数据ID不同；数值仅作链路早期诊断，不作为训练曲线或性能结论。95%区间只按4个batch均值用t分布计算，test未读。
-- **资源与隔离验收：** CPU原型链路能量最大偏差`7.6294e-6`、RZF功率最大偏差`3.5763e-7`。接收器原型试跑peak allocated `1,899,246,080` bytes（约1.77 GiB）；不用于估算新架构正式训练。test未读取；目标decoder验收及正式六点完整链路矩阵未知。
+- **资源与隔离验收：** 新decoder CPU链路每UE数据能量最大绝对偏差`7.6294e-6`，RZF每子载波功率最大偏差`2.98e-7`；data-only Y扰动使输出最大变化`2.32e-4`（缩小四布局检查）、`8.17e-4`（full-width G=4）。全宽结构CPU通过，但GPU峰值显存/吞吐未知。test未读取；六SNR正式评估未知。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** 当前环境`nvidia-smi`无法与驱动通信，GPU占用未知；目标Joint decoder尚待按冻结规格实现并完成CPU验收。step250原型checkpoint保留作调试，不作为目标架构warmup起点。目标网络CPU验收后再做首次CUDA资源/吞吐验收，随后进入正式Stage B。
+- **主要阻塞：** 当前环境`nvidia-smi`无法与驱动通信，GPU占用与新网络CUDA显存/吞吐未知。目标receiver CPU验收已完成；需在可读GPU状态的主机先做资源验收，再进入正式Stage B。旧step250 prototype checkpoint不能用于新架构。
 
 ## 阶段状态
 
@@ -36,7 +36,7 @@
 | Stage A：LS与LS＋U-Net UL CE预训练及校准 | 完成 | LS初值为pilot-LS＋线性插值；`train_twc_v1_k8_ce.py`只读pilot-only观测，H_UL只作监督目标 | 5000/5000更新；best/latest权重step5000载入核验；独立calibration 18条件通过 | 有限validation设计证据 | validation较同条件LS低约3.57 dB；不代表下行任务或独立测试性能 |
 | 原型链路：物理反馈到RZF | 完成（原型代码/CPU验收） | CE冻结、校准软恢复、Hybrid/FDMA、多源条件融合Swin、DL NMSE/RZF和速率指标 | CPU原型真实CDL前向及反向梯度通过 | 未开始 | 仅gamma=10、Ep=16原型链路检查；无性能证据 |
 | 首轮网络设计冻结 | 完成 | CE U-Net、UE Swin、Joint Transformer＋空间Swin、非神经查表控制与RZF范围已冻结 | 文档交叉核对完成；不等于代码验收 | 未开始 | `docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`；控制策略具体validation查表值仍待选择 |
-| 目标BS decoder实现与验收 | 运行中 | 当前仍为多源卷积融合Swin原型 | 目标架构CPU验收未开始 | 未开始 | 按冻结规格实现槽位/观测memory/全用户Joint attention/残差/空间cross-attention；随后CPU验收所有布局与梯度 |
+| 目标BS decoder实现与CPU验收 | 完成（CPU范围） | `models/twc_v1_k8_joint_decoder.py`实现全用户Joint attention、观测memory、残差修正、空间attention及Swin输出 | Hybrid G=1/2/4和FDMA完整CPU链通过；full-width 128/4-block G=4前向与反向通过；输入敏感性/梯度检查通过 | 未开始 | CUDA资源/吞吐、batch-size验收未知；随机初始化smoke数值不是性能证据 |
 | Stage B：FDMA/Hybrid NMSE warmup | 未开始（正式预算） | 10k训练入口代码已实现 | FDMA seed 20261106原型试跑250步并保存checkpoint，不计正式预算 | 未开始 | 目标decoder冻结后正式warmup重新启动；另3份未开始 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 分叉训练器及validation梯度尺度lambda诊断代码已实现；lambda和Rref不自动猜测 | py_compile与CLI帮助检查通过；无Stage C训练/恢复运行 | 未开始 | 必须先有匹配Stage B 10k checkpoint；lambda候选需验证集诊断后冻结；计划每分支20k |
 | Stage D：资源/能量策略、RZF及WMMSE诊断 | 未开始 | 未知 | 未开始 | 未开始 | 计划先验证集查表/扫描；新协议策略与结果未找到 |
@@ -98,7 +98,7 @@
 
 - 仓库：`/home/r50037942/project/03_PRECODER`；GitHub origin：`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - 最近已推送commit：`026aaaf`（CE run报告、validation曲线与独立校准材料）；训练源码commit为`ec7a6fc`，其前一提交为`8342f7c`。
-- 当前未提交源码变更：无；本轮CE报告、曲线、图和校准CSV已选择性提交推送。工作区仍有`.gitignore`修改及5个旧文件删除`diagnose_cross_cdl_condition.py`、`old/diagnostic_eval.py`、`old/train_adaptive_8ue.py`、`old/train_csinet_baseline_8ue.py`、`old/train_swin_baseline_8ue.py`。这些既有变更及其他未跟踪文件未纳入本轮备份提交。
+- 当前待提交源码变更：`models/twc_v1_k8_joint_decoder.py`、`models/twc_v1_k8_neural.py`、`utils/twc_v1_k8_system.py`、`utils/twc_v1_k8_downlink.py`、`preflight_twc_v1_k8_codec_link.py`；CPU证据JSON及文档也待本轮选择性推送。既有`.gitignore`修改、5个旧源码删除及Overleaf/历史数据等保持未纳入。
 - **2026-11-04 14:31 CET：** 选择性提交并推送K8候选能量网格、CPU反馈链路和preflight；commit `629ae85`，远端`main`从`72f6792`前进。`git diff --check`通过；原有旧文件删除、`.gitignore`和未跟踪目录未纳入。
 - `/home/r50037942/project/03_PRECODER/docs/evidence/TWC_V1_K8_LS_validation_screen_20261104.csv`及同名JSON记录32帧screen及数据指纹；该结果不是正式CE曲线。
 
@@ -111,13 +111,13 @@
 
 ## 问题与下一步
 
-1. **目标BS decoder尚未设计/实现。**当前`K8MultiSourceFusionSwinReceiver`只是把观测、估计UL、可靠度和条件经过卷积后加到软码字Swin token，再做空间Swin；跨用户self-attention、观测cross-attention、软码字残差修正、空间cross-attention均未实现。现有端到端CPU验收只证明多源融合原型链路可运行，不代表目标Joint Transformer＋Swin结构已落实。影响：正式Stage B warmup应等目标结构冻结后再启动。
+1. **新接收器尚未做CUDA资源验收。**CPU测试已通过，`nvidia-smi`仍无法连接当前驱动，GPU占用、峰值显存、batch能力和训练吞吐均未知。影响：正式Stage B尚不能启动；应在GPU状态可读后先核对占用并测首批吞吐/显存。
 2. **08接口不能原样移植。**08 U-Net固定K4/32 pilot RE、噪声参考0.125；03需要K8/64 pilot RE及0.25参考。已适配维数和噪声换算，但没有迁移08训练/校准材料，也未证明跨设置泛化。
 3. **选择策略和数据审计未完成。**六个能量候选已配置、样本角色namespace已实现；pilot gamma查表、UL条件下Ekey/EAS/G选择及大规模重叠/暂停恢复审计仍未完成。
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：按冻结规格实现目标K8 decoder，做G=1/2/4与FDMA CPU前向、输入泄漏和梯度验收；通过后在可读GPU状态的主机完成资源/吞吐验收，再开始正式Stage B四份warmup。原型250步checkpoint保留但不自动恢复；08保持只读；Overleaf论文未修改。
+下一项动作：选择性推送本轮源码/CPU验收回执；之后在可读`nvidia-smi`的GPU主机核验占用，按超过20%先请示的规则执行目标网络CUDA显存/吞吐验收，再开始正式Stage B四份warmup。08保持只读；Overleaf论文未修改。
 
 ## 更新记录
 
@@ -145,5 +145,6 @@
 - **2026-11-05 00:00 CET：**根据源码结构复核，澄清原`K8JointFeedbackDecoder`只有卷积多源条件特征加和Swin块，尚无计划的跨用户self-attention、观测cross-attention、软码字残差修正或空间cross-attention。实现类改名为`K8MultiSourceFusionSwinReceiver`，旧类名保留兼容别名，module/state_dict参数层级未变；Stage B step250标记为原型试跑、不计正式warmup预算。未训练、未用GPU；目标decoder设计/CPU验收列为当前首要未完成项。
 - **2026-11-05 00:02 CET：**接收器原型重命名、训练状态页与preflight报告更正已选择性提交并推送，commit `2cdbc18`。权重参数层级保持不变；没有运行训练或GPU任务。
 - **2026-11-05（本轮）：**在检查V2计划、K8源码与03既有Joint decoder参考后，冻结首轮三个学习网络及非神经控制方式，规格见`docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`。确定全8用户联合注意力、Hybrid/FDMA统一符号槽位、256-token观测memory、软符号残差、2048空间query cross-attention、完整256-tap Swin；CE U-Net和UE Swin按现有已实现结构冻结。资源策略与RZF alpha采用validation查表，不增加MLP。`nvidia-smi`仍无法连接驱动，GPU占用未知；未启动GPU作业。目标decoder仍待编码/CPU验收；训练更新0、checkpoint未变、无性能证据；论文未改。
-- **2026-11-05（本轮备份）：**冻结规格和状态页选择性提交并推送至GitHub `main`，文档提交`e58b8cc`，格式修订提交`66ddd98`。未纳入既有`.gitignore`、旧文件删除、V2计划、Overleaf或历史数据改动。
+- **2026-11-05（本轮备份）：**冻结规格和状态页选择性提交并推送至GitHub `main`，文档提交`e58b8cc`，格式修订提交`66ddd98`，状态同步提交`1b60aa8`。未纳入既有`.gitignore`、旧文件删除、V2计划、Overleaf或历史数据改动。
+- **2026-11-05（BS接收器CPU验收）：**实现`K8JointTransformerSwinReceiver`并接入`K8FeedbackChain`；统一Hybrid/FDMA符号槽位映射、256观测memory、两层全8用户pre-LN self/cross-attention、attention bias、软符号复残差、4096空间query cross-attention及全256-tap四block Swin输出。`preflight_twc_v1_k8_codec_link.py`在CPU、codec_train样本上通过Hybrid G=1/2/4及FDMA前向/反向；活动query数1312/672/352/192，目标模块hook均触发，UE encoder、Joint层、残差、空间attention与Swin decoder梯度均有限非零。冻结width128/four-block full-width Hybrid G=4前向/反向通过。data-only Y扰动输出差最大值：缩小四布局验收`2.3237e-4`，full-width G4 `8.1739e-4`。输入签名不含真CSI/发送码字/真误差。实际能量最大误差`7.6294e-6`，RZF功率偏差最高`2.98e-7`。DL NMSE/速率只为随机初始化链路smoke，不作为性能证据；训练更新0、test未读取、CUDA/显存/吞吐未知。源码和证据已选择性提交`8f8fa82`，待推送；证据JSON为`docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_small.json`与`docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_full.json`。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
