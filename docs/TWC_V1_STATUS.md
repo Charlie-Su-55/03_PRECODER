@@ -1,21 +1,21 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-05（本轮补记）
-依据：K8源码与V2计划、Joint decoder实现、CPU preflight回执、旧Stage B日志/manifest/checkpoint及Git状态。目标BS decoder已实现并通过CPU验收；未启动GPU作业。
+最后核查：2026-11-06（FDMA完成；Hybrid暂停等待GPU空闲）
+依据：K8源码与V2计划、Joint decoder实现、CPU preflight回执、Stage B日志/manifest/checkpoint及Git状态。目标BS decoder已实现并通过CPU验收；FDMA warmup完成，Hybrid在step500 checkpoint暂停。
 
 ## 一屏摘要
 
-- **当前阶段：** 首轮网络设计冻结；BS Joint Transformer＋空间Swin已实现并通过CPU链路验收，等待可读GPU环境进行CUDA资源/吞吐验收。Stage A完成。旧FDMA seed 20261106的250步试跑属于旧原型，**不计入正式Stage B warmup预算，也不兼容新接收器参数结构**。
+- **当前阶段：** Stage B第二份warmup（Hybrid，seed 20261106）暂停于step500，等待外部GPU任务结束或用户许可；FDMA配对run已完成；网络设计冻结，BS Joint Transformer＋空间Swin已通过CPU链路验收。Stage A完成。此前旧原型250步不计正式预算，且不兼容新接收器。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
-- **GPU快照：** 本轮`nvidia-smi`无法与驱动通信，占用未知；未启动GPU作业。最近历史快照为2026-11-04 23:05 CET，RTX 5090利用率68%、显存3538/32607 MiB。
-- **代码版本：** BS receiver实现`8f8fa82`已推送；最终状态页修订`db6eeef`已推送到GitHub `main`，当前HEAD为`db6eeef`。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **GPU快照：** 本轮训练启动前GPU 0%、18 MiB/32607 MiB（仅GNOME 6 MiB）；启动后快照68%、2074 MiB，FDMA期间本run Python进程约2048 MiB；FDMA完成后GPU回到0%、18 MiB；Hybrid启动后发现外部Python PID 3367392占用约1108 MiB，利用率短时达65%，按用户20%门槛暂停本run。暂停后的最后GPU快照为3%、1134 MiB，外部任务仍持有显存；当前实时利用率未知。RTX 5090。
+- **代码版本：** BS receiver实现`8f8fa82`已推送；状态页早期修订`db6eeef`已推送；续训bug修复`ab6ccd4`已推送到GitHub `main`，当前HEAD为`ab6ccd4`。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
-- **代码/验收/证据区分：** 目标BS receiver已实现跨用户self-attention、观测cross-attention、软符号残差、4096空间query cross-attention和全256-tap Swin输出；旧多源融合实现保留为原型类。CPU四布局端到端前向/梯度验收通过；冻结默认width128/four-block另完成Hybrid G=4前向/反向。正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
-- **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
-- **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint在16个CPU validation-role样本上六个gamma均完成核验；DL NMSE均值约`0.4937–0.4957`，sum-rate约`1.609–1.630 bit/s/Hz`。该CPU生成数据ID与CUDA训练manifest的validation数据ID不同；数值仅作链路早期诊断，不作为训练曲线或性能结论。95%区间只按4个batch均值用t分布计算，test未读。
+- **代码/验收/证据区分：** 目标BS receiver已实现并通过CPU四布局前向/梯度验收；冻结默认width128/four-block另完成Hybrid G=4前向/反向。FDMA Stage B warmup运行验收通过10,000步；同seed Hybrid已完成500/10,000步，但因外部GPU负载暂停；续训RNG映射bug已修复并推送。独立codec性能证据尚无，Stage C未开始。
+- **训练步数/checkpoint：** CE本轮更新数 **5000/5000**，latest/best step5000。正式Stage B FDMA seed 20261106_jointv1 已完成10,000/10,000，checkpoint加载核验step10000并含AdamW/CPU/CUDA RNG状态；用时1785.91秒，峰值CUDA分配1,214,382,592 bytes（约1.13 GiB）。Hybrid seed 20261106_jointv1暂停在已核验的step500/10,000 checkpoint；未发生该checkpoint之后的优化更新。续训映射修复后commit为`ab6ccd4`并已推送；checkpoint、console、manifest独立目录。本轮optimizer更新与CE来源checkpoint step5000分开记录；其余Stage B run未开始。
+- **训练曲线和性能：** Hybrid在step500为NMSE_warmup，LR=2e-4、NMSE权重1/rate权重0；固定validation每gamma和G=1/2/4的DL NMSE约0.352–0.411、速率约1.48–1.60 bit/s/Hz（4 batches/16样本）。属于暂停前训练诊断，没有匹配训练对照或独立性能证据。已完成FDMA在固定validation（4 batches/16样本）step10000的gamma 0/5/10/15/20/25 dB均值DL NMSE为0.00857/0.00774/0.00751/0.00740/0.00735/0.00734，和速率为15.6875/16.4570/16.9164/16.8415/16.8887/16.9782 bit/s/Hz。属于训练中validation，尚无匹配控制或独立性能证据，不作最终结论。此前CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint在16个CPU validation-role样本上六个gamma均完成核验；DL NMSE均值约`0.4937–0.4957`，sum-rate约`1.609–1.630 bit/s/Hz`。该CPU生成数据ID与CUDA训练manifest的validation数据ID不同；数值仅作链路早期诊断，不作为训练曲线或性能结论。95%区间只按4个batch均值用t分布计算，test未读。
 - **资源与隔离验收：** 新decoder CPU链路每UE数据能量最大绝对偏差`7.6294e-6`，RZF每子载波功率最大偏差`2.98e-7`；data-only Y扰动使输出最大变化`2.32e-4`（缩小四布局检查）、`8.17e-4`（full-width G=4）。全宽结构CPU通过，但GPU峰值显存/吞吐未知。test未读取；六SNR正式评估未知。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** 当前环境`nvidia-smi`无法与驱动通信，GPU占用与新网络CUDA显存/吞吐未知。目标receiver CPU验收已完成；需在可读GPU状态的主机先做资源验收，再进入正式Stage B。旧step250 prototype checkpoint不能用于新架构。
+- **主要阻塞：** Hybrid因外部GPU进程暂停在step500 checkpoint；当前无本项目GPU进程。等待GPU利用率低于20%或用户再次授权后恢复。FDMA/Hybrid验证batch数较少（4），无匹配对照或独立性能证据。旧prototype checkpoint不能用于新架构。
 
 ## 阶段状态
 
@@ -37,7 +37,7 @@
 | 原型链路：物理反馈到RZF | 完成（原型代码/CPU验收） | CE冻结、校准软恢复、Hybrid/FDMA、多源条件融合Swin、DL NMSE/RZF和速率指标 | CPU原型真实CDL前向及反向梯度通过 | 未开始 | 仅gamma=10、Ep=16原型链路检查；无性能证据 |
 | 首轮网络设计冻结 | 完成 | CE U-Net、UE Swin、Joint Transformer＋空间Swin、非神经查表控制与RZF范围已冻结 | 文档交叉核对完成；不等于代码验收 | 未开始 | `docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`；控制策略具体validation查表值仍待选择 |
 | 目标BS decoder实现与CPU验收 | 完成（CPU范围） | `models/twc_v1_k8_joint_decoder.py`实现全用户Joint attention、观测memory、残差修正、空间attention及Swin输出 | Hybrid G=1/2/4和FDMA完整CPU链通过；full-width 128/4-block G=4前向与反向通过；输入敏感性/梯度检查通过 | 未开始 | CUDA资源/吞吐、batch-size验收未知；随机初始化smoke数值不是性能证据 |
-| Stage B：FDMA/Hybrid NMSE warmup | 未开始（正式预算） | 10k训练入口代码已实现 | FDMA seed 20261106原型试跑250步并保存checkpoint，不计正式预算 | 未开始 | 目标decoder冻结后正式warmup重新启动；另3份未开始 |
+| Stage B：FDMA/Hybrid NMSE warmup | 运行中 | 10k入口已实现；resume RNG mapping修复已推送 | FDMA 10k完成；Hybrid 500/10k checkpoint核验后暂停 | 仅训练中validation，无独立性能证据 | 等待外部GPU负载下降；余下两份未开始 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 分叉训练器及validation梯度尺度lambda诊断代码已实现；lambda和Rref不自动猜测 | py_compile与CLI帮助检查通过；无Stage C训练/恢复运行 | 未开始 | 必须先有匹配Stage B 10k checkpoint；lambda候选需验证集诊断后冻结；计划每分支20k |
 | Stage D：资源/能量策略、RZF及WMMSE诊断 | 未开始 | 未知 | 未开始 | 未开始 | 计划先验证集查表/扫描；新协议策略与结果未找到 |
 | 六SNR、两个seed独立正式评估 | 未开始 | 未知 | 未开始 | 未开始 | 独立测试、配对样本和置信区间材料未找到 |
@@ -45,13 +45,13 @@
 
 ## 运行、更新数与checkpoint
 
-- 当前运行状态：Stage A CE训练和独立校准均**完成**；接收器原型试跑已暂停，无本项目训练进程。
-- K8正式CE更新数：**5000/5000**。接收器原型FDMA seed 20261106实跑250步/保存step250；该250步不计目标decoder冻结后的正式Stage B预算，正式Stage B仍0/40k。
-- 来源checkpoint累计步数：0；CE从新初始化开始。
+- 当前运行状态：Stage A CE训练和独立校准均**完成**；Stage B FDMA已完成，Hybrid seed 20261106_jointv1 **暂停于step500 checkpoint**；当前无本项目训练进程。
+- K8正式CE更新数：**5000/5000**。FDMA更新10,000/10,000；Hybrid本run更新500/10,000且暂停；Stage B预算累计已完成10,000，另有500步未完成run进度（完整Stage B总目标40,000）。旧原型250步仍不计数。
+- 来源checkpoint累计步数：两份Stage B run均从CE checkpoint step5000开始；FDMA run实际更新10,000步，Hybrid run另行计数，不把来源step混入本轮更新数。
 - 最后保存且核验checkpoint：latest step5000；best step5000；checkpoint均由PyTorch载入并核验内部step。
 - 训练日志步数与权重步数：manifest、JSONL训练日志和latest权重均完成5000更新；详细日志/checkpoint位于`runs/twc_v1_k8_ce/seed_20261105/`。
 - 首500步与1k步实测耗时约18秒/37秒；完整5000步实测180.06秒，独立校准约13秒。训练CUDA峰值`502,798,848` bytes（约0.47 GiB）。训练后GPU快照0%、18 MiB。
-- 接收器原型checkpoint位于`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/checkpoint_latest.pt`，step250可加载；运行时长31.28秒、峰值分配`1,899,246,080` bytes。该原型checkpoint保留作调试，不直接用于正式warmup/目标decoder。
+- FDMA正式checkpoint `runs/twc_v1_k8_codec_warmup/fdma/seed_20261106_jointv1/checkpoint_latest.pt`载入核验step10000，优化器及RNG状态存在；Hybrid checkpoint `runs/twc_v1_k8_codec_warmup/hybrid/seed_20261106_jointv1/checkpoint_latest.pt`已核验step500；run manifest注明因外部GPU负载暂停。旧原型checkpoint位于`.../fdma/seed_20261106/`，只保留调试。
 - Stage C代码位于`train_twc_v1_k8_codec_stage_c.py`和`diagnose_twc_v1_k8_stage_c_lambda.py`，共用配置`configs/twc_v1_k8_codec_stage_c_config.py`。Stage C入口严格要求对应arm/seed的Stage B step10k checkpoint；NMSE/joint从同一warmup权重分叉，均重新初始化相同AdamW及constant LambdaLR；joint显式要求验证集确定的lambda_target与Rref，并按前5k更新线性升权。诊断器只用validation role，报告共享UE encoder patch层梯度尺度与候选，不自动选参、不读取test。代码未训练，lambda数值未选。
 - CPU在该step250 checkpoint上对16个validation-role样本完成gamma 0/5/10/15/20/25 dB前向；DL NMSE均值0.4937–0.4957，sum-rate均值1.6088–1.6296 bit/s/Hz。4-batch 95% t区间仅作诊断。由于replay data identity把运行设备写入data_id，CPU评估data_id=`f0dec803f6343c9fa5df1d4d122e92923351a7722abf1df2ffe5b6ce67145fbd`，与CUDA训练validation data_id=`addaaee65bbbb48afdab4acc44a3f638430e7572c612479086e4440dd44b786d`不同，因此不是训练时同一固定validation信道集；test未读取，optimizer updates=0。证据：`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106/cpu_validation_step250_16samples.json`。
 
@@ -111,13 +111,13 @@
 
 ## 问题与下一步
 
-1. **新接收器尚未做CUDA资源验收。**CPU测试已通过，`nvidia-smi`仍无法连接当前驱动，GPU占用、峰值显存、batch能力和训练吞吐均未知。影响：正式Stage B尚不能启动；应在GPU状态可读后先核对占用并测首批吞吐/显存。
+1. **Hybrid Stage B因外部GPU负载暂停。** 外部任务短时使GPU利用率达到65%，因此在step500 checkpoint停训；续训RNG状态映射bug已在`ab6ccd4`修复并推送。需待GPU低于20%或用户确认后恢复。FDMA固定validation表现尚无同条件baseline/置信区间，也没有独立测试证据。
 2. **08接口不能原样移植。**08 U-Net固定K4/32 pilot RE、噪声参考0.125；03需要K8/64 pilot RE及0.25参考。已适配维数和噪声换算，但没有迁移08训练/校准材料，也未证明跨设置泛化。
 3. **选择策略和数据审计未完成。**六个能量候选已配置、样本角色namespace已实现；pilot gamma查表、UL条件下Ekey/EAS/G选择及大规模重叠/暂停恢复审计仍未完成。
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：在可读`nvidia-smi`的GPU主机核验占用；若利用率超过20%，先向用户请示。通过资源核验后执行目标网络CUDA显存/吞吐验收，再开始正式Stage B四份warmup。08保持只读；Overleaf论文未修改。
+下一项动作：保持GPU任务暂停；GPU利用率低于20%后按step500 checkpoint恢复Hybrid（附`--resume`），并检查续训确实越过step500。08保持只读；Overleaf论文未修改。
 
 ## 更新记录
 
@@ -148,3 +148,9 @@
 - **2026-11-05（本轮备份）：**冻结规格和状态页选择性提交并推送至GitHub `main`，文档提交`e58b8cc`，格式修订提交`66ddd98`，状态同步提交`1b60aa8`。未纳入既有`.gitignore`、旧文件删除、V2计划、Overleaf或历史数据改动。
 - **2026-11-05（BS接收器CPU验收）：**实现`K8JointTransformerSwinReceiver`并接入`K8FeedbackChain`；统一Hybrid/FDMA符号槽位映射、256观测memory、两层全8用户pre-LN self/cross-attention、attention bias、软符号复残差、4096空间query cross-attention及全256-tap四block Swin输出。`preflight_twc_v1_k8_codec_link.py`在CPU、codec_train样本上通过Hybrid G=1/2/4及FDMA前向/反向；活动query数1312/672/352/192，目标模块hook均触发，UE encoder、Joint层、残差、空间attention与Swin decoder梯度均有限非零。冻结width128/four-block full-width Hybrid G=4前向/反向通过。data-only Y扰动输出差最大值：缩小四布局验收`2.3237e-4`，full-width G4 `8.1739e-4`。输入签名不含真CSI/发送码字/真误差。实际能量最大误差`7.6294e-6`，RZF功率偏差最高`2.98e-7`。DL NMSE/速率只为随机初始化链路smoke，不作为性能证据；训练更新0、test未读取、CUDA/显存/吞吐未知。源码和证据`8f8fa82`、状态页`87e7507`已推送；证据JSON为`docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_small.json`与`docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_full.json`。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
+
+- **2026-11-06（Stage B正式warmup启动）：** 用户确认GPU空闲并授权约一小时任务。启动前`nvidia-smi`实测0%、18 MiB，只有GNOME进程；新架构FDMA seed 20261106，run ID `seed_20261106_jointv1`，代码commit `de3de67b815a6ee8c3371c75f6148899b3f13f71`，batch4、目标10,000更新，LR 2e-4、weight decay 1e-5、NMSE warmup（权重NMSE=1/rate=0），每250步保存与验证。到step500，console记录elapsed 94.29秒、估计余时1791.44秒，峰值CUDA分配1,214,382,592 bytes；最新checkpoint CPU载入核验step500、arm/seed及optimizer状态存在，并含CPU/CUDA RNG状态，可续训。manifest异步滞后显示step250，故以console和实际checkpoint为准。训练中validation step500（16样本/4 batches）DL NMSE和速率如一屏摘要；不含匹配baseline，不构成独立性能证据。GPU快照68%、2074 MiB，Python进程2048 MiB与本run相符。当前动作：继续本run至10,000步或约一小时边界，在已保存checkpoint处停；随后核验权重和状态。证据：`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106_jointv1/manifest.json`、`training.console.log`、`checkpoint_latest.pt`。
+
+- **2026-11-06（FDMA warmup完成、Hybrid配对run启动）：** FDMA seed 20261106_jointv1完成10,000/10,000更新，manifest status=completed，耗时1785.91秒；checkpoint PyTorch CPU载入核验step10000、arm=fdma、seed=20261106，AdamW与CPU/CUDA RNG状态存在。峰值CUDA分配1,214,382,592 bytes。固定validation step10000（4 batches/16样本）六gamma的DL NMSE均值0.00857/0.00774/0.00751/0.00740/0.00735/0.00734，和速率15.6875/16.4570/16.9164/16.8415/16.8887/16.9782 bit/s/Hz；无匹配baseline、未跑test，不是独立性能结论。FDMA完成后GPU快照0%、18 MiB；随后启动Hybrid seed 20261106_jointv1，batch4、同10k目标和配置，当前运行中。此阶段没有源码改动；Git代码commit仍de3de67。证据路径：`runs/twc_v1_k8_codec_warmup/fdma/seed_20261106_jointv1/manifest.json`、`training.console.log`、`checkpoint_latest.pt`；Hybrid对应证据在`runs/twc_v1_k8_codec_warmup/hybrid/seed_20261106_jointv1/`。
+
+- **2026-11-06（Hybrid因GPU外部负载暂停；修复续训）：** Hybrid seed 20261106_jointv1已保存checkpoint step500；CPU载入核验arm/seed/step、AdamW与CPU/CUDA RNG状态。发现另一Python进程PID 3367392占约1108 MiB，整卡利用率一度65%；本run在checkpoint后SIGINT退出。由于manifest在step250时异步落盘，曾落后权重；已将manifest补记为`interrupted`、optimizer_updates=500，elapsed 118.36秒，注明暂停原因。尝试恢复时发现原代码`torch.load(map_location=device)`会把CPU RNG tensor映射至CUDA，续训在任何optimizer更新前失败；修复为CPU加载checkpoint并让`load_state_dict`迁移状态。源码修复commit `ab6ccd4`已推送GitHub main；`py_compile`通过。最后GPU快照3%、1134 MiB，属于外部PID 3367392，实时值此后未知；未继续启动训练。FDMA completed 10,000步，仍为正式Stage B首份完成run。Hybrid validation step500记录在`validation.jsonl`，不作性能结论。证据路径：`runs/twc_v1_k8_codec_warmup/hybrid/seed_20261106_jointv1/manifest.json`、`checkpoint_latest.pt`、`validation.jsonl`；修复源码`train_twc_v1_k8_codec_warmup.py`。
