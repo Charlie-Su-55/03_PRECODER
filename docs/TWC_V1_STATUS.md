@@ -8,7 +8,7 @@
 - **当前阶段：** 首轮网络设计已冻结，进入目标BS decoder实现与CPU验收。Stage A完成；现有BS接收器代码仍是多源条件融合Swin原型，尚未按冻结规格改造。旧FDMA seed 20261106的250步试跑已暂停并保留，**不计入正式Stage B warmup预算**。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 本轮`nvidia-smi`无法与驱动通信，占用未知；未启动GPU作业。最近历史快照为2026-11-04 23:05 CET，RTX 5090利用率68%、显存3538/32607 MiB。
-- **代码版本：** 本轮源码基线HEAD `6bf5ffc`；本轮只新增/更新设计文档与状态页，没有修改源码。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** 源码基线HEAD `6bf5ffc`；本轮仅更新设计/状态文档，备份提交`66ddd98`已推送至GitHub `main`，没有修改源码。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
 - **代码/验收/证据区分：** 物理反馈＋多源条件融合Swin原型＋RZF链路、Stage B/C入口及validation lambda诊断代码已实现；原型CPU前向/反向通过，Stage C静态编译与CLI参数检查通过。首轮网络设计规格已冻结于`docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`，但目标Joint decoder代码实现与CPU运行验收**尚未开始**；正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
@@ -27,7 +27,7 @@
 | K8布局/预算配置模块 | 完成 | 完成（协议层） | CPU检查完成 | 不适用 | `utils/twc_v1_k8_protocol.py`与`configs/twc_v1_k8_protocol_config.py`；不是训练就绪实现 |
 | Ep/Ekey/EAS候选网格 | 完成 | 六个正值候选已配置 | CPU约束检查完成 | 未开始 | Ep={8,16,24}；key:shared={1:3,1:1}；等验证集选优 |
 | K8 CPU物理反馈链路 | 完成 | pilot、LS插值、数据发射、key/shared MMSE软恢复已实现 | `preflight_twc_v1_k8_link.py`通过，G=1/2/4 | 未开始 | 插值不是U-Net；不含CSI重建、预编码或性能结论 |
-| K8 pilot-only U-Net接口 | 完成 | 08共享频率残差U-Net适配为K8/64 pilot RE、03噪声口径；输入含N0/gamma与显式Ep | 随机输入边界及真实CDL LS→U-Net共18种gamma×Ep接口前向通过 | 未开始 | U-Net未训练；LS初值由调用方仅基于pilot构造 |
+| K8 pilot-only U-Net | 完成 | 共享频率残差U-Net适配K8/64 pilot RE、03噪声口径；输入含gamma与显式Ep | Stage A 5000/5000训练及独立校准18/18完成；pilot-only隔离前向通过 | 有限validation设计证据 | 固定CE checkpoint供codec阶段使用；LS初值仅由pilot构造 |
 | K8 UE编码器与BS接收器原型 | 完成（原型） | UE共享Swin key/shared编码；BS多源条件融合Swin把卷积侧特征加到码字token后做空间Swin处理 | CPU原型前向及端到端反向通过 | 未开始 | 类名为`K8MultiSourceFusionSwinReceiver`；不是目标Joint Transformer＋Swin decoder |
 | K8 CDL分角色数据与重放入口 | 完成 | 新增CE训练/codec训练/CE校准/验证/测试独立seed role和样本地址指纹；复用Sionna RNG隔离 | Sionna 2.0.1 CPU生成五角色各1对K8 CDL；固定验证与训练step地址可复现；未发现角色间指纹碰撞 | 不适用 | 仅小样本地址/重放验收；完整训练checkpoint暂停恢复与大规模数据审计未知 |
 | LS初值方法screen | 完成 | 新增归一化Gram ridge Fourier-delay LS(rank4/rank8)，保留pilot-LS线性插值 | 32帧、6 gamma×3 Ep固定validation screen；线性插值18/18条件胜出 | 有限validation设计证据 | 小样本只用于初值设计，不能当正式UL性能结果；首轮CE暂定固定线性插值 |
@@ -145,4 +145,5 @@
 - **2026-11-05 00:00 CET：**根据源码结构复核，澄清原`K8JointFeedbackDecoder`只有卷积多源条件特征加和Swin块，尚无计划的跨用户self-attention、观测cross-attention、软码字残差修正或空间cross-attention。实现类改名为`K8MultiSourceFusionSwinReceiver`，旧类名保留兼容别名，module/state_dict参数层级未变；Stage B step250标记为原型试跑、不计正式warmup预算。未训练、未用GPU；目标decoder设计/CPU验收列为当前首要未完成项。
 - **2026-11-05 00:02 CET：**接收器原型重命名、训练状态页与preflight报告更正已选择性提交并推送，commit `2cdbc18`。权重参数层级保持不变；没有运行训练或GPU任务。
 - **2026-11-05（本轮）：**在检查V2计划、K8源码与03既有Joint decoder参考后，冻结首轮三个学习网络及非神经控制方式，规格见`docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`。确定全8用户联合注意力、Hybrid/FDMA统一符号槽位、256-token观测memory、软符号残差、2048空间query cross-attention、完整256-tap Swin；CE U-Net和UE Swin按现有已实现结构冻结。资源策略与RZF alpha采用validation查表，不增加MLP。`nvidia-smi`仍无法连接驱动，GPU占用未知；未启动GPU作业。目标decoder仍待编码/CPU验收；训练更新0、checkpoint未变、无性能证据；论文未改。
+- **2026-11-05（本轮备份）：**冻结规格和状态页选择性提交并推送至GitHub `main`，文档提交`e58b8cc`，格式修订提交`66ddd98`。未纳入既有`.gitignore`、旧文件删除、V2计划、Overleaf或历史数据改动。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
