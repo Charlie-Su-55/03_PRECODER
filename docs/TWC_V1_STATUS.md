@@ -8,7 +8,7 @@
 - **当前阶段：** 首轮网络设计冻结；BS Joint Transformer＋空间Swin已实现并通过CPU链路验收，等待可读GPU环境进行CUDA资源/吞吐验收。Stage A完成。旧FDMA seed 20261106的250步试跑属于旧原型，**不计入正式Stage B warmup预算，也不兼容新接收器参数结构**。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 本轮`nvidia-smi`无法与驱动通信，占用未知；未启动GPU作业。最近历史快照为2026-11-04 23:05 CET，RTX 5090利用率68%、显存3538/32607 MiB。
-- **代码版本：** BS receiver实现`8f8fa82`、状态页更新`87e7507`及最终状态修订`27402c3`已推送到GitHub `main`；当前HEAD为`27402c3`。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **代码版本：** BS receiver实现`8f8fa82`已推送；最终状态页修订`db6eeef`已推送到GitHub `main`，当前HEAD为`db6eeef`。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
 - **代码/验收/证据区分：** 目标BS receiver已实现跨用户self-attention、观测cross-attention、软符号残差、4096空间query cross-attention和全256-tap Swin输出；旧多源融合实现保留为原型类。CPU四布局端到端前向/梯度验收通过；冻结默认width128/four-block另完成Hybrid G=4前向/反向。正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
