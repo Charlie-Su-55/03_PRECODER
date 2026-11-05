@@ -131,6 +131,7 @@ class K8FeedbackChain(torch.nn.Module):
         H_ul_est = self.ce_model(pilot_y, self._known_pilots(batch, device), H_ls,
             pilot_energy_per_ue=float(pilot_energy_per_ue), noise_variance=n0)
 
+        receiver_execution = None
         if isinstance(layout, protocol.HybridLayout):
             if energy_split is None or not isinstance(energy_split, protocol.EnergySplit):
                 raise TypeError("Hybrid links require an explicit K8 EnergySplit")
@@ -143,7 +144,7 @@ class K8FeedbackChain(torch.nn.Module):
             recovered = link.recover_feedback_data(tx["Y"], H_ul_est, layout,
                 energy_split, float(feedback_gamma_db), ce_var)
             Y_rx = pilot_y + tx["Y"]
-            H_dl_hat = self.codec_model.decode_feedback(
+            decoded = self.codec_model.decode_feedback(
                 recovered["key_symbols_hat"], recovered["shared_symbols_hat"],
                 group_count=group_count, Y_rx=Y_rx, H_ul_est=H_ul_est,
                 layout=layout, feedback_gamma_db=float(feedback_gamma_db),
@@ -152,6 +153,11 @@ class K8FeedbackChain(torch.nn.Module):
                 channel_error_variance=ce_var,
                 key_reliability=recovered["key_reliability"],
                 shared_reliability=recovered["shared_reliability"])
+            if isinstance(decoded, tuple):
+                H_dl_hat, corrected_symbols, receiver_execution = decoded
+            else:
+                H_dl_hat = decoded
+                corrected_symbols = None
             soft = recovered
             energy = {"pilot": energy_split.pilot, "key": energy_split.key,
                       "shared": energy_split.shared,
@@ -168,13 +174,18 @@ class K8FeedbackChain(torch.nn.Module):
                 data_energy, float(feedback_gamma_db), ce_var)
             Y_rx = pilot_y + tx["Y"]
             packed = recovered["data_symbols_hat"]
-            H_dl_hat = self.codec_model.decode_fdma_feedback(packed,
+            decoded = self.codec_model.decode_fdma_feedback(packed,
                 Y_rx=Y_rx, H_ul_est=H_ul_est, layout=layout,
                 feedback_gamma_db=float(feedback_gamma_db), noise_variance=n0,
                 pilot_energy_per_ue=float(pilot_energy_per_ue),
                 key_energy_per_ue=0.0, shared_energy_per_ue=data_energy,
                 channel_error_variance=ce_var,
                 reliability=recovered["reliability"])
+            if isinstance(decoded, tuple):
+                H_dl_hat, corrected_symbols, receiver_execution = decoded
+            else:
+                H_dl_hat = decoded
+                corrected_symbols = None
             soft = recovered
             energy = {"pilot": float(pilot_energy_per_ue), "key": 0.0,
                       "shared": data_energy, "actual_data_per_ue": tx["actual_data_energy"]}
@@ -183,6 +194,8 @@ class K8FeedbackChain(torch.nn.Module):
 
         return {"H_dl_hat": H_dl_hat, "H_ul_est": H_ul_est, "H_ul_ls": H_ls,
             "Y_rx": Y_rx, "soft_symbols": soft,
+            "corrected_symbols": corrected_symbols,
+            "receiver_execution": receiver_execution,
             "channel_error_variance": ce_var, "energy": energy,
             "tx": tx, "n0": n0, "layout": layout,
             "group_count": group_count}

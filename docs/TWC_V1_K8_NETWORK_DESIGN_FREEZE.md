@@ -1,7 +1,7 @@
 # TWC 1.0 K8 首轮网络设计冻结
 
 日期：2026-11-05
-状态：**首轮架构设计冻结；目标 BS decoder 尚未实现或运行验收。**
+状态：**首轮架构设计冻结；目标 BS decoder 已实现并通过 CPU 验收，CUDA 验收未开始。**
 
 本文件冻结首轮 K8 实验的网络类型、张量接口、主要维度和训练边界，避免 Stage B 在不同 decoder 结构间启动。冻结指设计基线冻结；实现中的原型仍需按本规格改造并通过 CPU 验收。本文不构成性能证据，也不改变已完成的 CE checkpoint。
 
@@ -68,7 +68,7 @@ Joint context经LayerNorm和复数线性head预测每个活动槽位的残差，
 
 每UE把修正后复符号按槽位规范顺序序列化：Hybrid为key后接shared，FDMA为24个FDMA-data槽；补零并携带activity/layout条件，通过共享线性层扩展到该用户的512个128维空间token，即64×8 angular-delay patch网格。加入行、列和用户位置编码。
 
-将8用户共2048个空间query对活动Joint context执行4头cross-attention，残差加入空间token；随后每UE通过宽度128、4头、window4、MLP ratio4的4个既有非移位 Swin block，LayerNorm、patch输出投影和完整256-tap inverse angular-delay transform，输出有限complex64 `[B,8,32,256]` 物理CSI。残差输出投影以标准差0.001初始化、bias为0。
+将8用户共4096个空间query（每用户64×8=512）对活动Joint context执行4头cross-attention，残差加入空间token；随后每UE通过宽度128、4头、window4、MLP ratio4的4个既有非移位 Swin block，LayerNorm、patch输出投影和完整256-tap inverse angular-delay transform，输出有限complex64 `[B,8,32,256]` 物理CSI。残差输出投影以标准差0.001初始化、bias为0。
 
 对长attention序列使用query chunk=64；训练时对attention/Swin block启用non-reentrant activation checkpointing。此设置是实现基线，不等于已验证显存足够；首次CUDA验收必须实测峰值显存和速度后才能启动正式warmup。
 
@@ -89,7 +89,7 @@ Joint context经LayerNorm和复数线性head预测每个活动槽位的残差，
 
 目标BS网络实现后、任何Stage B训练前，必须完成：
 
-1. Hybrid G=1/2/4及FDMA的活动槽位数量、资源映射、组mask和padding检查；查询数应为1312/672/352/192，memory为256，空间query为2048。
+1. Hybrid G=1/2/4及FDMA的活动槽位数量、资源映射、组mask和padding检查；查询数应为1312/672/352/192，memory为256，空间query为4096。
 2. hooks证明观测memory、两层joint self/cross attention、软符号残差、空间cross-attention和四个Swin block均实际运行。
 3. 输入边界审计排除真实CSI、真实码字、无噪声Y、真CE误差和测试信息；data-only Y按物理接收链路正常进入observation memory。
 4. CPU前向与反向在所有布局下有限；NMSE loss对UE编码器、Joint层、残差头、空间attention和Swin输出头均产生有限非零梯度。padding query/key不产生输出或attention泄漏。
@@ -100,4 +100,6 @@ Joint context经LayerNorm和复数线性head预测每个活动槽位的残差，
 
 冻结范围是首轮K8设计，包括CE U-Net、UE Swin、Joint Transformer＋空间 Swin、FDMA共用槽位接口、loss阶段及非神经控制方式。训练/validation/test namespace、能量候选选择、分组策略的具体查表结果和RZF alpha数值仍须validation选定，不属于网络结构决策；测试集只在配置冻结后评估。
 
-现有K8源码只实现并验收了pilot U-Net、UE Swin及多源卷积条件融合Swin原型。目标Joint decoder在本文件中为冻结规格，尚未写入模型代码、尚未CPU验收、没有性能证据。`nvidia-smi`本轮无法连接驱动，GPU状态未知；本轮未启动GPU作业。08项目只读，Overleaf论文未改。
+**冻结规格更正（2026-11-05）：**K8空间token数为`8×512=4096`，不是K4参考实现中的2048；实现与验收均以4096为准。此前同日状态更新提到2048的文字以本更正为准。
+
+实现记录（2026-11-05）：目标Joint decoder已写入`models/twc_v1_k8_joint_decoder.py`并接入K8完整反馈链。CPU端到端preflight覆盖Hybrid G=1/2/4及FDMA的前向、阶段梯度、观测敏感性和RZF功率；四布局测试使用width32/一个Swin block，另以冻结默认width128/四个Swin block完成Hybrid G=4前向与反向。两个preflight JSON见`docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_small.json`和`docs/evidence/TWC_V1_K8_JOINT_RECEIVER_CPU_PREFLIGHT_20261105_full.json`。以上均为工程验收，不是性能证据。CUDA显存、吞吐及训练运行验收仍未知；`nvidia-smi`当前无法连接驱动，未启动GPU作业。08项目只读，Overleaf论文未改。

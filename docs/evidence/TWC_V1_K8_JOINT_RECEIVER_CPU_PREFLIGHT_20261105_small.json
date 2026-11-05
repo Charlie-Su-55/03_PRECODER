@@ -1,0 +1,180 @@
+{
+  "N0": 0.025,
+  "calibration_csv": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/calibration.csv",
+  "ce_checkpoint_step": 5000,
+  "data_observation_sensitivity_max_abs": 0.00023236798006109893,
+  "device": "cpu",
+  "frozen_ce_checkpoint": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/checkpoint_latest.pt",
+  "full_width": false,
+  "gamma_db": 10,
+  "independent_performance_evidence": false,
+  "layouts": [
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 2727.6498757067825,
+      "dl_nmse": 6.47607946395874,
+      "gradient_l1_by_stage": {
+        "joint_layers": 7.762465581727055,
+        "spatial_cross_attention": 231.52985032089828,
+        "swin_decoder": 837.9346441328526,
+        "symbol_residual": 3.9967623949050903,
+        "ue_encoder": 33.47002989653265
+      },
+      "layout": "Hybrid-G1",
+      "receiver_execution": {
+        "active_query_count": 1312,
+        "estimated_channel_coupling_shape": [
+          1,
+          8,
+          8
+        ],
+        "group_count": 1,
+        "joint_context_shape": [
+          1,
+          1312,
+          32
+        ],
+        "layout": "hybrid",
+        "observation_memory_shape": [
+          1,
+          256,
+          32
+        ],
+        "padded_query_count": 0,
+        "spatial_cross_attention_shape": [
+          1,
+          4096,
+          32
+        ],
+        "swin_block_count": 1
+      },
+      "rzf_power_max_abs_error": 2.384185791015625e-07,
+      "sum_rate_bps_hz": 1.6797634363174438
+    },
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 2506.500132987449,
+      "dl_nmse": 6.4895453453063965,
+      "gradient_l1_by_stage": {
+        "joint_layers": 7.55172613544911,
+        "spatial_cross_attention": 240.99064514273255,
+        "swin_decoder": 802.3956366181374,
+        "symbol_residual": 4.802980899810791,
+        "ue_encoder": 32.10227154806489
+      },
+      "layout": "Hybrid-G2",
+      "receiver_execution": {
+        "active_query_count": 672,
+        "estimated_channel_coupling_shape": [
+          1,
+          8,
+          8
+        ],
+        "group_count": 2,
+        "joint_context_shape": [
+          1,
+          1312,
+          32
+        ],
+        "layout": "hybrid",
+        "observation_memory_shape": [
+          1,
+          256,
+          32
+        ],
+        "padded_query_count": 640,
+        "spatial_cross_attention_shape": [
+          1,
+          4096,
+          32
+        ],
+        "swin_block_count": 1
+      },
+      "rzf_power_max_abs_error": 2.384185791015625e-07,
+      "sum_rate_bps_hz": 1.6633198261260986
+    },
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 2197.9697074931205,
+      "dl_nmse": 6.519819259643555,
+      "gradient_l1_by_stage": {
+        "joint_layers": 7.736044760734002,
+        "spatial_cross_attention": 234.34037621033588,
+        "swin_decoder": 796.7575118243694,
+        "symbol_residual": 3.927537679672241,
+        "ue_encoder": 29.258141308266204
+      },
+      "layout": "Hybrid-G4",
+      "receiver_execution": {
+        "active_query_count": 352,
+        "estimated_channel_coupling_shape": [
+          1,
+          8,
+          8
+        ],
+        "group_count": 4,
+        "joint_context_shape": [
+          1,
+          1312,
+          32
+        ],
+        "layout": "hybrid",
+        "observation_memory_shape": [
+          1,
+          256,
+          32
+        ],
+        "padded_query_count": 960,
+        "spatial_cross_attention_shape": [
+          1,
+          4096,
+          32
+        ],
+        "swin_block_count": 1
+      },
+      "rzf_power_max_abs_error": 2.980232238769531e-07,
+      "sum_rate_bps_hz": 1.6274869441986084
+    },
+    {
+      "actual_data_energy_max_abs_error": 7.62939453125e-06,
+      "codec_gradient_l1": 1891.1675205872111,
+      "dl_nmse": 6.584332466125488,
+      "layout": "FDMA",
+      "receiver_execution": {
+        "active_query_count": 192,
+        "estimated_channel_coupling_shape": [
+          1,
+          8,
+          8
+        ],
+        "group_count": 1,
+        "joint_context_shape": [
+          1,
+          1312,
+          32
+        ],
+        "layout": "fdma",
+        "observation_memory_shape": [
+          1,
+          256,
+          32
+        ],
+        "padded_query_count": 1120,
+        "spatial_cross_attention_shape": [
+          1,
+          4096,
+          32
+        ],
+        "swin_block_count": 1
+      },
+      "rzf_power_max_abs_error": 2.384185791015625e-07,
+      "sum_rate_bps_hz": 1.655396819114685
+    }
+  ],
+  "pilot_energy_per_ue": 16,
+  "sample_fingerprint": "0b0da435b0286ab8fd038e6227f171cd18c8582e2b0ef7e77ae9ed1c97a90ff5",
+  "sample_role": "codec_train",
+  "status": "CPU_CODEC_LINK_PREFLIGHT_PASS",
+  "training_updates": 0,
+  "truth_leakage_signature_check": "pass"
+}

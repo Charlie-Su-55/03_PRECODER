@@ -11,7 +11,10 @@ def downlink_nmse(H_hat, H_true):
             or H_hat.dtype != torch.complex64 or H_true.dtype != torch.complex64
             or H_hat.shape != H_true.shape or H_hat.ndim != 4
             or tuple(H_hat.shape[1:]) != (8, 32, 256)):
-        raise ValueError("H_hat and H_true must both be complex64 [B,8,32,256]")
+        raise ValueError(
+            "H_hat and H_true must both be complex64 with equal shape [B,8,32,256]; "
+            f"got {getattr(H_hat, 'dtype', None)}/{getattr(H_hat, 'shape', None)} and "
+            f"{getattr(H_true, 'dtype', None)}/{getattr(H_true, 'shape', None)}")
     numerator = (H_hat - H_true).abs().square().sum(dim=(2, 3))
     denominator = H_true.abs().square().sum(dim=(2, 3)).clamp_min(1e-20)
     return numerator / denominator

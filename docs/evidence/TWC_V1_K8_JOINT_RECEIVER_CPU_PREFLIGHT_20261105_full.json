@@ -1,0 +1,61 @@
+{
+  "N0": 0.025,
+  "calibration_csv": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/calibration.csv",
+  "ce_checkpoint_step": 5000,
+  "data_observation_sensitivity_max_abs": 0.0008173873648047447,
+  "device": "cpu",
+  "frozen_ce_checkpoint": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce/seed_20261105/checkpoint_latest.pt",
+  "full_width": true,
+  "gamma_db": 10,
+  "independent_performance_evidence": false,
+  "layouts": [
+    {
+      "actual_data_energy_max_abs_error": 3.814697265625e-06,
+      "codec_gradient_l1": 20706.421888571673,
+      "dl_nmse": 6.49623966217041,
+      "gradient_l1_by_stage": {
+        "joint_layers": 231.68379849767348,
+        "spatial_cross_attention": 1823.0614947976449,
+        "swin_decoder": 15490.470416143537,
+        "symbol_residual": 5.416835758835077,
+        "ue_encoder": 626.9491323091788
+      },
+      "layout": "Hybrid-G4",
+      "receiver_execution": {
+        "active_query_count": 352,
+        "estimated_channel_coupling_shape": [
+          1,
+          8,
+          8
+        ],
+        "group_count": 4,
+        "joint_context_shape": [
+          1,
+          1312,
+          128
+        ],
+        "layout": "hybrid",
+        "observation_memory_shape": [
+          1,
+          256,
+          128
+        ],
+        "padded_query_count": 960,
+        "spatial_cross_attention_shape": [
+          1,
+          4096,
+          128
+        ],
+        "swin_block_count": 4
+      },
+      "rzf_power_max_abs_error": 2.384185791015625e-07,
+      "sum_rate_bps_hz": 1.6665432453155518
+    }
+  ],
+  "pilot_energy_per_ue": 16,
+  "sample_fingerprint": "0b0da435b0286ab8fd038e6227f171cd18c8582e2b0ef7e77ae9ed1c97a90ff5",
+  "sample_role": "codec_train",
+  "status": "CPU_CODEC_LINK_PREFLIGHT_PASS",
+  "training_updates": 0,
+  "truth_leakage_signature_check": "pass"
+}

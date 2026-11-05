@@ -17,6 +17,7 @@ from torch.nn import functional as F
 
 from models.baseline_common import angular_delay_transform, inverse_angular_delay_transform
 from models.swin_precoder import PatchEmbedding, SwinTransformerBlock
+from models.twc_v1_k8_joint_decoder import K8JointTransformerSwinReceiver
 
 
 _PROTOCOL_NAME = "_twc_v1_k8_protocol"
@@ -207,12 +208,13 @@ class K8SwinDecoder(nn.Module):
     def __init__(self, *, embed_dim=128, blocks=4, patch_size=4, window_size=4,
                  heads=4, mlp_ratio=4.0):
         super().__init__()
+        self.embed_dim = embed_dim
         self.patch_size, self.window_size = patch_size, window_size
         self.height, self.width = N_SUBCARRIERS // patch_size, N_ANTENNAS // patch_size
         if self.height % window_size or self.width % window_size or embed_dim % heads:
             raise ValueError("Swin patch/window geometry or attention heads are incompatible")
         max_width = 4 + shared_dimension(1)
-        self.fc = nn.Linear(2 * max_width + 3, self.height * self.width * embed_dim)
+        self.fc = nn.Linear(2 * max_width + 5, self.height * self.width * embed_dim)
         self.blocks = nn.ModuleList([
             SwinTransformerBlock(embed_dim, heads, window_size, mlp_ratio) for _ in range(blocks)
         ])
@@ -227,15 +229,43 @@ class K8SwinDecoder(nn.Module):
         _complex(shared, "shared", (batch, K_USERS, active))
         if len({key.device, shared.device, self.fc.weight.device}) != 1:
             raise ValueError("Swin decoder inputs and parameters must share a device")
-        padded = torch.zeros(batch, K_USERS, 160, dtype=shared.dtype, device=shared.device)
-        padded[..., :active] = shared
-        symbols = torch.cat((key, padded), dim=-1)
-        real = torch.cat((symbols.real, symbols.imag), dim=-1)
+        padded = torch.zeros(batch, K_USERS, 164, dtype=shared.dtype, device=shared.device)
+        padded[..., :4] = key
+        padded[..., 4:4 + active] = shared
+        active_mask = torch.zeros((batch, K_USERS, 164), dtype=torch.bool, device=shared.device)
+        active_mask[..., :4 + active] = True
+        return self.tokens_from_packed_symbols(padded, active_mask,
+            group_count=group_count, layout_kind="hybrid")
+
+    def expand_packed_symbols(self, symbols, active_mask, *, group_count, layout_kind):
+        _groups(group_count)
+        batch = symbols.shape[0] if torch.is_tensor(symbols) and symbols.ndim else 0
+        if (not torch.is_tensor(symbols) or symbols.dtype != torch.complex64
+                or tuple(symbols.shape) != (batch, K_USERS, 164)
+                or not torch.is_tensor(active_mask) or active_mask.shape != symbols.shape
+                or active_mask.dtype != torch.bool):
+            raise ValueError("Packed symbols and mask must be complex64/bool [B,8,164]")
+        if layout_kind not in ("hybrid", "fdma"):
+            raise ValueError("layout_kind must be 'hybrid' or 'fdma'")
+        if len({symbols.device, active_mask.device, self.fc.weight.device}) != 1:
+            raise ValueError("Packed symbols, mask and Swin parameters must share a device")
+        if not bool(torch.isfinite(symbols).all()):
+            raise ValueError("Packed symbols must be finite")
+        real = torch.cat((symbols.masked_fill(~active_mask, 0).real,
+                          symbols.masked_fill(~active_mask, 0).imag), dim=-1)
         group_index = SUPPORTED_GROUP_COUNTS.index(group_count)
-        condition = F.one_hot(torch.full((batch,), group_index, device=key.device), 3)
+        condition = F.one_hot(torch.full((batch,), group_index, device=symbols.device), 3)
         condition = condition.to(dtype=real.dtype)[:, None].expand(-1, K_USERS, -1)
-        codeword = torch.cat((real, condition), dim=-1).reshape(batch * K_USERS, -1)
+        layout_index = 0 if layout_kind == "hybrid" else 1
+        layout_condition = F.one_hot(torch.full((batch,), layout_index, device=symbols.device), 2)
+        layout_condition = layout_condition.to(dtype=real.dtype)[:, None].expand(-1, K_USERS, -1)
+        codeword = torch.cat((real, condition, layout_condition), dim=-1).reshape(batch * K_USERS, -1)
         tokens = self.fc(codeword).view(batch * K_USERS, self.height * self.width, -1)
+        return tokens
+
+    def tokens_from_packed_symbols(self, symbols, active_mask, *, group_count, layout_kind):
+        tokens = self.expand_packed_symbols(symbols, active_mask,
+            group_count=group_count, layout_kind=layout_kind)
         for block in self.blocks:
             tokens = block(tokens, self.height, self.width)
         return tokens
@@ -260,7 +290,7 @@ class K8SwinDecoder(nn.Module):
         return self.tokens_to_channel(tokens, batch, normalize=True)
 
 
-class K8MultiSourceFusionSwinReceiver(nn.Module):
+class K8MultiSourceFusionSwinPrototype(nn.Module):
     """Runnable multi-source conditioned Swin receiver prototype.
 
     The prototype adds convolutional features from received Y, estimated UL
@@ -392,9 +422,9 @@ class K8MultiSourceFusionSwinReceiver(nn.Module):
         return self.base_decoder.tokens_to_channel(tokens, batch, normalize=True)
 
 
-# Backward-compatible symbol name. The implementation remains the multi-source
-# fusion prototype above; it is not the planned full Joint Transformer.
-K8JointFeedbackDecoder = K8MultiSourceFusionSwinReceiver
+# The old prototype remains available for checkpoint archaeology only.
+K8MultiSourceFusionSwinReceiver = K8MultiSourceFusionSwinPrototype
+K8JointFeedbackDecoder = K8JointTransformerSwinReceiver
 
 
 class K8SwinCSIModel(nn.Module):
@@ -404,12 +434,7 @@ class K8SwinCSIModel(nn.Module):
         super().__init__()
         self.encoder = K8SwinEncoder(**swin_kwargs)
         self.decoder = K8SwinDecoder(**swin_kwargs)
-        self.joint_decoder = K8MultiSourceFusionSwinReceiver(base_decoder=self.decoder,
-            embed_dim=swin_kwargs.get("embed_dim", 128),
-            patch_size=swin_kwargs.get("patch_size", 4),
-            window_size=swin_kwargs.get("window_size", 4),
-            heads=swin_kwargs.get("heads", 4),
-            mlp_ratio=swin_kwargs.get("mlp_ratio", 4.0))
+        self.joint_decoder = K8JointTransformerSwinReceiver(base_decoder=self.decoder)
 
     def encode(self, H_dl, *, group_count):
         return self.encoder(H_dl, group_count=group_count)
