@@ -126,7 +126,11 @@ def run(args):
                                   weight_decay=cfg.WEIGHT_DECAY)
     start = 0
     if args.resume:
-        ckpt = torch.load(latest, map_location=device, weights_only=False)
+        # Keep CPU and CUDA RNG byte tensors on CPU when loading. In particular,
+        # mapping the whole checkpoint to CUDA moves torch_cpu_rng to CUDA and
+        # torch.set_rng_state then rejects it. load_state_dict copies model and
+        # optimizer state to the target device as needed.
+        ckpt = torch.load(latest, map_location="cpu", weights_only=False)
         if ckpt.get("format") != "twc_v1_k8_codec_warmup_v1" or ckpt.get("arm") != arm or ckpt.get("seed") != seed:
             raise ValueError("Checkpoint arm/seed/format mismatch")
         if ckpt.get("data_protocol") != data.protocol or ckpt.get("config") != RECIPE:
