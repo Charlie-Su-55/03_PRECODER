@@ -1,21 +1,21 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-05 00:00 CET
-依据：K8源码结构核对、Stage B运行日志/manifest/checkpoint、CPU评估数据、Stage C静态检查和Git状态。当前接收器是多源条件融合Swin原型；计划中的Joint Transformer＋Swin decoder架构尚未设计/实现。小样本CPU评估不是独立性能证据。
+最后核查：2026-11-05（本轮补记）
+依据：K8源码与V2计划核查、现有03 K4 Joint decoder结构文档/源码、旧Stage B运行日志/manifest/checkpoint、Git状态。本轮冻结首轮网络设计；目标decoder尚未实现/验收，未启动GPU作业。
 
 ## 一屏摘要
 
-- **当前阶段：** 正在对齐BS decoder目标架构。Stage A完成；现有BS接收器仅是多源条件融合Swin原型。FDMA seed 20261106的250步试跑已暂停并保留，**不计入正式Stage B warmup预算**；正式Stage B应在目标decoder冻结后重新开始。
+- **当前阶段：** 首轮网络设计已冻结，进入目标BS decoder实现与CPU验收。Stage A完成；现有BS接收器代码仍是多源条件融合Swin原型，尚未按冻结规格改造。旧FDMA seed 20261106的250步试跑已暂停并保留，**不计入正式Stage B warmup预算**。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
-- **GPU快照：** 2026-11-04 23:05 CET RTX 5090利用率68%、显存3538/32607 MiB；另一个项目Python PID 3175902占3512MiB。我们的训练进程已退出。
-- **代码版本：** 最新已推送HEAD `2cdbc18`；接收器原型名称和架构状态已修正。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
+- **GPU快照：** 本轮`nvidia-smi`无法与驱动通信，占用未知；未启动GPU作业。最近历史快照为2026-11-04 23:05 CET，RTX 5090利用率68%、显存3538/32607 MiB。
+- **代码版本：** 本轮源码基线HEAD `6bf5ffc`；本轮只新增/更新设计文档与状态页，没有修改源码。GitHub origin为`https://github.com/Charlie-Su-55/03_PRECODER.git`。
 - **未提交变更：** 原有`.gitignore`修改、5个旧源码删除、清理回执、SSH交接文档、Overleaf副本、历史数据及V2计划文件仍未纳入本轮。
-- **代码/验收/证据区分：** 物理反馈＋多源条件融合Swin原型＋RZF链路、Stage B/C入口及validation lambda诊断代码已实现；原型CPU前向/反向通过，Stage C静态编译与CLI参数检查通过。计划中的跨用户self-attention、观测cross-attention、软码字残差修正和空间cross-attention**尚未设计/实现**；正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
+- **代码/验收/证据区分：** 物理反馈＋多源条件融合Swin原型＋RZF链路、Stage B/C入口及validation lambda诊断代码已实现；原型CPU前向/反向通过，Stage C静态编译与CLI参数检查通过。首轮网络设计规格已冻结于`docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`，但目标Joint decoder代码实现与CPU运行验收**尚未开始**；正式Stage B warmup、Stage C训练及独立codec性能证据均未开始。
 - **训练步数/checkpoint：** CE本轮更新数 **5000/5000**；latest与best均核验step5000。现有接收器原型试跑250步，checkpoint `fdma/seed_20261106/checkpoint_latest.pt`核验step250；不计入目标decoder冻结后的正式Stage B预算。正式Stage B为0/40,000，其余三份未开始。
 - **训练曲线和性能：** CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint在16个CPU validation-role样本上六个gamma均完成核验；DL NMSE均值约`0.4937–0.4957`，sum-rate约`1.609–1.630 bit/s/Hz`。该CPU生成数据ID与CUDA训练manifest的validation数据ID不同；数值仅作链路早期诊断，不作为训练曲线或性能结论。95%区间只按4个batch均值用t分布计算，test未读。
 - **资源与隔离验收：** CPU原型链路能量最大偏差`7.6294e-6`、RZF功率最大偏差`3.5763e-7`。接收器原型试跑peak allocated `1,899,246,080` bytes（约1.77 GiB）；不用于估算新架构正式训练。test未读取；目标decoder验收及正式六点完整链路矩阵未知。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。该状态盘点没有改tex。
-- **主要阻塞：** decoder架构尚未按研究目标对齐；外部项目进程此前占GPU 68–72%。step250原型checkpoint保留作调试，不作为目标架构warmup起点。先完成decoder架构与CPU验收，再排正式Stage B。
+- **主要阻塞：** 当前环境`nvidia-smi`无法与驱动通信，GPU占用未知；目标Joint decoder尚待按冻结规格实现并完成CPU验收。step250原型checkpoint保留作调试，不作为目标架构warmup起点。目标网络CPU验收后再做首次CUDA资源/吞吐验收，随后进入正式Stage B。
 
 ## 阶段状态
 
@@ -35,7 +35,8 @@
 | CPU配置、预算和数据隔离检查 | 运行中 | 资源/能量约束已配置 | 真实CDL分角色小样本、seed寻址重放和RNG隔离通过；训练/验证/校准已实跑 | 不适用 | 完整大规模namespace碰撞审计未知；test role尚未用于任何选优或训练 |
 | Stage A：LS与LS＋U-Net UL CE预训练及校准 | 完成 | LS初值为pilot-LS＋线性插值；`train_twc_v1_k8_ce.py`只读pilot-only观测，H_UL只作监督目标 | 5000/5000更新；best/latest权重step5000载入核验；独立calibration 18条件通过 | 有限validation设计证据 | validation较同条件LS低约3.57 dB；不代表下行任务或独立测试性能 |
 | 原型链路：物理反馈到RZF | 完成（原型代码/CPU验收） | CE冻结、校准软恢复、Hybrid/FDMA、多源条件融合Swin、DL NMSE/RZF和速率指标 | CPU原型真实CDL前向及反向梯度通过 | 未开始 | 仅gamma=10、Ep=16原型链路检查；无性能证据 |
-| 目标BS decoder架构设计与实现 | 未开始 | 现有实现仅卷积多源侧信息融合＋空间Swin | 未开始 | 未开始 | 跨用户self-attention、观测cross-attention、软码字残差修正、空间cross-attention均尚未设计/实现 |
+| 首轮网络设计冻结 | 完成 | CE U-Net、UE Swin、Joint Transformer＋空间Swin、非神经查表控制与RZF范围已冻结 | 文档交叉核对完成；不等于代码验收 | 未开始 | `docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`；控制策略具体validation查表值仍待选择 |
+| 目标BS decoder实现与验收 | 运行中 | 当前仍为多源卷积融合Swin原型 | 目标架构CPU验收未开始 | 未开始 | 按冻结规格实现槽位/观测memory/全用户Joint attention/残差/空间cross-attention；随后CPU验收所有布局与梯度 |
 | Stage B：FDMA/Hybrid NMSE warmup | 未开始（正式预算） | 10k训练入口代码已实现 | FDMA seed 20261106原型试跑250步并保存checkpoint，不计正式预算 | 未开始 | 目标decoder冻结后正式warmup重新启动；另3份未开始 |
 | Stage C：匹配NMSE/联合loss终段 | 未开始 | 分叉训练器及validation梯度尺度lambda诊断代码已实现；lambda和Rref不自动猜测 | py_compile与CLI帮助检查通过；无Stage C训练/恢复运行 | 未开始 | 必须先有匹配Stage B 10k checkpoint；lambda候选需验证集诊断后冻结；计划每分支20k |
 | Stage D：资源/能量策略、RZF及WMMSE诊断 | 未开始 | 未知 | 未开始 | 未开始 | 计划先验证集查表/扫描；新协议策略与结果未找到 |
@@ -116,7 +117,7 @@
 4. **Git工作区已有旧源码删除和其他未跟踪内容。**后续备份只选择K8文件，不能混入原有删除、Overleaf或历史数据。
 5. **主稿虽可编译，警告尚未处理，视觉预览未验收。**这不阻挡当前CPU协议工作；本轮按要求未编辑论文。
 
-下一项动作：先完成目标decoder架构设计、接口与CPU梯度验收。原型250步checkpoint保留但不自动恢复；目标架构验收后重新开始正式Stage B四份warmup。08保持只读；Overleaf论文未修改。
+下一项动作：按冻结规格实现目标K8 decoder，做G=1/2/4与FDMA CPU前向、输入泄漏和梯度验收；通过后在可读GPU状态的主机完成资源/吞吐验收，再开始正式Stage B四份warmup。原型250步checkpoint保留但不自动恢复；08保持只读；Overleaf论文未修改。
 
 ## 更新记录
 
@@ -143,4 +144,5 @@
 - **2026-11-04 23:50 CET：**Stage C训练器、lambda梯度诊断、配置和状态页已选择性推送，commit `41e3abc`；未纳入原有源码删除、Overleaf或历史数据。Stage C仍未训练，待完整10k warmup及验证集lambda/Rref诊断后启动。
 - **2026-11-05 00:00 CET：**根据源码结构复核，澄清原`K8JointFeedbackDecoder`只有卷积多源条件特征加和Swin块，尚无计划的跨用户self-attention、观测cross-attention、软码字残差修正或空间cross-attention。实现类改名为`K8MultiSourceFusionSwinReceiver`，旧类名保留兼容别名，module/state_dict参数层级未变；Stage B step250标记为原型试跑、不计正式warmup预算。未训练、未用GPU；目标decoder设计/CPU验收列为当前首要未完成项。
 - **2026-11-05 00:02 CET：**接收器原型重命名、训练状态页与preflight报告更正已选择性提交并推送，commit `2cdbc18`。权重参数层级保持不变；没有运行训练或GPU任务。
+- **2026-11-05（本轮）：**在检查V2计划、K8源码与03既有Joint decoder参考后，冻结首轮三个学习网络及非神经控制方式，规格见`docs/TWC_V1_K8_NETWORK_DESIGN_FREEZE.md`。确定全8用户联合注意力、Hybrid/FDMA统一符号槽位、256-token观测memory、软符号残差、2048空间query cross-attention、完整256-tap Swin；CE U-Net和UE Swin按现有已实现结构冻结。资源策略与RZF alpha采用validation查表，不增加MLP。`nvidia-smi`仍无法连接驱动，GPU占用未知；未启动GPU作业。目标decoder仍待编码/CPU验收；训练更新0、checkpoint未变、无性能证据；论文未改。
 - 后续每个主要阶段完成或出现影响进度的问题时，追加带时间的状态变更、证据路径及下一动作；保留负结果和历史记录，不覆盖已报告事实。
