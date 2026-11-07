@@ -9,7 +9,8 @@ from pathlib import Path
 from . import twc_v1_k8_schedule_screen_config as previous
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-NAMESPACE = 'twc_v1_k8_ordered_encoder_screen_v1'
+NAMESPACE = 'twc_v1_k8_ordered_encoder_screen_v2'
+ORDERED_ARCHITECTURE = 'twc_v1_k8_ordered_window_encoder_v2'
 CHECKPOINT_FORMAT = NAMESPACE
 OUTPUT_ROOT = REPO_ROOT/'runs'/NAMESPACE
 ARMS = ('mean_fdma_control', 'ordered_fdma', 'mean_g4_control', 'ordered_g4')
@@ -45,7 +46,7 @@ SOURCE_SHA256 = {
     'fdma_control': 'd0c3537d4e22bd061b387251f22030961829fc231126d1126b0cefde9b8f7d39',
     'specialist_g4': 'ed92ca1c6688ee24f5515d3d281dc012bef27a04e0899ae19f55bf97335d20e8',
 }
-EXPECTED_PARAMETER_DELTA = (4096-128)*(8+320)
+EXPECTED_PARAMETER_DELTA = 31*128*(8+320)
 
 
 def _arm(arm):
@@ -77,14 +78,23 @@ def source_identity(arm):
 
 
 def architecture(arm):
-    return dict(encoder='K8OrderedWindowSwinEncoder' if is_ordered(arm) else 'K8SwinEncoder',
+    ordered = is_ordered(arm)
+    return dict(architecture=ORDERED_ARCHITECTURE if ordered else 'twc_v1_k8_global_mean_encoder_original',
+        encoder='K8OrderedWindowSwinEncoder' if ordered else 'K8SwinEncoder',
         token_grid=[64,8], normalized_token_width=128, window_size=4,
-        pooling='ordered32_window_means_then_flatten' if is_ordered(arm) else 'global_token_mean',
-        head_input_width=4096 if is_ordered(arm) else 128,
-        group_condition='same embedding added to each window before flatten' if is_ordered(arm) else 'embedding after global mean',
-        parameter_delta=EXPECTED_PARAMETER_DELTA if is_ordered(arm) else 0,
+        pooling='original_global_mean_plus_ordered_contrast_residual' if ordered else 'global_token_mean',
+        head_input_width=128,
+        group_condition='original G embedding only in the unchanged global-mean head path',
+        ordered_residual_input_width=3968 if ordered else 0,
+        ordered_residual_features='concat(p1-p32,...,p31-p32), fixed row-major windows' if ordered else None,
+        ordered_residual_bias=False if ordered else None,
+        ordered_residual_initialization='two exactly zero weight matrices' if ordered else None,
+        ordered_residual_weight_keys=['encoder.key_window_residual.weight',
+            'encoder.shared_window_residual.weight'] if ordered else [],
+        parameter_delta=EXPECTED_PARAMETER_DELTA if ordered else 0,
         position_embedding_added=False, decoder_changed=False,
-        equivalence='repeat old head weight/32; identical bias; all other state copied')
+        equivalence='unchanged original heads and G path plus zero contrast residual; all old state copied',
+        legacy_v1_checkpoint_loading='rejected')
 
 
 def schedule(arm, local_step):

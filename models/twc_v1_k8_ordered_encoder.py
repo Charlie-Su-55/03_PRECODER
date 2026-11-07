@@ -1,7 +1,8 @@
-"""Ordered-window readout for the existing K8 UE, with exact state migration.
+"""Numerically stable ordered-window contrasts beside the unchanged K8 mean path.
 
-Only the two encoder head input widths change.  The original model remains
-available and the decoder/feedback implementation is reused without changes.
+The old128-wide key/shared heads remain exactly intact.  Two zero-initialized,
+bias-free window-difference heads add the remaining ordered spatial degrees of
+freedom without replacing the source model's mean reduction or GEMM shapes.
 """
 from __future__ import annotations
 
@@ -16,10 +17,11 @@ from models.twc_v1_k8_neural import (
 )
 
 
-ARCHITECTURE = 'twc_v1_k8_ordered_window_encoder_v1'
+ARCHITECTURE = 'twc_v1_k8_ordered_window_encoder_v2'
 TOKEN_HEIGHT, TOKEN_WIDTH, TOKEN_CHANNELS = 64, 8, 128
 WINDOW_SIZE, WINDOW_COUNT = 4, 32
 HEAD_WEIGHT_KEYS = ('encoder.key_head.weight', 'encoder.shared_head.weight')
+RESIDUAL_WEIGHT_KEYS = ('encoder.key_window_residual.weight', 'encoder.shared_window_residual.weight')
 EXPECTED_PARAMETER_DELTA = (4096 - 128) * (8 + 320)
 RTOL, ATOL = 1e-5, 1e-6
 
@@ -38,55 +40,90 @@ def ordered_window_pool(tokens):
         dim=(2, 4)).reshape(tokens.shape[0], WINDOW_COUNT, tokens.shape[2])
 
 
-def expand_mean_head_weight(weight):
-    """[out,C] -> [out,32*C], with all32 blocks equal to W/32.
+def window_difference_features(tokens):
+    """Ordered concat(p1-p32,...,p31-p32), with no G embedding mixed in."""
+    windows = ordered_window_pool(tokens)
+    differences = (windows[:, :-1] - windows[:, -1:]).flatten(1)
+    if not bool(torch.isfinite(differences).all()):
+        raise FloatingPointError('Nonfinite ordered window differences')
+    return differences
 
-    For normalized tokens x_i and group condition c, every window has16 tokens:
-      sum_j (W/32)(mean_{i in j}(x_i)+c)+b = W(mean_i(x_i)+c)+b.
-    Adding c to every window is necessary; adding it only once after flattening
-    would change the original G-dependent contribution.
+
+def readout_from_normalized_tokens(tokens, group_condition, key_head, shared_head,
+                                   key_window_residual, shared_window_residual, *, users=K_USERS):
+    """The production readout, also usable with tiny real tensor/module tests.
+
+    tokens is the single original LayerNorm result[B*K,512,C].  The old
+    mean/reshape/G-add/Linear sequence is evaluated with its original shapes;
+    differences are computed from the same tokens and are always in the graph.
+    """
+    if (not torch.is_tensor(tokens) or tokens.ndim != 3 or tokens.shape[1] != 512
+            or type(users) is not int or users < 1 or tokens.shape[0] % users
+            or not torch.is_tensor(group_condition) or group_condition.ndim != 2
+            or tuple(group_condition.shape) != (tokens.shape[0]//users,tokens.shape[2])
+            or tokens.dtype != group_condition.dtype or tokens.device != group_condition.device):
+        raise ValueError('Matched normalized tokens and group condition shapes/dtypes/devices required')
+    batch, channels = group_condition.shape
+    pooled = tokens.mean(dim=1).reshape(batch, users, channels)
+    conditioned = pooled + group_condition[:, None]
+    key = key_head(conditioned)
+    shared = shared_head(conditioned)
+    differences = window_difference_features(tokens).reshape(batch, users, (WINDOW_COUNT-1)*channels)
+    return key + key_window_residual(differences), shared + shared_window_residual(differences)
+
+
+def ordered_head_coordinates(weight):
+    """Algebraic coordinates of an arbitrary32-window linear head.
+
+    This is a capacity-identity helper, never the source initialization path.
+    For window weights A_j, W=sum_j(A_j), R_j=A_j-W/32 (j<32).  Then
+    W(mean(p)+c)+sum_j R_j(p_j-p32) = sum_j A_j(p_j+c).
     """
     if (not torch.is_tensor(weight) or weight.ndim != 2 or min(weight.shape) < 1
-            or not weight.is_floating_point() or not bool(torch.isfinite(weight).all())):
-        raise ValueError('Finite real head weight[out,C] required')
-    return (weight / WINDOW_COUNT).repeat(1, WINDOW_COUNT)
+            or weight.shape[1] % WINDOW_COUNT or not weight.is_floating_point()
+            or not bool(torch.isfinite(weight).all())):
+        raise ValueError('Finite real ordered head weight[out,32*C] required')
+    blocks = weight.reshape(weight.shape[0], WINDOW_COUNT, weight.shape[1]//WINDOW_COUNT)
+    mean_weight = blocks.sum(dim=1)
+    residual_weight = (blocks[:, :-1] - mean_weight[:, None]/WINDOW_COUNT).flatten(1)
+    return mean_weight, residual_weight
 
 
 def migrate_state_dict(source_state, target_template):
-    """Convert only the two allowed head weights; preserve every other value.
+    """Copy the entire old state unchanged; add only two zero residual weights.
 
-    The template comes from the actual target model.  Generic head dimensions
-    support tiny tensor tests without constructing a full codec or channel.
+    Generic channel/head dimensions permit tiny tests.  Actual target shapes
+    come from the real v2 codec; no keys are dropped, filtered or expanded.
     """
     if (not isinstance(source_state, Mapping) or not isinstance(target_template, Mapping)
-            or not source_state or set(source_state) != set(target_template)):
-        raise ValueError('Source and target must have the exact same complete state keys')
+            or not source_state
+            or set(target_template)-set(source_state) != set(RESIDUAL_WEIGHT_KEYS)
+            or set(source_state)-set(target_template)):
+        raise ValueError('Exact complete old keys plus only two new residual weights required')
     if not set(HEAD_WEIGHT_KEYS) <= set(source_state):
         raise ValueError('Both explicitly permitted encoder head keys are required')
     converted = {}
-    changed = []
     for name, target in target_template.items():
+        if not torch.is_tensor(target):raise ValueError('Target state must contain tensors: '+name)
+        if name in RESIDUAL_WEIGHT_KEYS:
+            old_name = HEAD_WEIGHT_KEYS[RESIDUAL_WEIGHT_KEYS.index(name)]
+            head = source_state[old_name]
+            if (not torch.is_tensor(head) or head.ndim != 2 or target.ndim != 2
+                    or target.shape != (head.shape[0],(WINDOW_COUNT-1)*head.shape[1])
+                    or target.dtype != head.dtype or not target.is_floating_point()):
+                raise ValueError('Residual shape/dtype differs from the old head: '+name)
+            converted[name] = torch.zeros_like(target)
+            continue
         value = source_state[name]
-        if (not torch.is_tensor(value) or not torch.is_tensor(target)
-                or value.dtype != target.dtype or not bool(torch.isfinite(value).all())):
-            raise ValueError('Source/target tensor dtype or finite check failed: '+name)
-        if name in HEAD_WEIGHT_KEYS:
-            if (value.ndim != 2 or target.ndim != 2 or value.shape[0] != target.shape[0]
-                    or target.shape[1] != WINDOW_COUNT * value.shape[1]):
-                raise ValueError('Only the32-fold head input expansion is allowed: '+name)
-            converted[name] = expand_mean_head_weight(value)
-            changed.append(name)
-        else:
-            if value.shape != target.shape:
-                raise ValueError('Non-head state shape changed: '+name)
-            converted[name] = value
-    if set(changed) != set(HEAD_WEIGHT_KEYS):
-        raise ValueError('Exactly two encoder head weights must be expanded')
+        if (not torch.is_tensor(value) or value.shape != target.shape or value.dtype != target.dtype
+                or not bool(torch.isfinite(value).all())):
+            raise ValueError('Old state shape/dtype/finite check failed: '+name)
+        converted[name] = value
     return converted, dict(
-        architecture=ARCHITECTURE, changed_keys=sorted(changed),
-        copied_keys=sorted(set(source_state)-set(changed)),
-        window_count=WINDOW_COUNT, head_initialization='32 ordered copies of W_old/32; b unchanged',
-        group_condition='same original G embedding added to every pooled window',
+        architecture=ARCHITECTURE, changed_keys=[],new_keys=sorted(RESIDUAL_WEIGHT_KEYS),
+        new_parameter_keys=sorted(RESIDUAL_WEIGHT_KEYS),copied_keys=sorted(source_state),
+        window_count=WINDOW_COUNT, head_initialization='old heads unchanged; bias-free residual weights zero',
+        group_condition='original mean path only; absent from window differences',
         source_values_modified=False, strict_loading=True,
         expected_production_parameter_delta=EXPECTED_PARAMETER_DELTA,
         numerical_equivalence='mathematical identity; floating errors must be measured')
@@ -121,19 +158,20 @@ def comparison_error(actual, expected, *, rtol=RTOL, atol=ATOL):
 
 
 class K8OrderedWindowSwinEncoder(K8SwinEncoder):
-    """Existing K8 Swin plus ordered means of32 windows and4096-wide heads."""
+    """Existing K8 mean readout plus zero-initialized31-window contrasts."""
 
     def __init__(self, **swin_kwargs):
         frozen=dict(embed_dim=128,blocks=4,patch_size=4,window_size=4,heads=4,mlp_ratio=4.0)
         if set(swin_kwargs)-set(frozen) or any(swin_kwargs.get(k,v)!=v for k,v in frozen.items()):
-            raise ValueError('Ordered-window v1 retains the original width/blocks/patch/window/heads/MLP')
+            raise ValueError('Ordered-window v2 retains the original width/blocks/patch/window/heads/MLP')
         super().__init__(**swin_kwargs)
         width = self.norm.normalized_shape[0]
         if width != TOKEN_CHANNELS or self.patch_size != 4 or self.window_size != 4:
-            raise ValueError('Ordered-window v1 fixes width128, patch4 and window4')
-        # The replacement is outside forward and preserves original state keys.
-        self.key_head = nn.Linear(WINDOW_COUNT * width, 8)
-        self.shared_head = nn.Linear(WINDOW_COUNT * width, 320)
+            raise ValueError('Ordered-window v2 fixes width128, patch4 and window4')
+        self.key_window_residual = nn.Linear((WINDOW_COUNT-1)*width,8,bias=False)
+        self.shared_window_residual = nn.Linear((WINDOW_COUNT-1)*width,320,bias=False)
+        nn.init.zeros_(self.key_window_residual.weight)
+        nn.init.zeros_(self.shared_window_residual.weight)
 
     def forward(self, H_dl, *, group_count):
         if type(group_count) is not int or group_count not in SUPPORTED_GROUP_COUNTS:
@@ -150,12 +188,11 @@ class K8OrderedWindowSwinEncoder(K8SwinEncoder):
             raise ValueError('The actual ordered token grid must be64x8')
         for block in self.blocks:
             tokens = block(tokens, height, width)
-        pooled = ordered_window_pool(self.norm(tokens)).reshape(batch, K_USERS, WINDOW_COUNT, TOKEN_CHANNELS)
+        normalized_tokens = self.norm(tokens)
         index = SUPPORTED_GROUP_COUNTS.index(group_count)
         condition = self.group_embedding(torch.full((batch,), index, device=H_dl.device, dtype=torch.long))
-        conditioned = (pooled + condition[:, None, None, :]).flatten(-2)
-        key_real = self.key_head(conditioned)
-        shared_real = self.shared_head(conditioned)
+        key_real,shared_real = readout_from_normalized_tokens(normalized_tokens,condition,
+            self.key_head,self.shared_head,self.key_window_residual,self.shared_window_residual)
         key = torch.complex(key_real[..., :4], key_real[..., 4:])
         shared = torch.complex(shared_real[..., :160], shared_real[..., 160:])[..., :shared_dimension(group_count)]
         return key, shared

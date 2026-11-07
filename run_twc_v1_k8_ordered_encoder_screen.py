@@ -12,7 +12,7 @@ import uuid
 import zipfile
 
 from configs import twc_v1_k8_ordered_encoder_screen_config as cfg
-from train_twc_v1_k8_ordered_encoder_screen import canonical,sha256,save_json,source_code_record,gpu_snapshot,now
+from train_twc_v1_k8_ordered_encoder_screen import canonical,sha256,save_json,source_code_record,gpu_snapshot,now,failed_preflight_checks,EQUIVALENCE_TOLERANCES
 from run_as_receiver_batch import _child,_run_stage
 
 ROOT=cfg.REPO_ROOT
@@ -61,13 +61,50 @@ def run_arm(folder,arm):
     result=verify_training(arm);result['_evidence']+=logs;return result
 
 
+def verify_preflight_report(value):
+    """Only a complete v2 acceptance may unlock the four new continuations."""
+    arms=('ordered_fdma','ordered_g4')
+    if (value.get('status')!='passed' or value.get('namespace')!=cfg.NAMESPACE
+            or value.get('code')!=source_code_record() or value.get('comparisons_complete') is not True
+            or value.get('tolerances')!=EQUIVALENCE_TOLERANCES or value.get('failed_checks')!=[]
+            or failed_preflight_checks(value)):
+        raise ValueError('Incomplete or failed v2 migration/source preflight')
+    for section in ('comparisons','gradient_checks','parameter_checks','buffer_checks'):
+        if set(value.get(section,{}))!=set(arms):raise ValueError('Missing v2 preflight section: '+section)
+    for arm in arms:
+        comparisons=value['comparisons'][arm]
+        expected={f'raw_G{group}_{branch}' for group in (1,2,4) for branch in ('key','shared')}
+        ratios=(None,) if arm=='ordered_fdma' else cfg.ENERGY_RATIOS
+        expected|={f'gamma{gamma}_ratio{ratio}' for gamma in cfg.GAMMAS for ratio in ratios}
+        if set(comparisons)!=expected:raise ValueError('Incomplete raw/physical migration conditions')
+        if any(value[section][arm].get('passed') is not True for section in ('parameter_checks','buffer_checks')):
+            raise ValueError('Parameter or buffer acceptance missing')
+        for key,fields in comparisons.items():
+            if key.startswith('raw_'):
+                if fields.get('passed') is not True:raise ValueError('Raw acceptance missing')
+                continue
+            if not {'transmit','H_hat','RZF','dl_nmse','rate','RZF_repeat','energy_mean','energy_ordered',
+                    'RZF_power_mean','RZF_power_ordered'}<=set(fields):raise ValueError('Missing physical comparison fields')
+            repeats=fields['RZF_repeat']
+            if set(repeats)!={'mean','ordered'} or any(r.get('passed') is not True
+                    or r.get('exact_equal') is not True or r.get('H_hat_unchanged') is not True for r in repeats.values()):
+                raise ValueError('Same-H_hat RZF replay failed')
+        gradient=value['gradient_checks'][arm]
+        for key in cfg.architecture(arm)['ordered_residual_weight_keys']:
+            check=gradient.get(key,{})
+            if check.get('passed') is not True or check.get('exists') is not True or check.get('finite') is not True:
+                raise ValueError('Missing finite nonzero residual gradient: '+key)
+        for key in ('state_unchanged','frozen_CE','active_gradients'):
+            if gradient.get(key,{}).get('passed') is not True:raise ValueError('Gradient acceptance missing: '+key)
+    return value
+
+
 def migration_preflight(folder):
     report=folder/('migration_preflight_'+uuid.uuid4().hex[:8]+'.json')
     pointer=folder/'migration_preflight_pointer.json';save_json(pointer,dict(report=str(report)))
     log=_child(folder,'migration_preflight',[sys.executable,'-B','-u','train_twc_v1_k8_ordered_encoder_screen.py',
         '--preflight','--report',str(report)])
-    value=read_json(report)
-    if value.get('status')!='passed' or value.get('code')!=source_code_record():raise ValueError('Migration/source preflight failed')
+    value=verify_preflight_report(read_json(report))
     files=[report,log,pointer]
     for path,digest in value.get('frozen_files',{}).items():
         if sha256(path)!=digest:raise ValueError('Source evidence changed')
@@ -78,7 +115,7 @@ def migration_preflight(folder):
 def verify_evaluation(directory):
     from evaluate_twc_v1_k8_ordered_encoder_screen import artifact_hashes
     output=cfg.inside_root(directory);manifest=read_json(output/'manifest.json')
-    if (manifest.get('status')!='completed' or manifest.get('results_verified') is not True
+    if (manifest.get('status')!='completed' or manifest.get('screen_version')!=cfg.NAMESPACE or manifest.get('results_verified') is not True
             or manifest.get('freeze_checks',{}).get('passed') is not True
             or manifest.get('summary_rows')!=36 or manifest.get('sample_rows')!=36*256
             or manifest.get('samples')!=256 or manifest.get('batch_size')!=4
@@ -163,7 +200,7 @@ def run(resume=False):
             save_json(folder/('gpu_startup_'+uuid.uuid4().hex[:8]+'.json'),snapshot)
             save_json(folder/'batch_summary.json',summary)
             preflight=_run_stage(summary,folder,'migration_preflight',lambda:migration_preflight(folder))['report']
-            summary['preflight']=dict(status=preflight['status'],parameters=preflight['parameters'],tolerances=preflight['tolerances'])
+            summary['preflight']={k:preflight[k] for k in ('status','parameters','tolerances','comparisons_complete','gradient_checks','failed_checks')}
             for arm in cfg.ARMS:
                 assert_code(summary)
                 summary['training'][arm]=_run_stage(summary,folder,'train_'+arm,lambda a=arm:run_arm(folder,a))['report']
@@ -189,7 +226,14 @@ def print_summary():
         report=cfg.inside_root(read_json(pointer)['report'])
         if report.is_file():migration=read_json(report)
     if migration:
-        print('migration_status='+json.dumps({k:migration.get(k) for k in ('status','error','source_commit','backend','tolerances')}))
+        print('migration_status='+json.dumps({k:migration.get(k) for k in ('status','error','namespace','source_commit','backend','tolerances','comparisons_complete','failed_checks')}))
+        print('residual_gradient_checks='+json.dumps(migration.get('gradient_checks','unknown')))
+        def print_failed(value,prefix=''):
+            if not isinstance(value,dict):return
+            if value.get('passed') is False:print('migration_failed_field='+json.dumps(dict(field=prefix,details=value)))
+            for key,item in value.items():
+                if isinstance(item,dict):print_failed(item,prefix+'.'+key if prefix else key)
+        print_failed(migration)
     def maxima(value):
         if isinstance(value,dict):
             if 'max_abs' in value:return [value]
@@ -198,7 +242,7 @@ def print_summary():
     for arm,comparisons in migration.get('comparisons',{}).items():
         values=maxima(comparisons)
         print('migration_errors '+json.dumps(dict(arm=arm,max_abs=max((r['max_abs'] for r in values if r['max_abs'] is not None),default=None),
-            max_rel=max((r['max_rel'] for r in values if r['max_rel'] is not None),default=None),all_passed=all(r['passed'] for r in values))))
+            max_rel=max((r['max_rel'] for r in values if r.get('max_rel') is not None),default=None),all_passed=not failed_preflight_checks(comparisons))))
     for arm in cfg.ARMS:
         path=cfg.OUTPUT_ROOT/'training'/arm/'manifest.json'
         if not path.exists():print(arm+': not_started');continue

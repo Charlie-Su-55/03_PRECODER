@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from functools import lru_cache
 import hashlib
 import json
+import math
 from pathlib import Path
 import random
 import subprocess
@@ -132,6 +133,33 @@ def load_source(torch,warmup,arm,data_protocol):
     return payload,dict(identity=identity,verification=verified,frozen_files=frozen)
 
 
+def check_source_optimizer_parameters(torch,model,payload,*,ordered):
+    """Validate old optimizer evidence against old parameters, not the two new ones.
+
+    These source moments are checked but are never used to initialize the new
+    optimizer. Removing exactly the two appended residual names restores the
+    original named-parameter order, including all decoder parameters.
+    """
+    from models.twc_v1_k8_ordered_encoder import RESIDUAL_WEIGHT_KEYS
+    named=dict(model.named_parameters());excluded=set(RESIDUAL_WEIGHT_KEYS) if ordered else set()
+    if ordered and not excluded<=set(named):raise ValueError('Both new residual parameter names required')
+    names=[name for name in named if name not in excluded]
+    groups=payload['optimizer'].get('param_groups',[]);moments=payload['optimizer'].get('state',{})
+    if (len(groups)!=1 or groups[0].get('params')!=list(range(len(names)))
+            or not moments or not set(moments)<=set(groups[0]['params'])):
+        raise ValueError('Source optimizer original-parameter identity mismatch')
+    for name in names:
+        reference=payload['codec_model'].get(name)
+        if not torch.is_tensor(reference) or reference.shape!=named[name].shape or reference.dtype!=named[name].dtype:
+            raise ValueError('Source original-parameter shape/dtype mismatch: '+name)
+    for index,state in moments.items():
+        reference=payload['codec_model'][names[index]]
+        for key in ('exp_avg','exp_avg_sq'):
+            if state[key].shape!=reference.shape or state[key].dtype!=reference.dtype:
+                raise ValueError('Source optimizer tensor shape/dtype mismatch: '+names[index])
+    return dict(passed=True,original_parameter_count=len(names),new_residual_parameters_excluded=sorted(excluded),source_moments_reused=False)
+
+
 def build_chain(torch,device,arm,payload,*,initializing_source=False):
     import train_twc_v1_k8_codec_warmup as warmup
     from models.twc_v1_k8_ordered_encoder import build_codec,migrate_mean_state
@@ -148,15 +176,7 @@ def build_chain(torch,device,arm,payload,*,initializing_source=False):
         old.check_tensor_state(torch,chain.codec_model,payload['codec_model'])
         chain.codec_model.load_state_dict(payload['codec_model'],strict=True)
     if initializing_source:
-        names=[name for name,_ in chain.codec_model.named_parameters()]
-        group=payload['optimizer']['param_groups'][0];moments=payload['optimizer']['state']
-        if group.get('params')!=list(range(len(names))) or not moments or not set(moments)<=set(group['params']):
-            raise ValueError('Source optimizer parameter identity mismatch')
-        for index,state in moments.items():
-            reference=payload['codec_model'][names[index]]
-            for key in ('exp_avg','exp_avg_sq'):
-                if state[key].shape!=reference.shape or state[key].dtype!=reference.dtype:
-                    raise ValueError('Source optimizer tensor shape/dtype mismatch')
+        chain.source_optimizer_evidence=check_source_optimizer_parameters(torch,chain.codec_model,payload,ordered=cfg.is_ordered(arm))
     chain.ce_model.eval().requires_grad_(False)
     return chain.to(device)
 
@@ -164,7 +184,9 @@ def build_chain(torch,device,arm,payload,*,initializing_source=False):
 def parameters(model):
     full=sum(p.numel() for p in model.parameters());ue=sum(p.numel() for p in model.encoder.parameters())
     return dict(full=full,ue=ue,bs=full-ue,key_head=sum(p.numel() for p in model.encoder.key_head.parameters()),
-                shared_head=sum(p.numel() for p in model.encoder.shared_head.parameters()))
+                shared_head=sum(p.numel() for p in model.encoder.shared_head.parameters()),
+                window_residual=sum(p.numel() for name,p in model.named_parameters() if name in
+                    ('encoder.key_window_residual.weight','encoder.shared_window_residual.weight')))
 
 
 def verify_completed_payload(torch,payload,arm):
@@ -199,16 +221,99 @@ def gpu_snapshot():
     return result
 
 
+def failed_preflight_checks(value, prefix=''):
+    """Retain every failed leaf; a failed numerical field does not stop collection."""
+    if not isinstance(value,dict):return []
+    result=[prefix] if value.get('passed') is False else []
+    for name,item in value.items():
+        if isinstance(item,dict):result+=failed_preflight_checks(item,prefix+'.'+name if prefix else name)
+    return result
+
+
+def collect_output_comparisons(torch,outputs,chains,Hdl):
+    """Inspect actual outputs without early-returning on a field mismatch.
+
+    The exact same H_hat object is submitted twice to the original metrics/RZF
+    helper. Repeated RZF must be bitwise equal as well as meet the unchanged
+    tolerance; a failure is reported separately and prevents training.
+    """
+    from models.twc_v1_k8_ordered_encoder import comparison_error
+    result={};metrics={}
+    def error(exc):return dict(passed=False,error=f'{type(exc).__name__}: {exc}')
+    def compare(name,left,right,tolerance):
+        try:result[name]=comparison_error(left(),right(),**EQUIVALENCE_TOLERANCES[tolerance])
+        except Exception as exc:result[name]=error(exc)
+    compare('transmit',lambda:outputs['ordered']['tx']['X'],lambda:outputs['mean']['tx']['X'],'transmit')
+    compare('H_hat',lambda:outputs['ordered']['H_dl_hat'],lambda:outputs['mean']['H_dl_hat'],'H_hat')
+    result['RZF_repeat']={}
+    for label,chain in chains.items():
+        try:
+            output=outputs[label];before=output['H_dl_hat'].detach().clone()
+            first=chain.metrics(output,Hdl);metrics[label]=first
+            second=chain.metrics(output,Hdl)
+            repeated=comparison_error(second['precoder'],first['precoder'],**EQUIVALENCE_TOLERANCES['RZF'])
+            repeated.update(exact_equal=bool(torch.equal(first['precoder'],second['precoder'])),
+                H_hat_unchanged=bool(torch.equal(before,output['H_dl_hat'])))
+            repeated['passed']=repeated['passed'] and repeated['exact_equal'] and repeated['H_hat_unchanged']
+            result['RZF_repeat'][label]=repeated
+        except Exception as exc:result['RZF_repeat'][label]=error(exc)
+        try:
+            deviation=(outputs[label]['energy']['actual_data_per_ue']-48).abs()
+            finite=bool(torch.isfinite(deviation).all())
+            result['energy_'+label]=dict(passed=finite and deviation.max().item()<=1e-4,
+                max_abs=float(deviation.max().item()) if finite else None,finite=finite,limit=1e-4)
+        except Exception as exc:result['energy_'+label]=error(exc)
+        try:
+            deviation=(metrics[label]['rzf_per_subcarrier_power']-1).abs()
+            finite=bool(torch.isfinite(deviation).all())
+            result['RZF_power_'+label]=dict(passed=finite and deviation.max().item()<=1e-5,
+                max_abs=float(deviation.max().item()) if finite else None,finite=finite,limit=1e-5)
+        except Exception as exc:result['RZF_power_'+label]=error(exc)
+    for name,field,tolerance in (('RZF','precoder','RZF'),('dl_nmse','dl_nmse_per_user','dl_nmse'),('rate','sum_rate_bps_hz','rate')):
+        compare(name,lambda f=field:metrics['ordered'][f],lambda f=field:metrics['mean'][f],tolerance)
+    return result
+
+
+def check_residual_gradients(torch,chain,warmup,Hdl,Hul,condition,pilot,noise):
+    """One real NMSE backward, no optimizer or updates; CE remains frozen/eval."""
+    from models.twc_v1_k8_ordered_encoder import RESIDUAL_WEIGHT_KEYS
+    before=tensor_digest(torch,chain.codec_model.state_dict());chain.zero_grad(set_to_none=True)
+    record={'condition':condition}
+    try:
+        output=old._run(chain,warmup,Hdl,Hul,condition,pilot,noise)
+        loss=chain.metrics(output,Hdl)['dl_nmse_per_user'].mean()
+        if not bool(torch.isfinite(loss)):raise FloatingPointError('Nonfinite gradient-check NMSE')
+        loss.backward();named=dict(chain.codec_model.named_parameters())
+        for key in RESIDUAL_WEIGHT_KEYS:
+            # Codec state names have the encoder prefix; no inactive branch is removed.
+            grad=named[key].grad
+            norm=None if grad is None else float(grad.norm().item())
+            norm_finite=norm is not None and math.isfinite(norm)
+            record[key]=dict(passed=grad is not None and bool(torch.isfinite(grad).all()) and norm_finite and norm>0,
+                exists=grad is not None,finite=grad is not None and bool(torch.isfinite(grad).all()),
+                norm=norm if norm_finite else None,norm_finite=norm_finite)
+        active=[p.grad for p in chain.codec_model.parameters() if p.grad is not None]
+        record['active_gradients']=dict(passed=bool(active) and all(bool(torch.isfinite(g).all()) for g in active),count=len(active))
+        record['frozen_CE']=dict(passed=not chain.ce_model.training and all(p.grad is None for p in chain.ce_model.parameters()))
+        record['loss']=float(loss.detach())
+    finally:
+        record['state_unchanged']=dict(passed=before==tensor_digest(torch,chain.codec_model.state_dict()))
+        chain.zero_grad(set_to_none=True)
+    return record
+
+
 def preflight(report_path):
     output=cfg.inside_root(report_path)
     if output.exists():raise FileExistsError(output)
-    report=dict(status='running',source_commit=cfg.SOURCE_COMMIT,tolerances=EQUIVALENCE_TOLERANCES)
+    report=dict(status='running',namespace=cfg.NAMESPACE,source_commit=cfg.SOURCE_COMMIT,
+                tolerances=EQUIVALENCE_TOLERANCES,comparisons_complete=False)
     frozen={};failure=None
     try:
         report['startup_gpu']=gpu_snapshot()
         torch,np,warmup=old.runtime();device=torch.device('cuda:0');data=make_data(warmup,device)
         data.prepare();ce=ce_identity();code=source_code_record()
         report.update(code=code,ce_identity=ce,data_protocol=data.protocol,sources={},comparisons={},parameters={},
+            parameter_checks={},buffer_checks={},gradient_checks={},source_optimizer_checks={},
             backend=dict(torch=str(torch.__version__),cuda=torch.version.cuda,
                 matmul_precision=torch.get_float32_matmul_precision(),matmul_tf32=torch.backends.cuda.matmul.allow_tf32,
                 cudnn_tf32=torch.backends.cudnn.allow_tf32,cudnn_benchmark=torch.backends.cudnn.benchmark,
@@ -223,41 +328,52 @@ def preflight(report_path):
             report['sources'][mean_arm]=evidence;frozen.update(evidence['frozen_files'])
             mean=build_chain(torch,device,mean_arm,payload,initializing_source=True).eval()
             ordered=build_chain(torch,device,ordered_arm,payload,initializing_source=True).eval();del payload
+            report['source_optimizer_checks'][ordered_arm]=dict(mean=mean.source_optimizer_evidence,ordered=ordered.source_optimizer_evidence)
             left,right=parameters(mean.codec_model),parameters(ordered.codec_model)
             report['parameters'][mean_arm]=left;report['parameters'][ordered_arm]=right
-            if (right['full']-left['full']!=cfg.EXPECTED_PARAMETER_DELTA
-                    or right['ue']-left['ue']!=cfg.EXPECTED_PARAMETER_DELTA or right['bs']!=left['bs']):
-                raise ValueError('Actual parameter changes exceed the two UE head weights')
+            report['parameter_checks'][ordered_arm]=dict(passed=
+                right['full']-left['full']==cfg.EXPECTED_PARAMETER_DELTA
+                and right['ue']-left['ue']==cfg.EXPECTED_PARAMETER_DELTA and right['bs']==left['bs'],
+                full_delta=right['full']-left['full'],ue_delta=right['ue']-left['ue'],bs_delta=right['bs']-left['bs'])
             comparisons={};report['comparisons'][ordered_arm]=comparisons
             buffers_before=[tensor_digest(torch,dict(c.named_buffers())) for c in (mean,ordered)]
             with torch.no_grad():
                 for group in (1,2,4):
-                    for branch,a,b in zip(('key','shared'),mean.codec_model.encode(Hdl,group_count=group),ordered.codec_model.encode(Hdl,group_count=group)):
-                        result=comparison_error(b,a,**EQUIVALENCE_TOLERANCES['raw']);comparisons[f'raw_G{group}_{branch}']=result
-                        if not result['passed']:raise ValueError('Raw-code migration mismatch: '+ordered_arm)
+                    try:
+                        raw_mean=mean.codec_model.encode(Hdl,group_count=group)
+                        raw_ordered=ordered.codec_model.encode(Hdl,group_count=group)
+                        for branch,a,b in zip(('key','shared'),raw_mean,raw_ordered):
+                            comparisons[f'raw_G{group}_{branch}']=comparison_error(b,a,**EQUIVALENCE_TOLERANCES['raw'])
+                    except Exception as exc:comparisons[f'raw_G{group}']=dict(passed=False,error=f'{type(exc).__name__}: {exc}')
                 for gi,gamma in enumerate(cfg.GAMMAS):
                     gen=torch.Generator(device=device).manual_seed(cfg.SEED*10000000+1900000+gi)
                     pilot=warmup.standard_noise(2,gen,device);noise=warmup.standard_noise(2,gen,device)
                     for ratio in ((None,) if cfg.is_fdma(mean_arm) else cfg.ENERGY_RATIOS):
                         condition=dict(gamma_db=gamma,pilot_energy_per_ue=16.,group_count=1 if ratio is None else 4,energy_ratio=ratio)
-                        rng=capture_rng(torch,np);a=old._run(mean,warmup,Hdl,Hul,condition,pilot,noise)
-                        am=mean.metrics(a,Hdl);restore_rng(torch,np,rng)
-                        b=old._run(ordered,warmup,Hdl,Hul,condition,pilot,noise);bm=ordered.metrics(b,Hdl)
-                        fields=dict(transmit=(b['tx']['X'],a['tx']['X']),H_hat=(b['H_dl_hat'],a['H_dl_hat']),
-                            RZF=(bm['precoder'],am['precoder']),dl_nmse=(bm['dl_nmse_per_user'],am['dl_nmse_per_user']),
-                            rate=(bm['sum_rate_bps_hz'],am['sum_rate_bps_hz']))
-                        key=f'gamma{gamma}_ratio{ratio}';comparisons[key]={}
-                        for name,(actual,expected) in fields.items():
-                            result=comparison_error(actual,expected,**EQUIVALENCE_TOLERANCES[name]);comparisons[key][name]=result
-                            if not result['passed']:raise ValueError(f'Full-chain migration mismatch: {ordered_arm} {key} {name}')
-                        for chain_output,metric in ((a,am),(b,bm)):
-                            if ((chain_output['energy']['actual_data_per_ue']-48).abs().max().item()>1e-4
-                                    or (metric['rzf_per_subcarrier_power']-1).abs().max().item()>1e-5):
-                                raise ValueError('Migration check energy/RZF constraint failed')
-            if buffers_before!=[tensor_digest(torch,dict(c.named_buffers())) for c in (mean,ordered)]:
-                raise ValueError('Migration preflight modified eval buffers')
+                        rng=capture_rng(torch,np);outputs={};execution={}
+                        for label,chain in (('mean',mean),('ordered',ordered)):
+                            restore_rng(torch,np,rng)
+                            try:outputs[label]=old._run(chain,warmup,Hdl,Hul,condition,pilot,noise)
+                            except Exception as exc:execution[label]=dict(passed=False,error=f'{type(exc).__name__}: {exc}')
+                        key=f'gamma{gamma}_ratio{ratio}'
+                        comparisons[key]=collect_output_comparisons(torch,outputs,dict(mean=mean,ordered=ordered),Hdl)
+                        if execution:comparisons[key]['forward_execution']=execution
+            # Backward is intentionally outside no_grad; no optimizer is created.
+            condition=dict(gamma_db=0.,pilot_energy_per_ue=16.,group_count=1 if cfg.is_fdma(mean_arm) else 4,
+                           energy_ratio=None if cfg.is_fdma(mean_arm) else cfg.ENERGY_RATIOS[0])
+            gen=torch.Generator(device=device).manual_seed(cfg.SEED*10000000+1900000)
+            pilot=warmup.standard_noise(2,gen,device);noise=warmup.standard_noise(2,gen,device)
+            try:
+                report['gradient_checks'][ordered_arm]=check_residual_gradients(torch,ordered,warmup,Hdl,Hul,condition,pilot,noise)
+            except Exception as exc:report['gradient_checks'][ordered_arm]=dict(passed=False,error=f'{type(exc).__name__}: {exc}')
+            report['gradient_checks'][ordered_arm]['standard_noise_seed']=cfg.SEED*10000000+1900000
+            report['buffer_checks'][ordered_arm]=dict(passed=buffers_before==[
+                tensor_digest(torch,dict(c.named_buffers())) for c in (mean,ordered)])
             report['migration_keys_'+ordered_arm]=ordered.migration_evidence
-            del mean,ordered,a,b,am,bm;torch.cuda.empty_cache()
+            del mean,ordered,outputs;torch.cuda.empty_cache()
+        report['comparisons_complete']=True
+        report['failed_checks']=failed_preflight_checks(report)
+        if report['failed_checks']:raise ValueError('Migration checks failed: '+', '.join(report['failed_checks']))
         report.update(status='passed',optimizer_updates=0,weights_saved=False,finished=now())
     except BaseException as error:
         failure=error;report.update(status='failed',error=f'{type(error).__name__}: {error}',finished=now())
@@ -265,6 +381,7 @@ def preflight(report_path):
         report['frozen_files']=frozen
         changed=[p for p,h in frozen.items() if not Path(p).is_file() or sha256(p)!=h]
         if changed:failure=failure or RuntimeError('Source files changed');report.update(status='failed',changed_inputs=changed)
+        report['failed_checks']=failed_preflight_checks(report)
         save_json(output,report)
     if failure is not None:raise RuntimeError('Preflight failed; retained '+str(output)) from failure
     return report
@@ -335,6 +452,7 @@ def train(arm,*,resume=False,stop_after=None):
         if not resume:save_json(folder/'initialization.json',dict(source=cfg.source_identity(arm),source_evidence=evidence,
             source_commit=cfg.SOURCE_COMMIT,new_experiment_commit=code['commit'],code=code,ce_identity=ce,recipe=cfg.recipe(arm),
             migration=getattr(chain,'migration_evidence',dict(strict_mean_load=True)),parameters=parameters(model),
+            source_optimizer_evidence=chain.source_optimizer_evidence,
             initialized_state_sha256=tensor_digest(torch,model.state_dict()),new_optimizer=True))
         end=min(3024,start+stop_after) if stop_after else 3024
         if not start<end:raise ValueError('Completed arm is not retrained')

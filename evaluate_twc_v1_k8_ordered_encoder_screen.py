@@ -159,14 +159,28 @@ def _snapshot(module):
         modes={n:m.training for n,m in module.named_modules()},versions={n:p._version for n,p in module.named_parameters()})
 
 
+def validate_checkpoint_paths(checkpoints):
+    """Final evaluation accepts only this v2 batch's explicit terminal files."""
+    if set(checkpoints)!=set(cfg.ARMS):raise ValueError('Four explicit v2 checkpoint paths required')
+    paths={}
+    for arm,path in checkpoints.items():
+        path=cfg.inside_root(path)
+        expected=(cfg.OUTPUT_ROOT/'training'/arm/'checkpoint_latest.pt').resolve()
+        if path!=expected:raise ValueError('Only the prescribed v2 terminal checkpoint is allowed: '+arm)
+        paths[arm]=path
+    return paths
+
+
 def run_evaluation(checkpoints,output_dir,*,device='cuda:0'):
     if set(checkpoints)!=set(cfg.ARMS) or device!='cuda:0':raise ValueError('Four explicit checkpoints and CUDA:0 required')
+    checkpoints=validate_checkpoint_paths(checkpoints)
     output=_output(output_dir)
     manifest=dict(status='running',role='validation',test_used=False,optimizer_updates=0,seed=cfg.SEED,
         checkpoint_selection='predeclared final3024; no validation reselection',source_commit=cfg.SOURCE_COMMIT,
         samples=256,batch_size=4,validation_batch_addresses=list(range(2048,2112)),
         gamma_db=list(cfg.GAMMAS),pilot_energy_per_ue=16.,downlink_snr_db=25.,energy_ratios=POLICIES,
-        shared_inputs=[],methods={},interpretation='ordered encoder single-seed controlled screen; unequal parameters')
+        screen_version=cfg.NAMESPACE,shared_inputs=[],methods={},
+        interpretation='v2 unchanged mean heads plus trained ordered contrast residual; single-seed, unequal parameters')
     inputs={};chains={};ce_states={};failure=None
     try:
         import torch
@@ -201,17 +215,36 @@ def run_evaluation(checkpoints,output_dir,*,device='cuda:0'):
                     raise ValueError('Trained state shape/dtype/finite mismatch: '+name)
             chain.codec_model.load_state_dict(state,strict=True);chain.eval()
             states[arm]=state;state_hashes[arm]=_state_sha(state)
-            encoder=sum(p.numel() for p in chain.codec_model.encoder.parameters())
+            ue=chain.codec_model.encoder
+            encoder=sum(p.numel() for p in ue.parameters())
             full=sum(p.numel() for p in chain.codec_model.parameters())
+            if ue.key_head.in_features!=128 or ue.shared_head.in_features!=128:
+                raise ValueError('The original128-wide mean heads must remain unchanged in v2')
+            residuals=[getattr(ue,name,None) for name in ('key_window_residual','shared_window_residual')]
+            residual_hashes={}
+            if ordered:
+                for name,residual,out_features in zip(('key_window_residual','shared_window_residual'),residuals,(8,320)):
+                    if (residual is None or residual.in_features!=3968 or residual.out_features!=out_features
+                            or residual.bias is not None):raise ValueError('Required v2 bias-free contrast residual is missing')
+                    residual_hashes[name+'.weight']=_tensor_sha(residual.weight)
+                residual_parameters=sum(p.numel() for module in residuals for p in module.parameters())
+                if residual_parameters!=cfg.EXPECTED_PARAMETER_DELTA:raise ValueError('Unexpected v2 residual parameter count')
+            else:
+                if any(module is not None for module in residuals):raise ValueError('Mean controls cannot contain ordered residuals')
+                residual_parameters=0
             parameter=dict(arm=arm,encoder_parameters=encoder,codec_parameters=full,bs_parameters=full-encoder,
                 ce_parameters=sum(p.numel() for p in chain.ce_model.parameters()),
-                head_input_width=chain.codec_model.encoder.key_head.in_features,
+                head_input_width=ue.key_head.in_features,
+                ordered_residual_input_width=3968 if ordered else 0,
+                ordered_residual_parameters=residual_parameters,
+                architecture_id=cfg.architecture(arm)['architecture'],
                 note='Actual stored numel, not equal-parameter/MAC/latency comparison')
             parameters.append(parameter)
             manifest['methods'][arm]=dict(path=str(path),sha256=inputs[str(path)],step=cfg.UPDATES,
                 cumulative_updates=cfg.SOURCE_UPDATES+cfg.UPDATES,source=payload['source'],
                 architecture=cfg.architecture(arm),strict_loading=True,migration_during_evaluation=False,
-                source_commit=cfg.SOURCE_COMMIT,experiment_commit=code['commit'],parameters=parameter)
+                source_commit=cfg.SOURCE_COMMIT,experiment_commit=code['commit'],parameters=parameter,
+                trained_residual_weight_sha256=residual_hashes,residuals_reinitialized=False)
             del payload
         by_arm={r['arm']:r for r in parameters}
         for mean,ordered in (('mean_fdma_control','ordered_fdma'),('mean_g4_control','ordered_g4')):
@@ -311,6 +344,7 @@ def main(argv=None):
     if args.dry_run:
         print(json.dumps(dict(arms=list(cfg.ARMS),conditions=len(conditions()),samples=256,batch_size=4,
             validation_start_index=2048,role='validation',test_used=False,source_commit=cfg.SOURCE_COMMIT,
+            screen_version=cfg.NAMESPACE,ordered_architecture=cfg.ORDERED_ARCHITECTURE,
             local_step=3024,cumulative_updates=16048,models_loaded=False,
             comparisons=[r['name'] for r in contrasts()]),indent=2));return 0
     if not args.evaluate:parser.print_help();return 0
