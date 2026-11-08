@@ -1,9 +1,20 @@
 # TWC 1.0 K8 科研进度
 
-最后核查：2026-11-08（用户回传训练目标对照四臂已完成；冻结RZF诊断代码和轻量检查完成，尚无真实checkpoint诊断结果）
-依据：已有Stage A/B、schedule-screen及ordered-v2历史记录，用户提供的task-loss四臂完成事实，以及本地源码检查。本地本轮未读取服务器权重或完整结果包；历史验收的实际边界保留。所有性能数值均为validation证据；独立test未读取。
+最后核查：2026-11-08（用户回传冻结RZF诊断完成；本轮准备RZF匹配的NMSE/joint续训，尚无新批结果）
+依据：已有Stage A/B、schedule-screen、ordered-v2及task-loss历史记录，用户提供的冻结RZF诊断结论，以及本地源码检查。本地本轮未读取服务器权重或完整结果包；历史验收的实际边界保留。所有性能数值均为validation证据；独立test未读取。
 
 ## 当前交接快照（权威）
+
+- **当前任务：** 独立RZF匹配训练代码与本地20项针对性测试完成、全部通过且0 failures/errors/skips；独立`-B -S`检查15项通过、5项真实Torch/NumPy依赖缺失跳过，5文件语法和三入口标准库dry-run全部通过，新结果根未创建。对`0e0b6e8`的Git diff确认旧probe `SOURCE_FILES`中的33个既有文件全部未改。固定FDMA alpha0.03、G4 alpha0.1用于新训练、beta2校准和完整monitor；不训练alpha、不改solver/归一化、encoder/decoder/CE或物理协议。新根为`runs/twc_v1_k8_rzf_matched_training_v1/`，尚无真实checkpoint校准、训练或评估结果。
+- **动机（用户回传）：** 旧冻结诊断中FDMA两模型均选0.03、G4两模型均选0.1；调alpha后旧joint没有保住全六SNR均值优势。旧小monitor仍在改善，不能据此认定全网格收敛。本地没有重跑该结果；本轮用同源初始化和训练/评估RZF匹配来检验loss效果，不预设必胜。
+- **来源必须匹配：** 新`fdma_nmse`与`fdma_joint`都从旧`fdma_nmse`末步6048/累计22096初始化；新`g4_nmse`与`g4_joint`都从旧`g4_nmse`初始化，绝不从旧joint接着训练。来源训练实现`596d2a4`、旧RZF诊断`0e0b6e8`及内部`b6dc7ed`/`8096ed9`分别保留；源state严格加载，旧optimizer/beta只作证据。
+- **固定预算与新beta2：** 四臂seed20261107、batch4，各12096步，共48384步；fresh AdamW LR2e-4、weight decay1e-5、clip1、constant scheduler，CE冻结，训练地址22097–34192。两NMSE源在新`codec_train`500100–500111、Ep16、六gamma各两次、G4 ratio1:3做新梯度校准，合并24条norm记录得到共享beta2=`0.25×median(g_N)/median(g_R)`；无optimizer更新，756步ramp包含预算，record独立且不可覆盖。
+- **monitor与末态验证：** 本地步3024/6048/9072/12096在固定64MU validation地址8960–8975监测六gamma、G4两ratio，恢复原RNG/mode，不选best；16份小JSON随恢复保留。小nn合成测试仅验真实CPU默认RNG正常/异常恢复，未验真实CUDA RNG或64MU GPU。大型权重只保留滚动latest，末态12096用小terminal JSON/SHA别名、不另复制大final。最后四新模型与两个冻结NMSE源统一比较布局固定alpha及新末态global-alpha诊断；新64MU alpha校准6144–6159锁定后，256MU验证7168–7231，全部sample/batch配对与负结果保留；test封存。
+- **下一步唯一动作：** 代码和轻量检查完成并同步03后，用`run_twc_v1_k8_rzf_matched_training.py --run`一次执行来源→beta2→四臂108步后自动至12096→末态alpha选择/验证→结果包，回传完整`--summary`；中断显式`--run --resume`。详见`docs/TWC_V1_K8_RZF_MATCHED_TRAINING.md`。不把末态新alpha回写训练，不提前声称收益或收敛。
+
+## 冻结RZF诊断代码交接（历史记录）
+
+以下为旧RZF诊断代码交付时的记录；其中“尚无结果”是当时状态。其完成结论现由用户回传，当前匹配续训仍须在服务器核验来源与原证据。
 
 - **当前任务：** 独立冻结RZF诊断，唯一变化为评估时传入原solver/功率归一化的alpha；不训练、不创建optimizer、不重做beta校准，不改codec/CE/物理链路。输出独立放在`runs/twc_v1_k8_rzf_probe_v1/`。本地19项针对性测试全部通过、0 failures/errors/skips；独立`-B -S`检查16项通过、3项真实Torch依赖缺失跳过；4文件语法和两个标准库dry-run通过，新结果根未创建。尚无真实checkpoint选定alpha或新validation结果。
 - **已完成来源（用户回传）：** `fdma_nmse`、`fdma_joint`、`g4_nmse`、`g4_joint`均完成task-loss新增6048步、累计22096步。本轮冻结其四个规定末步checkpoint，来源实现`596d2a4`与内部`b6dc7ed`/`8096ed9`链分别保存；真实权重和完成证据由服务器严格核验，本地没有重新读取它们。
@@ -37,11 +48,11 @@
 
 ## 一屏摘要
 
-- **当前阶段：** Stage A/B、schedule-screen、ordered-v2和task-loss历史记录保留；用户回传task-loss四臂完成、累计22096步。本轮冻结RZF诊断代码及本地19项测试、语法/标准库dry-run完成，无训练和beta重校准，尚无本批真实权重选择/验证结果。test继续封存。
+- **当前阶段：** 旧训练及冻结RZF诊断历史保留；用户回传旧global-alpha选择完成。本轮准备从两个旧NMSE源展开同源、RZF匹配的四臂12096步续训，尚无新批校准、训练或验证结果。test继续封存。
 - **状态：** CE优化更新 **5000/5000，完成**；latest与best checkpoint均保存、载入并核验到step 5000。独立校准18/18条件完成。
 - **GPU快照：** 训练历史快照见下方记录；本次CPU诊断未使用GPU。当前没有新的实时GPU快照，本页不声称GPU当前空闲。Hybrid正式warmup在独享H100完成。
-- **代码版本：** 本轮来源实现版本为`596d2a4`；内部ordered-v2版本`b6dc7ed`和schedule-screen版本`8096ed965027a92f6e0738c7653b4c3e75f71b8c`分别保留，新RZF诊断commit另记。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`，分支`main`。
-- **提交范围：** 本轮只提交冻结RZF诊断明确白名单中的独立配置/入口、针对性测试和文档（含本页）。已有`paper/plot_specialist_envelope.py`人工修改和四个未跟踪PDF/PNG保持原样，不纳入提交；模型、训练器、物理链路、历史结果、08和Overleaf不改。
+- **代码版本：** 来源训练实现`596d2a4`与旧RZF诊断`0e0b6e8`分别记录；内部ordered-v2版本`b6dc7ed`和schedule-screen版本`8096ed965027a92f6e0738c7653b4c3e75f71b8c`保留，新匹配训练commit另记。仓库为`https://github.com/Charlie-Su-55/03_PRECODER.git`，分支`main`。
+- **提交范围：** 本轮只提交RZF匹配训练明确白名单中的独立配置/入口、针对性测试和文档（含本页）。已有`paper/plot_specialist_envelope.py`人工修改和四个未跟踪PDF/PNG保持原样，不纳入提交；模型、旧训练器/配置、物理链路、历史结果、08和Overleaf不改。
 - **代码/验收/证据区分：** 目标BS receiver已实现并通过CPU四布局前向/梯度验收；四份FDMA/Hybrid warmup均完成并核验。独立性能证据尚无，Stage C尚未开始。
 - **训练步数/checkpoint：** CE更新数 **5000/5000**，latest/best step5000。Stage B四份FDMA/Hybrid warmup各10,000/10,000，累计40,000/40,000。四份checkpoint均CPU载入核验arm/seed/step=10000并含optimizer、CPU/CUDA RNG。seed2 elapsed/peak：FDMA 2224.04秒/1,263,862,272 bytes，Hybrid 2688.3秒/1,267,254,272 bytes。validation-only lambda诊断0次权重更新、未读test；Rref FDMA/Hybrid分别15.8401041和6.9979448。候选lambda尚未冻结。seed1 FDMA耗时1785.91秒、peak 1,214,382,592 bytes；Hybrid H100段2557秒、peak 1,266,140,160 bytes，前500步另用118.36秒。
 - **训练曲线和性能：** 两个seed 20261106 warmup都为NMSE_warmup，LR=2e-4、NMSE权重1/rate权重0。Hybrid H100 step10000固定validation已按G=1/2/4及六gamma摘要（详见下一条）；匹配FDMA/Hybrid固定验证对照待生成。此前step500 CPU配对诊断（4 batches/16样本）仅为不等训练预算下的历史早期检查，细节见更新记录。另完成CPU配对验证：同一8个CPU validation信道样本、六gamma、Ep=16、相同噪声；FDMA checkpoint step10000对Hybrid step500。跨六gamma均值，FDMA DL NMSE/rate=0.00810/17.678，Hybrid G=1/2/4分别0.40249/1.547、0.38826/1.550、0.38819/1.581；配对差Hybrid−FDMA DL NMSE约+0.380至+0.394、rate约−16.10至−16.13 bit/s/Hz。样本bootstrap 95%区间见summary.json。因更新数不匹配（10000对500），这反映当前checkpoint差距，不能归因为布局/模型优劣，也不是独立测试证据。CPU数据ID=`f0dec803f6343c9fa5df1d4d122e92923351a7722abf1df2ffe5b6ce67145fbd`；未启用GPU。已完成FDMA在固定validation（4 batches/16样本）step10000的gamma 0/5/10/15/20/25 dB均值DL NMSE为0.00857/0.00774/0.00751/0.00740/0.00735/0.00734，和速率为15.6875/16.4570/16.9164/16.8415/16.8887/16.9782 bit/s/Hz。属于训练中validation，尚无匹配控制或独立性能证据，不作最终结论。此前CE loss为mean per-link UL NMSE，LR=`1e-3`，无速率loss阶段。最终固定validation跨18条件平均U-Net NMSE `0.02663`（-15.75 dB），匹配LS `0.06058`（-12.18 dB），差约3.57 dB；每条件512个user-link样本，best/latest均step5000。此曲线用于设计与选优，不是独立测试结论。Codec step250 checkpoint在16个CPU validation-role样本上六个gamma均完成核验；DL NMSE均值约`0.4937–0.4957`，sum-rate约`1.609–1.630 bit/s/Hz`。该CPU生成数据ID与CUDA训练manifest的validation数据ID不同；数值仅作链路早期诊断，不作为训练曲线或性能结论。95%区间只按4个batch均值用t分布计算，test未读。
@@ -49,7 +60,7 @@
 - **Hybrid seed 20261107 validation（step10000）：** 72行、LR=`2e-4`、NMSE_warmup。按gamma 0/5/10/15/20/25 dB：G1 DL NMSE=`0.04420/0.03578/0.02947/0.02429/0.02114/0.01978`、rate=`6.0798/6.6214/7.3131/8.0486/8.4185/8.4650`；G2 NMSE=`0.03819/0.03126/0.02898/0.02781/0.02701/0.02658`、rate=`6.3119/6.5094/6.6816/6.8420/6.8211/6.8362`；G4 NMSE=`0.02616/0.02389/0.02288/0.02236/0.02173/0.02141`、rate=`7.4192/7.4918/7.5668/7.5912/7.5512/7.6332` bit/s/Hz。与seed2 FDMA step10000六SNR平均对照，FDMA=`0.00940/15.7767`；Hybrid G1=`0.02911/7.4911`、G2=`0.02997/6.6670`、G4=`0.02307/7.5422`（NMSE/rate）。此为4 validation batch点估计；逐臂噪声循环未保证严格逐样本噪声配对，无配对置信区间，不是test证据。该seed原始validation日志仍需回传。
 - **资源与隔离验收：** 新decoder CPU链路每UE数据能量最大绝对偏差`7.6294e-6`，RZF每子载波功率最大偏差`2.98e-7`；data-only Y扰动使输出最大变化`2.32e-4`（缩小四布局检查）、`8.17e-4`（full-width G=4）。全宽结构CPU通过，但GPU峰值显存/吞吐未知。test未读取；六SNR正式评估未知。
 - **论文：** 发现主稿`TWC_progress_updated_analog_superposition.tex`。最新构建PDF为`overleaf/build/TWC_progress_updated_analog_superposition.pdf`，2026-11-04 11:23:50 CET生成，18页；构建成功但有warning，详见下文。新增投稿尺寸的K8 encoder/decoder矢量图PDF/SVG和PNG预览，尚未插入Overleaf；未改tex。
-- **主要待办：** 用户回传task-loss四臂完成后，先冻结权重做RZF固定0.01与单个global selected alpha的分离validation诊断，保留全部SNR、负结果及配对统计；另只读训练progress说明固定小monitor趋势的局限，不提前宣布收敛或排除加训。没有本批实际结果前不归因幅度或宣称增益。独立test和Overleaf继续不动。
+- **主要待办：** 从旧NMSE FDMA/G4源分别匹配初始化新NMSE/joint两臂，使用布局固定RZF与新beta2，完成12096步/臂和四次完整网格monitor；末态再单独做新alpha诊断及256MU配对验证。不得从旧joint初始化或把评估新alpha回写训练。没有本批结果前不宣称loss收益或收敛。独立test和Overleaf继续不动。
 
 ## 阶段状态
 
