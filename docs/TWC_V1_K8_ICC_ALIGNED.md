@@ -108,7 +108,7 @@ The same corrected UL estimate enters recovery and observation memory.
 
 ## Data, identity, checkpoint and resume boundaries
 
-All output is under `runs/twc_v1_k8_icc_aligned_v1/`; no old source/results,
+Savefix output is under `runs/twc_v1_k8_icc_aligned_savefix_v1/`; no old source/results,
 STATUS, last_batch, weight or failed evidence is modified. New source identity
 locks model, physics, data, optimizer and critical evaluation implementations.
 Launcher/report identity and Git commit provenance are recorded separately;
@@ -158,40 +158,87 @@ an unbounded terminal JSON dump.
 
 ## Server execution
 
-Use the existing CUDA/Sionna environment. Safe Git sync must verify main,
-origin, empty staging and no foreign unpushed commits; keep all local changes.
-Stop if a03 process is still using this code before pulling. Do not terminate
-another user's process. An example after safe sync:
+The server reported that commit `2e973b240174173593c9ad7b1b96016cb540e300`
+failed at the first CE100 save: PyTorch rejected the hidden temporary archive
+name `.checkpoint_*`. Neither codec had started. The shared CE/FDMA/Hybrid
+writer now serializes into a same-directory, non-hidden `checkpoint_*.pt`
+file, then uses `os.replace`. Serialization/replacement failures remove only
+the temporary file and preserve an existing destination checkpoint.
+
+The failed `runs/twc_v1_k8_icc_aligned_v1/` tree remains in place, including
+logs, partial outputs, locks and failure records. Do not resume, rename, delete
+or import it. The savefix uses `runs/twc_v1_k8_icc_aligned_savefix_v1/` with the
+original `NAMESPACE`, seeds, addresses, architecture, physical protocol and
+recipe. Core hashes change with the fix; identity checks remain strict.
+
+After this fix is merged into main, run the following on SSH in the existing
+CUDA/Sionna environment. It refuses an active same-user Python process in03,
+a non-main checkout, staged changes, local-only commits or an existing savefix
+root. It does not kill processes, remove locks or modify the old failed tree.
+Git retains unrelated unstaged changes or refuses a conflicting pull.
+
+```bash
+set -euo pipefail
+conda activate precoder
+cd -P ~/project/03_PRECODER
+task_python="$(python -c 'import sys; print(sys.executable)')"
+case "$task_python" in /*) ;; *) echo 'Absolute Python path required'; exit 1 ;; esac
+for task_pid in $(pgrep -u "$(id -u)" -x 'python([0-9.]*)?' || true); do
+  task_cwd="$(readlink -f "/proc/$task_pid/cwd" 2>/dev/null || true)"
+  case "$task_cwd/" in "$PWD/"*) echo "03 Python process still active: $task_pid"; exit 1 ;; esac
+done
+test "$(git branch --show-current)" = main
+test "$(git remote get-url origin)" = https://github.com/Charlie-Su-55/03_PRECODER.git
+git status --short --branch
+git diff --cached --quiet
+git fetch origin main
+test "$(git rev-list --count origin/main..HEAD)" -eq 0
+git pull --ff-only origin main
+"$task_python" -B -m unittest discover -s tests -p test_twc_v1_k8_icc_aligned_checkpoint.py -v
+"$task_python" -B -S run_twc_v1_k8_icc_aligned.py --dry-run
+test ! -e runs/twc_v1_k8_icc_aligned_savefix_v1
+mkdir -p terminal_logs
+task_log="$PWD/terminal_logs/k8_icc_aligned_savefix_$(date -u +%Y%m%dT%H%M%SZ)_$$.log"
+tmux new-session -d -s k8_icc_aligned_savefix \
+  "cd '$PWD' && '$task_python' -B -u run_twc_v1_k8_icc_aligned.py --run --allow-shared-gpu --min-free-mib 12000 --max-gpu-util 80 > '$task_log' 2>&1"
+printf 'Log: %s\n' "$task_log"
+```
+
+This new `--run` starts CE from0 and performs5000 total updates; FDMA and
+Hybrid each perform20000 total updates, microbatch4/accumulation8. The internal
+100→terminal stage continuation belongs to this new batch and consumes the
+remaining budget, not another5000/20000 updates. Do not pass controller
+`--resume` for the old failed batch. Keep fixed terminal weights, all six gamma
+points, negative results and the sealed test protocol.
+
+Shared-GPU admission settings are recorded separately from training identity.
+They are initial observations, not continuous resource limits or an automatic
+pause mechanism. No batch/model/budget reduction is introduced.
+
+Return the complete compact summary after completion or failure:
 
 ```bash
 conda activate precoder
-cd ~/project/03_PRECODER
-task_python="$CONDA_PREFIX/bin/python"
-tmux new-session -d -s k8_icc_aligned \
-  "cd '$PWD' && '$task_python' -B -u run_twc_v1_k8_icc_aligned.py --run --allow-shared-gpu --min-free-mib 12000 --max-gpu-util 80 > '$PWD/terminal_logs/k8_icc_aligned.log' 2>&1"
-```
-
-Explicit shared-GPU admission settings are recorded separately from training
-identity. They are an initial observation, not a continuous memory/compute
-limit or an automatic pause mechanism. The conservative default remains
-available by omitting shared options. OOM/nonfinite/identity failures preserve
-evidence and stop; they never silently shrink batch, model or budget.
-
-Summary to return in full:
-
-```bash
+cd -P ~/project/03_PRECODER
 "$CONDA_PREFIX/bin/python" -B run_twc_v1_k8_icc_aligned.py --summary
 ```
 
-Only after the original process has exited, continue owned stages explicitly:
+The command reads the new root's `last_batch.json`; it does not read the old
+failed batch. Use `--summary --details` only for the full underlying record.
 
-```bash
-"$CONDA_PREFIX/bin/python" -B -u run_twc_v1_k8_icc_aligned.py --run --resume --allow-shared-gpu --min-free-mib 12000 --max-gpu-util 80
-```
+### Savefix CPU checks
 
-Completed stages are reused only after evidence/hash validation. No old lock is
-deleted and no completed training is automatically repeated. Partial failure
-outputs stay for inspection.
+The actual PyTorch2.9.1+cpu run passed46 ICC-aligned tests with0 failures,
+errors or skips. The three new checkpoint tests exercise the production
+CE/FDMA/Hybrid save path with tiny CPU Linear/AdamW states, real save/load,
+an actual unpicklable-payload serialization failure, and an injected replacement
+failure after real serialization. Existing checkpoint bytes survive both
+failure paths and temporary files are cleaned. `torch.save` is never mocked.
+These tests require no Sionna, CUDA or full model training.
+
+These results do not establish CE convergence, full-size checkpoint integrity,
+CUDA admission, GPU memory/throughput, codec performance or uninterrupted CUDA
+resume equivalence. No SSH connection or training was started in the cloud.
 
 ## Local verification boundary
 

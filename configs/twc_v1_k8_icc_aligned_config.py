@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 NAMESPACE = 'twc_v1_k8_icc_aligned_v1'
-OUTPUT_ROOT = ROOT / 'runs' / NAMESPACE
+OUTPUT_ROOT = ROOT / 'runs' / 'twc_v1_k8_icc_aligned_savefix_v1'
 ARMS = ('fdma', 'hybrid_g4')
 GAMMAS = (0, 5, 10, 15, 20, 25)
 SEED = 20261121
