@@ -5,12 +5,17 @@ from types import SimpleNamespace
 import unittest
 from unittest import mock
 
-import torch
-
 from configs import twc_v1_k8_icc_aligned_config as cfg
 import train_twc_v1_k8_icc_aligned as runtime
 
+try:
+    import torch
+    import numpy as np
+except ImportError:
+    torch = np = None
 
+
+@unittest.skipIf(torch is None or np is None, 'Real PyTorch/NumPy unavailable; no fake dependency')
 class CheckpointSaveTests(unittest.TestCase):
     def test_real_roundtrip_replaces_existing_checkpoint_for_all_components(self):
         external_rng = runtime.capture_rng()

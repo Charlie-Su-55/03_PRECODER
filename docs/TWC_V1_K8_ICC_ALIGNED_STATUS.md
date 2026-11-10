@@ -14,6 +14,8 @@ Cloud CPU validation:46 ICC-aligned tests passed,0 failures/errors/skips,
 including three real checkpoint IO tests (all three components, serialization
 failure and replacement failure preserving existing bytes/cleaning temps).
 Controller dry-run and no-start summary passed without creating an output root.
+After the review fix, standard-library-only discovery passes22 checks and
+explicitly skips24 Torch/NumPy-dependent checks, with0 failures/errors.
 No Sionna/CUDA/full model is needed by the new IO tests. No SSH, full training,
 real server checkpoint or performance evaluation was executed. Commands are in
 `TWC_V1_K8_ICC_ALIGNED.md`. The original preparation record follows.

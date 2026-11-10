@@ -235,6 +235,9 @@ an actual unpicklable-payload serialization failure, and an injected replacement
 failure after real serialization. Existing checkpoint bytes survive both
 failure paths and temporary files are cleaned. `torch.save` is never mocked.
 These tests require no Sionna, CUDA or full model training.
+Without site packages (`-B -S`), the integrated suite passes22 checks and
+explicitly skips24 real-dependency checks, including the three checkpoint tests;
+test discovery no longer fails when PyTorch/NumPy are absent.
 
 These results do not establish CE convergence, full-size checkpoint integrity,
 CUDA admission, GPU memory/throughput, codec performance or uninterrupted CUDA
@@ -250,7 +253,7 @@ scalar/shared recovery/conjugate-axis math and finite small-tensor gradients.
 When PyTorch is absent the numerical checks explicitly skip rather than install
 or mock it. Final executed pass/skip counts are recorded in the batch delivery.
 
-Final integrated local run:43 passed,0 failures/errors/skips; independent
+Original preparation run (before savefix):43 passed,0 failures/errors/skips; independent
 standard-library-only run:22 passed and21 explicit real-dependency skips.
 Four entry-point dry-runs and the no-start summary passed. All14 new Python
 files passed Python3.10 AST/compile checks without writing bytecode. Controller
