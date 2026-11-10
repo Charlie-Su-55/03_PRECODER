@@ -401,6 +401,20 @@ def commit_update(model,optimizer,scheduler,*,stats=None,power_sum=None,
     return grad_norm
 
 
+def atomic_torch_save(payload, target):
+    """Serialize beside the destination; failed writes leave it untouched."""
+    torch, _ = tensor_runtime()
+    target = Path(target)
+    handle, name = tempfile.mkstemp(prefix='checkpoint_', suffix='.pt', dir=target.parent)
+    os.close(handle)
+    try:
+        torch.save(payload, name)
+        os.replace(name, target)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
 def save_checkpoint(directory,model,stats,optimizer,scheduler,component,step,data,core,ce_record,started,elapsed,measured):
     torch,_=tensor_runtime()
     guard_core(core); optimizer_check(optimizer,scheduler,step)
@@ -411,11 +425,7 @@ def save_checkpoint(directory,model,stats,optimizer,scheduler,component,step,dat
         counters=cfg.counters(component,step),data_protocol=data.protocol,ce_identity=ce_record,
         statistics=None if stats is None else stats.state_dict())
     target=directory/'checkpoint_latest.pt'
-    handle,name=tempfile.mkstemp(prefix='.checkpoint_',dir=directory); os.close(handle)
-    try:
-        torch.save(payload,name);os.replace(name,target)
-    finally:
-        if os.path.exists(name):os.unlink(name)
+    atomic_torch_save(payload, target)
     total=cfg.CE_UPDATES if component=='ce' else cfg.CODEC_UPDATES
     record=dict(status='completed' if step==total else 'paused',component=component,step=step,
         counters=payload['counters'],checkpoint_sha256=sha256(target),core=core,

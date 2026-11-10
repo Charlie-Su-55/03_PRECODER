@@ -1,5 +1,27 @@
 # K8 ICC-aligned handoff
 
+## Checkpoint savefix (2026-11-10)
+
+Server report: commit `2e973b240174173593c9ad7b1b96016cb540e300` failed
+at CE100 on PyTorch rejecting `.checkpoint_*`; neither codec started. Keep
+the failed `runs/twc_v1_k8_icc_aligned_v1/` tree unchanged. The shared writer
+now uses same-directory non-hidden `.pt` temporary files and atomic replacement.
+Start a fresh `--run` in `runs/twc_v1_k8_icc_aligned_savefix_v1/`, never resume
+the old batch. Original namespace/data/seed/protocol/recipe and strict identity
+checks remain; CE starts at0 for5000 updates and each codec gets20000 total.
+
+Cloud CPU validation:46 ICC-aligned tests passed,0 failures/errors/skips,
+including three real checkpoint IO tests (all three components, serialization
+failure and replacement failure preserving existing bytes/cleaning temps).
+Controller dry-run and no-start summary passed without creating an output root.
+After the review fix, standard-library-only discovery passes22 checks and
+explicitly skips24 Torch/NumPy-dependent checks, with0 failures/errors.
+No Sionna/CUDA/full model is needed by the new IO tests. No SSH, full training,
+real server checkpoint or performance evaluation was executed. Commands are in
+`TWC_V1_K8_ICC_ALIGNED.md`. The original preparation record follows.
+
+## Original preparation record
+
 This independent batch is prepared locally. It has not run on the server and
 has no performance result, trained checkpoint or accepted CUDA admission yet.
 The original STATUS and all historical training/finish sources remain unchanged.
