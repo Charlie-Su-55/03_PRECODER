@@ -176,32 +176,49 @@ CUDA/Sionna environment. It refuses an active same-user Python process in03,
 a non-main checkout, staged changes, local-only commits or an existing savefix
 root. It does not kill processes, remove locks or modify the old failed tree.
 Git retains unrelated unstaged changes or refuses a conflicting pull.
+The quoted block runs in a separate Bash process: failure prints its reason
+and returns to the existing terminal rather than exiting the interactive shell.
+If the checkpoint test file is missing after pulling, the fix has not reached
+main; merge this PR before retrying. No training is launched in that case.
 
 ```bash
-set -euo pipefail
-conda activate precoder
+bash <<'ICC_SAVEFIX' || printf '%s\n' 'Savefix launch stopped. Read the error above; the terminal stays open.'
+set -Ee -o pipefail
+trap 'task_rc=$?; printf "Stopped at script line %s (exit %s).\n" "$LINENO" "$task_rc" >&2; exit "$task_rc"' ERR
+fail() { printf 'STOP: %s\n' "$*" >&2; exit 1; }
 cd -P ~/project/03_PRECODER
+task_conda_base="$("${CONDA_EXE:-conda}" info --base)"
+test -r "$task_conda_base/etc/profile.d/conda.sh" || fail 'Cannot locate conda.sh for this installation.'
+source "$task_conda_base/etc/profile.d/conda.sh"
+conda activate precoder
 task_python="$(python -c 'import sys; print(sys.executable)')"
-case "$task_python" in /*) ;; *) echo 'Absolute Python path required'; exit 1 ;; esac
+case "$task_python" in /*) ;; *) fail 'Absolute Python path required.' ;; esac
 for task_pid in $(pgrep -u "$(id -u)" -x 'python([0-9.]*)?' || true); do
   task_cwd="$(readlink -f "/proc/$task_pid/cwd" 2>/dev/null || true)"
-  case "$task_cwd/" in "$PWD/"*) echo "03 Python process still active: $task_pid"; exit 1 ;; esac
+  case "$task_cwd/" in "$PWD/"*) fail "03 Python process still active: $task_pid" ;; esac
 done
-test "$(git branch --show-current)" = main
-test "$(git remote get-url origin)" = https://github.com/Charlie-Su-55/03_PRECODER.git
+test "$(git branch --show-current)" = main || fail 'Expected the main branch.'
+test "$(git remote get-url origin)" = https://github.com/Charlie-Su-55/03_PRECODER.git || fail 'Unexpected origin URL.'
 git status --short --branch
-git diff --cached --quiet
+git diff --cached --quiet || fail 'Staged changes found; preserve them before synchronization.'
 git fetch origin main
-test "$(git rev-list --count origin/main..HEAD)" -eq 0
+test "$(git rev-list --count origin/main..HEAD)" -eq 0 || fail 'Local-only commits found; refusing synchronization.'
 git pull --ff-only origin main
-"$task_python" -B -m unittest discover -s tests -p test_twc_v1_k8_icc_aligned_checkpoint.py -v
+test -f tests/test_twc_v1_k8_icc_aligned_checkpoint.py || fail 'Main does not contain the checkpoint fix. Merge the PR first.'
+"$task_python" -B -c "from configs import twc_v1_k8_icc_aligned_config as c; assert c.OUTPUT_ROOT == c.ROOT/'runs/twc_v1_k8_icc_aligned_savefix_v1', 'Unexpected output root'"
+CUDA_VISIBLE_DEVICES='' "$task_python" -B -m unittest discover -s tests -p test_twc_v1_k8_icc_aligned_checkpoint.py -v
 "$task_python" -B -S run_twc_v1_k8_icc_aligned.py --dry-run
-test ! -e runs/twc_v1_k8_icc_aligned_savefix_v1
+test ! -e runs/twc_v1_k8_icc_aligned_savefix_v1 || fail 'Savefix output already exists; inspect its summary before doing anything else.'
+command -v tmux >/dev/null || fail 'tmux is not installed.'
+if tmux has-session -t '=k8_icc_aligned_savefix' 2>/dev/null; then
+  fail 'The k8_icc_aligned_savefix tmux session already exists.'
+fi
 mkdir -p terminal_logs
 task_log="$PWD/terminal_logs/k8_icc_aligned_savefix_$(date -u +%Y%m%dT%H%M%SZ)_$$.log"
 tmux new-session -d -s k8_icc_aligned_savefix \
   "cd '$PWD' && '$task_python' -B -u run_twc_v1_k8_icc_aligned.py --run --allow-shared-gpu --min-free-mib 12000 --max-gpu-util 80 > '$task_log' 2>&1"
 printf 'Log: %s\n' "$task_log"
+ICC_SAVEFIX
 ```
 
 This new `--run` starts CE from0 and performs5000 total updates; FDMA and
