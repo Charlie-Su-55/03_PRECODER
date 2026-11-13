@@ -269,3 +269,105 @@ and exact-lease deletion under a deliberately changed remote ref.
 Cloud Torch is2.9.1+cpu. The new real-checkpoint CUDA/Sionna diagnostic and
 real GitHub result upload have not run in cloud. Tests do not establish the
 scientific cause, a rate improvement or model performance.
+
+## REST upload fallback for the completed report
+
+The new machine has already completed the propagation diagnostic and saved
+the report at
+`runs/twc_v1_k8_ul_propagation_v1/reports/attempt_76f6300c2486/`.
+An upload failure does not require rerunning the diagnostic or training.
+The separate `publish_twc_v1_k8_ul_propagation_rest.py` entry point only
+changes result transport; it leaves all46 pinned scientific/production
+files and the completed report unchanged.
+
+The observed network pattern was successful authenticated GitHub API reads
+(`/user` and the repository endpoint returned200), a successful Git
+receive-advertisement GET, and a receive-pack POST rejected with an HTML403
+without a GitHub request identifier. This strongly points toward an
+intermediate gateway response, although it does not prove a unique cause.
+Successful public repository reads alone do not establish write permission.
+Do not replace a working token merely because of this HTML403. Revisit token
+expiry or permissions only after a GitHub401 or a verified credential/scope
+problem. Fine-grained credentials should remain restricted to this repository
+with Contents read/write permission, using the existing secure Git credential
+cache/helper; no token belongs in a command, result file or conversation.
+
+The fallback uses GitHub's documented Git Data REST API for blobs, tree,
+commit and a new result ref. It reuses the original completed-export guards,
+scalar whitelist, upload receipt and the **same already-prepared orphan
+commit**. Returned blob/tree/commit identities are checked before the result
+ref is created. It does not edit main, checkout or index. Existing prepared
+commit and local evidence are retained after a failure.
+
+TLS and hostname verification stay enabled. The API client uses this
+repository's configured CA/proxy and cached credential; it refuses redirects
+and does not print credentials or response bodies. Keep the new machine's
+proxy3129 running for these API calls. The old machine's proxy3128 settings
+are a different route and must not be copied over as a presumed fix.
+
+After reviewing and merging the REST-uploader PR, run the following on the
+new `rong` machine to pull code and verify the existing report locally.
+`--verify-only` has no network or credential access and creates no new Git
+objects. This sequence does not invoke `--run`, `--resume` or any training.
+
+```bash
+bash <<'VERIFY_UL_REST_UPLOAD' || printf '%s\n' '同步或本地验收停止，请回传错误。'
+set -Ee -o pipefail
+fail() { printf 'STOP: %s\n' "$*" >&2; exit 1; }
+test "$(id -un)" = rong || fail '请在新机 rong 账号运行。'
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+conda activate precoder
+cd -P /home/r50037942/project/03_PRECODER
+test "$(git branch --show-current)" = main || fail '当前不在 main，已保留原样。'
+test "$(git remote get-url origin)" = https://github.com/Charlie-Su-55/03_PRECODER.git || fail 'origin 不符。'
+git diff --cached --quiet || fail '存在已暂存修改，请保留并回传状态。'
+git pull --ff-only origin main
+test -f publish_twc_v1_k8_ul_propagation_rest.py || fail 'REST uploader PR 尚未合并。'
+CUDA_VISIBLE_DEVICES='' "$CONDA_PREFIX/bin/python" -B -m unittest discover \
+  -s tests -p 'test_twc_v1_k8_ul_propagation_rest.py' -v
+task_report="$PWD/runs/twc_v1_k8_ul_propagation_v1/reports/attempt_76f6300c2486"
+test -d "$task_report" || fail '未找到这份已完成的报告，请回传状态。'
+"$CONDA_PREFIX/bin/python" -B publish_twc_v1_k8_ul_propagation_rest.py \
+  --verify-only --export-dir "$task_report"
+VERIFY_UL_REST_UPLOAD
+```
+
+After that local verification succeeds, explicitly publish the same report:
+
+```bash
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+conda activate precoder
+cd -P /home/r50037942/project/03_PRECODER
+"$CONDA_PREFIX/bin/python" -B publish_twc_v1_k8_ul_propagation_rest.py \
+  --publish \
+  --export-dir /home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ul_propagation_v1/reports/attempt_76f6300c2486
+```
+
+Publication uses the existing configured credential noninteractively. If its
+cache is unavailable, the uploader stops clearly rather than collecting or
+printing a token. Restore the existing valid credential through the secure
+authentication flow above; a missing cache alone is not a reason to generate
+another token.
+
+The gateway may also reject REST write requests. This route does not promise
+to circumvent a network policy. If a write fails, retain the local report and
+receipt and return the reported stage/status classification; do not weaken
+TLS verification or repeatedly rotate credentials. No real GitHub REST result
+upload has been validated in cloud for this fallback.
+
+On success, return only the printed result branch, commit and URL to the
+conversation. The existing public-repository whitelist and branch-deletion
+limits still apply: removing a remote result ref does not guarantee erasure
+of Git objects, clones or caches, and the server's original evidence remains.
+
+The actual additive-fix regression passed **86 propagation tests, zero skips,
+failures or errors, in5.110 seconds**: the existing65 plus21 REST transport
+checks. Local temporary bare Git databases independently reconstruct every
+blob, tree and orphan commit, including a bounded final-newline compatibility
+attempt that still requires the original exact commit SHA. Tests cover the
+old failed-Git receipt reused by REST, API failures and retry, ref conflicts
+and races, source/index preservation, strict TLS/proxy selection, silent cached
+credentials and sanitized HTTP errors. All46 original core files were also
+byte-compared with the merged diagnostic source and remained identical.
+These are CPU/local transport checks, not a real GitHub result upload or a new
+scientific performance evaluation.
