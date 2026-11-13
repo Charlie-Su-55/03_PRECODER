@@ -371,3 +371,20 @@ credentials and sanitized HTTP errors. All46 original core files were also
 byte-compared with the merged diagnostic source and remained identical.
 These are CPU/local transport checks, not a real GitHub result upload or a new
 scientific performance evaluation.
+
+### Conda-only Git test portability correction
+
+The first SSH run of the REST tests exposed a test-fixture bug: clearing
+`os.environ` also removed `PATH`, so the two network-configuration tests could
+not find Git installed only in the Conda environment. A system Git in the
+cloud's default executable path had masked this. The test environment now
+retains the active `PATH` while preserving its TLS/proxy isolation. TLS
+verification assertions and the production uploader are unchanged.
+
+The exact two errors were reproduced with Git available only through a
+temporary nondefault `PATH` and an empty fallback search directory. After the
+correction, all22 REST tests passed both normally (1.608s) and with that
+restricted executable lookup (1.791s), with no skips, failures or errors.
+A permanent real-Git regression covers the same condition. No Git reinstall,
+experiment rerun or credential change is required; after merging the test
+fix, use the existing pull/test/verify/upload sequence above.
