@@ -12,6 +12,7 @@ import io
 import json
 import os
 from pathlib import Path
+import shutil
 import ssl
 import subprocess
 import unittest
@@ -28,6 +29,11 @@ _fixture_spec = importlib.util.spec_from_file_location(
     Path(__file__).with_name('test_twc_v1_k8_ul_propagation_publish.py'))
 _fixtures = importlib.util.module_from_spec(_fixture_spec)
 _fixture_spec.loader.exec_module(_fixtures)
+
+
+def _config_environment(**overrides):
+    """Isolate network configuration while retaining executable lookup."""
+    return dict(PATH=os.environ.get('PATH', os.defpath), **overrides)
 
 
 class LocalGitDatabase:
@@ -483,24 +489,41 @@ class HTTPClientSecurityTests(unittest.TestCase):
         self.assertIsNotNone(ca)
         self.fixture.git('config', 'http.https://github.com/.proxy', 'http://127.0.0.1:3129')
         self.fixture.git('config', 'http.https://github.com/.sslCAInfo', ca)
-        with mock.patch.dict(os.environ, {}, clear=True):
+        with mock.patch.dict(os.environ, _config_environment(), clear=True):
             selected = rest._network_config(self.fixture.root)
         self.assertEqual(selected['proxy'], 'http://127.0.0.1:3129')
         self.assertEqual(selected['cafile'], ca)
         override = self.fixture.root/'local-ca.pem'
         override.write_bytes(Path(ca).read_bytes())
-        with mock.patch.dict(os.environ, {'GIT_SSL_CAINFO': str(override)}, clear=True):
+        with mock.patch.dict(os.environ,
+                _config_environment(GIT_SSL_CAINFO=str(override)), clear=True):
             selected = rest._network_config(self.fixture.root)
         self.assertEqual(selected['cafile'], str(override))
 
     def test_explicit_tls_bypass_is_refused(self):
-        with mock.patch.dict(os.environ, {'GIT_SSL_NO_VERIFY': '1'}, clear=True):
+        with mock.patch.dict(os.environ,
+                _config_environment(GIT_SSL_NO_VERIFY='1'), clear=True):
             with self.assertRaises((ValueError, rest.RESTError)):
                 rest._network_config(self.fixture.root)
         self.fixture.git('config', 'http.https://github.com/.sslVerify', 'false')
-        with mock.patch.dict(os.environ, {}, clear=True):
+        with mock.patch.dict(os.environ, _config_environment(), clear=True):
             with self.assertRaises((ValueError, rest.RESTError)):
                 rest._network_config(self.fixture.root)
+
+    def test_config_checks_find_git_installed_only_on_active_path(self):
+        real_git = Path(shutil.which('git')).resolve()
+        toolbin = self.fixture.root/'conda-only-bin'
+        fallback = self.fixture.root/'empty-default-path'
+        toolbin.mkdir()
+        fallback.mkdir()
+        (toolbin/'git').symlink_to(real_git)
+        self.fixture.git('config', 'http.https://github.com/.proxy', 'http://127.0.0.1:3129')
+        with mock.patch.dict(os.environ, {'PATH': str(toolbin)}):
+            with mock.patch.object(os, 'defpath', str(fallback)):
+                with mock.patch.dict(os.environ, _config_environment(), clear=True):
+                    selected = rest._network_config(self.fixture.root)
+        self.assertEqual(selected['proxy'], 'http://127.0.0.1:3129')
+        self.fixture.assert_source_preserved()
 
     def test_cached_credential_is_memory_only_silent_and_disables_prompt_and_trace(self):
         calls = []
