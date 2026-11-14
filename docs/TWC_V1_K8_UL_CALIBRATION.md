@@ -133,6 +133,13 @@ Copy the whole block into the old SSH terminal. It preserves unrelated dirty
 files, stops on source conflicts or existing output, and never resets,
 cleans, deletes a lock or terminates another process.
 
+For a shorter paste, after merging the PR activate `precoder`, enter the03
+repository, run `git pull --ff-only origin main`, then run
+`bash tools/start_twc_v1_k8_ul_calibration_old.sh`. That operational launcher
+contains the same checks/tests/tmux command shown below. It is intentionally
+restricted to the old `r50037942` account and is separate from the54-file
+scientific core. The complete block remains available for review.
+
 ```bash
 conda activate precoder
 
@@ -232,6 +239,12 @@ manifests are marked `test_fixture` and cannot pass production verification.
 Actual pinned weights, CUDA/Sionna channels, physical server runtime and new
 CSI/rate results must be checked by the SSH batch. No such real training or
 full model evaluation has been run in cloud.
+
+The separate operational helper `tools/inspect_3129_parent.py` is only for
+new-machine network diagnosis. Run it as `rong` after `sudo -v`; it captures
+the3129 CNTLM listener's argv privately and prints only validated parent
+hostnames/ports. It never prints accounts, domains, passwords, hashes or full
+arguments, makes no network request and changes no proxy configuration.
 
 The completed combined cloud regression passed **229 tests, zero skips,
 failures or errors, in18.195 seconds**:143 preceding UL checks plus86 new
