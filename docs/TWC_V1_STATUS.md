@@ -1,3 +1,5 @@
+> **历史文档：入口已整理。** 本文保留早期K8阶段的原始状态记录。五个旧CE／Stage-C／配对诊断入口现按原字节归档至 [archive/early_k8](../archive/early_k8/README.md)，对应提交 `31c1fb30e6e2995d847a02226a6cbf19ff86b5b0`。当前实验入口见 [README](../README.md)，下文历史命令不作为当前启动命令。
+
 # TWC 1.0 K8 科研进度
 
 最后核查：2026-11-09（受限缓存清理及physical/semantic split代码/轻量检查完成；真实来源与CUDA验收未执行）
