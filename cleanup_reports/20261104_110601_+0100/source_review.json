@@ -1,0 +1,16 @@
+{
+  "removed": [
+    {
+      "path": "diagnose_cross_cdl_condition.py",
+      "bytes": 6845,
+      "reason": "Standalone early CDL condition-number diagnostic; no references found in repository, while eval_cross_cdl.py provides full cross-CDL model evaluation."
+    }
+  ],
+  "retained": {
+    "diagnose_low_feedback_snr.py": "Used by tests and SNR diagnostic flow",
+    "diagnose_sionna_rng.py": "Recent dependency of grouped-codec and receiver batch flows",
+    "diagnose_training_channel_data.py": "Recent dependency of receiver batch flow and tests",
+    "eval_*": "Distinct legacy baselines/analyses, retained for reproducibility",
+    "train_* and run_*": "Retained because active batch workflows reference them or they define standalone baseline training."
+  }
+}

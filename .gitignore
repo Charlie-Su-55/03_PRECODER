@@ -46,6 +46,10 @@ paper/*.bbl
 paper/*.blg
 paper/*.synctex.gz
 
+# User-local LaTeX toolchains under the protected manuscript workspace
+/overleaf/.texlive-env/
+/overleaf/.texlive-system/
+
 # Training checkpoints and experiment outputs
 ckp/
 runs/
@@ -63,3 +67,6 @@ terminal_logs/
 # Python cache
 __pycache__/
 *.pyc
+
+# Remote LaTeX build artifacts (the manuscript and its uploaded baseline stay visible)
+/overleaf/build/

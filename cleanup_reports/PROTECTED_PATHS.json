@@ -1,0 +1,17 @@
+{
+  "protected_paths": [
+    "paper/",
+    "paper_results/",
+    "overleaf/"
+  ],
+  "policy": "Do not delete, clean, move, or overwrite any protected path during experiment-artifact cleanup. overleaf/build/ contains regenerable LaTeX outputs, but remains protected unless a user explicitly requests build cleanup. Keep the uploaded manuscript and its original PDF baseline intact.",
+  "explicit_overleaf_contents": [
+    "overleaf/TWC_progress_updated_analog_superposition.tex",
+    "overleaf/TWC_progress_updated_analog_superposition.pdf",
+    "overleaf/refs.bib",
+    "overleaf/figures/",
+    "overleaf/original_upload_manifest.json",
+    "overleaf/build/",
+    "overleaf/.texlive-system/"
+  ]
+}

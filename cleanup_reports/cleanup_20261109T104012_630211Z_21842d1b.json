@@ -1,0 +1,680 @@
+{
+  "format": "twc_v1_k8_safe_cleanup_v1",
+  "status": "completed",
+  "created": "2026-11-09T10:40:12.730702+00:00",
+  "machine": "w00611266-ELITE",
+  "platform": "Linux-7.0.0-38-generic-x86_64-with-glibc2.39",
+  "repository": "/home/r50037942/project/03_PRECODER",
+  "mode": "apply",
+  "process_guard": {
+    "clear": true,
+    "blockers": [],
+    "self_pid_excluded": 1452715,
+    "conservative_windows_cwd_policy": true
+  },
+  "source_directory_whitelist": [
+    "root immediate bytecode/tool caches",
+    "configs",
+    "models",
+    "tests",
+    "utils",
+    "paper/scripts"
+  ],
+  "before": {
+    "protected_sha256": {
+      ".gitignore": "99481bb59a482faa7ba38f00c2e7b22f60a2c353582dbeeb4d498f77f8590bd9",
+      "paper/plot_specialist_envelope.py": "0ef644617aa7aa51d1d18567c39285604586fe41de494f337b652da83a3d41a5",
+      "paper/figures/fig_k4_pure_as_feedback_snr.pdf": null,
+      "paper/figures/fig_k4_pure_as_feedback_snr.png": null,
+      "paper/figures/fig_specialist_envelope.pdf": null,
+      "paper/figures/fig_specialist_envelope.png": null
+    },
+    "git_status": " M .gitignore\n D diagnose_cross_cdl_condition.py\n D old/diagnostic_eval.py\n D old/train_adaptive_8ue.py\n D old/train_csinet_baseline_8ue.py\n D old/train_swin_baseline_8ue.py\n?? cleanup_reports/20261104_105448_+0100/cleanup_manifest.json\n?? cleanup_reports/20261104_105508_+0100/cleanup_manifest.json\n?? cleanup_reports/20261104_110601_+0100/source_review.json\n?? cleanup_reports/PROTECTED_PATHS.json\n?? docs/TWC03_SSH_HANDOFF_20261102.md\n?? docs/TWC_1_0_K8_two_week_plan_20261103_V2.md\n?? docs/figures/TWC_V1_K8_encoder_decoder_architecture.pdf\n?? docs/figures/TWC_V1_K8_encoder_decoder_architecture.png\n?? docs/figures/TWC_V1_K8_encoder_decoder_architecture.svg\n?? docs/figures/TWC_V1_K8_joint_codec_architecture_journal.pdf\n?? docs/figures/TWC_V1_K8_joint_codec_architecture_journal.png\n?? docs/figures/TWC_V1_K8_joint_codec_architecture_journal.svg\n?? docs/figures/draw_twc_v1_k8_journal_architecture.py\n?? overleaf/BASELINE_BUILD_REPORT.md\n?? overleaf/CODE_PAPER_CONSISTENCY_AUDIT.md\n?? overleaf/IEEEtran.cls\n?? overleaf/JOURNAL_REVISION_AUDIT.md\n?? overleaf/New_IEEEtran_how-to.pdf\n?? overleaf/New_IEEEtran_how-to.tex\n?? overleaf/TWC_progress_updated_analog_superposition.aux\n?? overleaf/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/TWC_progress_updated_analog_superposition.blg\n?? overleaf/TWC_progress_updated_analog_superposition.fdb_latexmk\n?? overleaf/TWC_progress_updated_analog_superposition.fls\n?? overleaf/TWC_progress_updated_analog_superposition.log\n?? overleaf/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/TWC_progress_updated_analog_superposition.tex\n?? overleaf/bare_jrnl_new_sample4.pdf\n?? overleaf/bare_jrnl_new_sample4.tex\n?? overleaf/figures/ablation_4ue.pdf\n?? overleaf/figures/fig_ablation_k4_d128.pdf\n?? overleaf/figures/fig_ablation_k4_d128_verified.pdf\n?? overleaf/figures/fig_ablation_k4_d128_verified.png\n?? overleaf/figures/fig_allocation_cross_k_25db.pdf\n?? overleaf/figures/fig_allocation_cross_k_25db_as_labels.pdf\n?? overleaf/figures/fig_allocation_cross_k_25db_as_labels.png\n?? overleaf/figures/fig_allocation_sweep.pdf\n?? overleaf/figures/fig_bs_decoder_code_aligned.pdf\n?? overleaf/figures/fig_bs_decoder_code_aligned.png\n?? overleaf/figures/fig_bs_decoder_code_aligned.tex\n?? overleaf/figures/fig_bs_stage1_code_aligned.pdf\n?? overleaf/figures/fig_bs_stage1_code_aligned.png\n?? overleaf/figures/fig_bs_stage1_code_aligned.tex\n?? overleaf/figures/fig_bs_stage2_code_aligned.pdf\n?? overleaf/figures/fig_bs_stage2_code_aligned.png\n?? overleaf/figures/fig_bs_stage2_code_aligned.tex\n?? overleaf/figures/fig_feedback_resource_partition.pdf\n?? overleaf/figures/fig_feedback_resource_partition.png\n?? overleaf/figures/fig_feedback_resource_partition.tex\n?? overleaf/figures/fig_feedback_snr_k8_dl25_10to25.pdf\n?? overleaf/figures/fig_imperfect_csi_robustness.pdf\n?? overleaf/figures/fig_k16_allocation_vs_snr.pdf\n?? overleaf/figures/fig_k16_baseline_25db.pdf\n?? overleaf/figures/fig_k16_baseline_25db_as_labels.pdf\n?? overleaf/figures/fig_k16_baseline_25db_as_labels.png\n?? overleaf/figures/fig_k4_allocation_flexibility.pdf\n?? overleaf/figures/fig_k4_allocation_flexibility.png\n?? overleaf/figures/fig_k4_fb_snr_robust_dd32297_ci95.pdf\n?? overleaf/figures/fig_k4_fb_snr_robust_dd32297_ci95.png\n?? overleaf/figures/fig_k4_fb_snr_robust_journal_20260928.pdf\n?? overleaf/figures/fig_k4_fb_snr_robust_journal_20260928.png\n?? overleaf/figures/fig_k4_specialist_benchmark_25db.pdf\n?? overleaf/figures/fig_k4_specialist_benchmark_25db.png\n?? overleaf/figures/fig_k4_specialist_feedback_snr.pdf\n?? overleaf/figures/fig_k4_specialist_feedback_snr.png\n?? overleaf/figures/fig_k8_baseline_25db.pdf\n?? overleaf/figures/fig_k8_baseline_25db_as_labels.pdf\n?? overleaf/figures/fig_k8_baseline_25db_as_labels.png\n?? overleaf/figures/fig_phase_transition_25dB.pdf\n?? overleaf/figures/fig_phase_transition_multiSNR.pdf\n?? overleaf/figures/fig_relative_efficiency.pdf\n?? overleaf/figures/fig_snr_main.pdf\n?? overleaf/figures/fig_ue_encoder_code_aligned.pdf\n?? overleaf/figures/fig_ue_encoder_code_aligned.png\n?? overleaf/figures/fig_ue_encoder_code_aligned.tex\n?? overleaf/original_upload_manifest.json\n?? overleaf/refs.bib\n?? overleaf/revision_data/k4_fb_snr_formal_20260928.csv\n?? overleaf/revision_data/k4_fb_snr_formal_20260928.provenance.json\n?? overleaf/revision_notes/20260928_advisor_review/CHANGELOG.md\n?? overleaf/revision_notes/20260928_advisor_review/TWC_progress_before_revision.pdf\n?? overleaf/revision_notes/20260928_advisor_review/TWC_progress_before_revision.tex\n?? overleaf/revision_notes/20260928_advisor_review/gnn-layout.png\n?? overleaf/revision_notes/20260928_advisor_review/layout-15.png\n?? overleaf/revision_notes/20260928_advisor_review/layout-16.png\n?? overleaf/revision_notes/20260928_advisor_review/refs_before_revision.bib\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/CHANGELOG.md\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/CODE_PAPER_CONSISTENCY_AUDIT.md\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/JOURNAL_REVISION_AUDIT.md\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/k4_fb_snr_formal_20260928.provenance.json\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/page16_ci95.png\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/plot_k4_fb_snr_revision.py\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/verification.json\n?? overleaf/revision_notes/20260930_ablation_verified/CHANGELOG.md\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_ablation_verified/page18.png\n?? overleaf/revision_notes/20260930_ablation_verified/page19.png\n?? overleaf/revision_notes/20260930_ablation_verified/page20.png\n?? overleaf/revision_notes/20260930_as_labels_redraw/CHANGELOG.md\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_as_labels_redraw/page14.png\n?? overleaf/revision_notes/20260930_as_labels_redraw/page15.png\n?? overleaf/revision_notes/20260930_as_labels_redraw/page16.png\n?? overleaf/revision_notes/20260930_specialist_results/CHANGELOG.md\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_specialist_results/final_pdf_text.txt\n?? overleaf/revision_notes/20260930_specialist_results/page13.png\n?? overleaf/revision_notes/20260930_specialist_results/page14.png\n?? overleaf/revision_notes/20260930_specialist_results/page15.png\n?? overleaf/revision_notes/20260930_specialist_results/page20.png\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_allocation_flexibility.pdf\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_allocation_flexibility.png\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_benchmark_25db.pdf\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_benchmark_25db.png\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_feedback_snr.pdf\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_feedback_snr.png\n?? overleaf/revision_notes/20260930_text_cleanup/CHANGELOG.md\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_text_cleanup/page1.png\n?? overleaf/revision_notes/20260930_text_cleanup/page10.png\n?? overleaf/revision_notes/20260930_text_cleanup/page8.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/CHANGELOG.md\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_10.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_11.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_12.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_7.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_9.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_10.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_11.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_7.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_9.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_snapshot.json\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_decoder_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_decoder_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage1_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage1_code_aligned.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage1_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage2_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage2_code_aligned.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage2_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_ue_encoder_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_ue_encoder_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_after.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_after.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_after_text.txt\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.pdf\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.tex\n?? overleaf/revision_notes/20261001_114052_network_alignment/verification.json\n?? overleaf/revision_notes/20261002_lite1024_complexity/CHANGELOG.md\n?? overleaf/revision_notes/20261002_lite1024_complexity/final_page_20.png\n?? overleaf/revision_notes/20261002_lite1024_complexity/final_page_21.png\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.aux\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.log\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.pdf\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.tex\n?? overleaf/revision_notes/20261004_abstract_focus/final_page_1.png\n?? overleaf/revision_notes/20261004_abstract_focus/manuscript_before.log\n?? overleaf/revision_notes/20261004_abstract_focus/manuscript_before.pdf\n?? overleaf/revision_notes/20261004_abstract_focus/manuscript_before.tex\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/final_page-01.png\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/final_page-02.png\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.aux\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.log\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.tex\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/final_page_2.png\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.aux\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.log\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.tex\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.aux\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.log\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.tex\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/before_page_3.png\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/failed_figure_compile.log\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig1_preview.png\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig_feedback_resource_partition.aux\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig_feedback_resource_partition.log\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig_feedback_resource_partition.pdf\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/final_page_3.png\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.aux\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.log\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.tex\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/style_reference.png\n?? overleaf/revision_notes/20261005_183353_remarks_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261005_183353_remarks_concise/final_page-03.png\n?? overleaf/revision_notes/20261005_183353_remarks_concise/final_page-04.png\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.aux\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.log\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.tex\n?? overleaf/revision_notes/20261005_introduction_focus/final_page-01.png\n?? overleaf/revision_notes/20261005_introduction_focus/final_page-02.png\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.aux\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.log\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.tex\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/CHANGELOG.md\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/final_page_12.png\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.aux\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.bbl\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.log\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.tex\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/refs_before.bib\n?? overleaf/revision_notes/20261006_115018_architecture_overview/CHANGELOG.md\n?? overleaf/revision_notes/20261006_115018_architecture_overview/fig2_before.png\n?? overleaf/revision_notes/20261006_115018_architecture_overview/final_page-03.png\n?? overleaf/revision_notes/20261006_115018_architecture_overview/final_page-04.png\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.aux\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.log\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.tex\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_before.pdf\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_before.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_before.tex\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_code_aligned.aux\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_code_aligned.log\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_code_aligned.pdf\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/figure_preview.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/final_page-04.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/final_page-05.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/final_page-06.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.aux\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.bbl\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.log\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.tex\n?? overleaf/revision_notes/20261006_130412_bs_exposition/CHANGELOG.md\n?? overleaf/revision_notes/20261006_130412_bs_exposition/final_page-06.png\n?? overleaf/revision_notes/20261006_130412_bs_exposition/final_page-07.png\n?? overleaf/revision_notes/20261006_130412_bs_exposition/final_page-08.png\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.aux\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.bbl\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.log\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.tex\n?? overleaf/revision_notes/20261006_155613_training_structure/CHANGELOG.md\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-08.png\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-09.png\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-10.png\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-11.png\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/CHANGELOG.md\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/final_page-09.png\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/final_page-10.png\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/final_page-11.png\n?? overleaf/revision_notes/20261007_113410_results_focus/CHANGELOG.md\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-11.png\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-12.png\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-13.png\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-14.png\n?? overleaf/revision_notes/20261007_121143_robustness_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_121143_robustness_concise/final_page-14.png\n?? overleaf/revision_notes/20261007_121143_robustness_concise/final_page-15.png\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/CHANGELOG.md\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/final_page-14.png\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/final_page-15.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-14.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-15.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-16.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-17.png\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/CHANGELOG.md\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/final_page-15.png\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/final_page-16.png\n?? overleaf/revision_notes/ablation_review_bundle/CODEX_NEXT_TASK.txt\n?? overleaf/revision_notes/ablation_review_bundle/TRAINING_AND_DATA_AUDIT.md\n?? overleaf/revision_notes/ablation_review_bundle/ablation_summary.csv\n?? overleaf/revision_notes/ablation_review_bundle/audit_checks.json\n?? overleaf/revision_notes/ablation_review_bundle/paper_ablation_paired_by_allocation.csv\n?? overleaf/revision_notes/ablation_review_bundle/paper_ablation_paired_overall.csv\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/ablation_k4_d128/ablation_results.json\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/ablation_k4_d128/ablation_samples.csv.gz\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/ablation_k4_d128/ablation_summary.csv\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/paper_ablation_k4_d128/ablation_results.json\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/paper_ablation_k4_d128/ablation_samples.csv.gz\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/paper_ablation_k4_d128/ablation_summary.csv\n?? overleaf/revision_notes/ablation_review_bundle/raw_training/collection_manifest.json\n?? overleaf/revision_notes/ablation_review_bundle/training_runs_verified.csv\n?? overleaf/revision_tools/plot_k4_fb_snr_revision.py\n?? \"overleaf/twc (1).tex\"\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/archive_manifest.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/manifest.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/metadata_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/paired_deltas_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/results_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/soft_codeword_summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/spatial_parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/manifest.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/metadata_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/paired_deltas_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/results_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/soft_codeword_summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/spatial_parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/batch_summary.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/environment_and_old_controls.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/last_batch.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/new_model_checks.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_frozen_ue_20261030.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_frozen_ue_20261031.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_joint_20261030.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_joint_20261031.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261030/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261030/status.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261031/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261031/status.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261030/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261030/status.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261031/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261031/status.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/archive_manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/metadata_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/results_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/summary_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/metadata_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/results_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/summary_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/comparison_summary.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_evaluation_manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_summary_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_evaluation_manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_summary_k4_swin_adaptation_v1.csv",
+    "tracked_status": " M .gitignore\n D diagnose_cross_cdl_condition.py\n D old/diagnostic_eval.py\n D old/train_adaptive_8ue.py\n D old/train_csinet_baseline_8ue.py\n D old/train_swin_baseline_8ue.py",
+    "tracked_deletions": [
+      "diagnose_cross_cdl_condition.py",
+      "old/diagnostic_eval.py",
+      "old/train_adaptive_8ue.py",
+      "old/train_csinet_baseline_8ue.py",
+      "old/train_swin_baseline_8ue.py"
+    ]
+  },
+  "after": {
+    "protected_sha256": {
+      ".gitignore": "99481bb59a482faa7ba38f00c2e7b22f60a2c353582dbeeb4d498f77f8590bd9",
+      "paper/plot_specialist_envelope.py": "0ef644617aa7aa51d1d18567c39285604586fe41de494f337b652da83a3d41a5",
+      "paper/figures/fig_k4_pure_as_feedback_snr.pdf": null,
+      "paper/figures/fig_k4_pure_as_feedback_snr.png": null,
+      "paper/figures/fig_specialist_envelope.pdf": null,
+      "paper/figures/fig_specialist_envelope.png": null
+    },
+    "git_status": " M .gitignore\n D diagnose_cross_cdl_condition.py\n D old/diagnostic_eval.py\n D old/train_adaptive_8ue.py\n D old/train_csinet_baseline_8ue.py\n D old/train_swin_baseline_8ue.py\n?? cleanup_reports/20261104_105448_+0100/cleanup_manifest.json\n?? cleanup_reports/20261104_105508_+0100/cleanup_manifest.json\n?? cleanup_reports/20261104_110601_+0100/source_review.json\n?? cleanup_reports/PROTECTED_PATHS.json\n?? docs/TWC03_SSH_HANDOFF_20261102.md\n?? docs/TWC_1_0_K8_two_week_plan_20261103_V2.md\n?? docs/figures/TWC_V1_K8_encoder_decoder_architecture.pdf\n?? docs/figures/TWC_V1_K8_encoder_decoder_architecture.png\n?? docs/figures/TWC_V1_K8_encoder_decoder_architecture.svg\n?? docs/figures/TWC_V1_K8_joint_codec_architecture_journal.pdf\n?? docs/figures/TWC_V1_K8_joint_codec_architecture_journal.png\n?? docs/figures/TWC_V1_K8_joint_codec_architecture_journal.svg\n?? docs/figures/draw_twc_v1_k8_journal_architecture.py\n?? overleaf/BASELINE_BUILD_REPORT.md\n?? overleaf/CODE_PAPER_CONSISTENCY_AUDIT.md\n?? overleaf/IEEEtran.cls\n?? overleaf/JOURNAL_REVISION_AUDIT.md\n?? overleaf/New_IEEEtran_how-to.pdf\n?? overleaf/New_IEEEtran_how-to.tex\n?? overleaf/TWC_progress_updated_analog_superposition.aux\n?? overleaf/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/TWC_progress_updated_analog_superposition.blg\n?? overleaf/TWC_progress_updated_analog_superposition.fdb_latexmk\n?? overleaf/TWC_progress_updated_analog_superposition.fls\n?? overleaf/TWC_progress_updated_analog_superposition.log\n?? overleaf/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/TWC_progress_updated_analog_superposition.tex\n?? overleaf/bare_jrnl_new_sample4.pdf\n?? overleaf/bare_jrnl_new_sample4.tex\n?? overleaf/figures/ablation_4ue.pdf\n?? overleaf/figures/fig_ablation_k4_d128.pdf\n?? overleaf/figures/fig_ablation_k4_d128_verified.pdf\n?? overleaf/figures/fig_ablation_k4_d128_verified.png\n?? overleaf/figures/fig_allocation_cross_k_25db.pdf\n?? overleaf/figures/fig_allocation_cross_k_25db_as_labels.pdf\n?? overleaf/figures/fig_allocation_cross_k_25db_as_labels.png\n?? overleaf/figures/fig_allocation_sweep.pdf\n?? overleaf/figures/fig_bs_decoder_code_aligned.pdf\n?? overleaf/figures/fig_bs_decoder_code_aligned.png\n?? overleaf/figures/fig_bs_decoder_code_aligned.tex\n?? overleaf/figures/fig_bs_stage1_code_aligned.pdf\n?? overleaf/figures/fig_bs_stage1_code_aligned.png\n?? overleaf/figures/fig_bs_stage1_code_aligned.tex\n?? overleaf/figures/fig_bs_stage2_code_aligned.pdf\n?? overleaf/figures/fig_bs_stage2_code_aligned.png\n?? overleaf/figures/fig_bs_stage2_code_aligned.tex\n?? overleaf/figures/fig_feedback_resource_partition.pdf\n?? overleaf/figures/fig_feedback_resource_partition.png\n?? overleaf/figures/fig_feedback_resource_partition.tex\n?? overleaf/figures/fig_feedback_snr_k8_dl25_10to25.pdf\n?? overleaf/figures/fig_imperfect_csi_robustness.pdf\n?? overleaf/figures/fig_k16_allocation_vs_snr.pdf\n?? overleaf/figures/fig_k16_baseline_25db.pdf\n?? overleaf/figures/fig_k16_baseline_25db_as_labels.pdf\n?? overleaf/figures/fig_k16_baseline_25db_as_labels.png\n?? overleaf/figures/fig_k4_allocation_flexibility.pdf\n?? overleaf/figures/fig_k4_allocation_flexibility.png\n?? overleaf/figures/fig_k4_fb_snr_robust_dd32297_ci95.pdf\n?? overleaf/figures/fig_k4_fb_snr_robust_dd32297_ci95.png\n?? overleaf/figures/fig_k4_fb_snr_robust_journal_20260928.pdf\n?? overleaf/figures/fig_k4_fb_snr_robust_journal_20260928.png\n?? overleaf/figures/fig_k4_specialist_benchmark_25db.pdf\n?? overleaf/figures/fig_k4_specialist_benchmark_25db.png\n?? overleaf/figures/fig_k4_specialist_feedback_snr.pdf\n?? overleaf/figures/fig_k4_specialist_feedback_snr.png\n?? overleaf/figures/fig_k8_baseline_25db.pdf\n?? overleaf/figures/fig_k8_baseline_25db_as_labels.pdf\n?? overleaf/figures/fig_k8_baseline_25db_as_labels.png\n?? overleaf/figures/fig_phase_transition_25dB.pdf\n?? overleaf/figures/fig_phase_transition_multiSNR.pdf\n?? overleaf/figures/fig_relative_efficiency.pdf\n?? overleaf/figures/fig_snr_main.pdf\n?? overleaf/figures/fig_ue_encoder_code_aligned.pdf\n?? overleaf/figures/fig_ue_encoder_code_aligned.png\n?? overleaf/figures/fig_ue_encoder_code_aligned.tex\n?? overleaf/original_upload_manifest.json\n?? overleaf/refs.bib\n?? overleaf/revision_data/k4_fb_snr_formal_20260928.csv\n?? overleaf/revision_data/k4_fb_snr_formal_20260928.provenance.json\n?? overleaf/revision_notes/20260928_advisor_review/CHANGELOG.md\n?? overleaf/revision_notes/20260928_advisor_review/TWC_progress_before_revision.pdf\n?? overleaf/revision_notes/20260928_advisor_review/TWC_progress_before_revision.tex\n?? overleaf/revision_notes/20260928_advisor_review/gnn-layout.png\n?? overleaf/revision_notes/20260928_advisor_review/layout-15.png\n?? overleaf/revision_notes/20260928_advisor_review/layout-16.png\n?? overleaf/revision_notes/20260928_advisor_review/refs_before_revision.bib\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/CHANGELOG.md\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/CODE_PAPER_CONSISTENCY_AUDIT.md\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/JOURNAL_REVISION_AUDIT.md\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/k4_fb_snr_formal_20260928.provenance.json\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/page16_ci95.png\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/plot_k4_fb_snr_revision.py\n?? overleaf/revision_notes/20260928_formal_artifacts_dd32297/verification.json\n?? overleaf/revision_notes/20260930_ablation_verified/CHANGELOG.md\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_ablation_verified/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_ablation_verified/page18.png\n?? overleaf/revision_notes/20260930_ablation_verified/page19.png\n?? overleaf/revision_notes/20260930_ablation_verified/page20.png\n?? overleaf/revision_notes/20260930_as_labels_redraw/CHANGELOG.md\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_as_labels_redraw/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_as_labels_redraw/page14.png\n?? overleaf/revision_notes/20260930_as_labels_redraw/page15.png\n?? overleaf/revision_notes/20260930_as_labels_redraw/page16.png\n?? overleaf/revision_notes/20260930_specialist_results/CHANGELOG.md\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_specialist_results/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_specialist_results/final_pdf_text.txt\n?? overleaf/revision_notes/20260930_specialist_results/page13.png\n?? overleaf/revision_notes/20260930_specialist_results/page14.png\n?? overleaf/revision_notes/20260930_specialist_results/page15.png\n?? overleaf/revision_notes/20260930_specialist_results/page20.png\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_allocation_flexibility.pdf\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_allocation_flexibility.png\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_benchmark_25db.pdf\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_benchmark_25db.png\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_feedback_snr.pdf\n?? overleaf/revision_notes/20260930_specialist_results/plot_previews/fig_k4_specialist_feedback_snr.png\n?? overleaf/revision_notes/20260930_text_cleanup/CHANGELOG.md\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.aux\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.log\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.pdf\n?? overleaf/revision_notes/20260930_text_cleanup/TWC_progress_updated_analog_superposition.before.tex\n?? overleaf/revision_notes/20260930_text_cleanup/page1.png\n?? overleaf/revision_notes/20260930_text_cleanup/page10.png\n?? overleaf/revision_notes/20260930_text_cleanup/page8.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/CHANGELOG.md\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_10.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_11.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_12.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_7.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/after_page_9.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_10.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_11.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_7.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_page_9.png\n?? overleaf/revision_notes/20261001_114052_network_alignment/before_snapshot.json\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_decoder_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_decoder_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage1_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage1_code_aligned.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage1_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage2_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage2_code_aligned.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_bs_stage2_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_ue_encoder_before.tikz\n?? overleaf/revision_notes/20261001_114052_network_alignment/fig_ue_encoder_code_aligned.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_after.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_after.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_after_text.txt\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.aux\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.log\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.pdf\n?? overleaf/revision_notes/20261001_114052_network_alignment/manuscript_before.tex\n?? overleaf/revision_notes/20261001_114052_network_alignment/verification.json\n?? overleaf/revision_notes/20261002_lite1024_complexity/CHANGELOG.md\n?? overleaf/revision_notes/20261002_lite1024_complexity/final_page_20.png\n?? overleaf/revision_notes/20261002_lite1024_complexity/final_page_21.png\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.aux\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.log\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.pdf\n?? overleaf/revision_notes/20261002_lite1024_complexity/manuscript_before.tex\n?? overleaf/revision_notes/20261004_abstract_focus/final_page_1.png\n?? overleaf/revision_notes/20261004_abstract_focus/manuscript_before.log\n?? overleaf/revision_notes/20261004_abstract_focus/manuscript_before.pdf\n?? overleaf/revision_notes/20261004_abstract_focus/manuscript_before.tex\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/final_page-01.png\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/final_page-02.png\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.aux\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.log\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_143408_intro_allocation_motivation/manuscript_before.tex\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/final_page_2.png\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.aux\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.log\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_150259_main_contributions_alignment/manuscript_before.tex\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.aux\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.log\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_152908_intro_lightweight_wording/manuscript_before.tex\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/before_page_3.png\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/failed_figure_compile.log\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig1_preview.png\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig_feedback_resource_partition.aux\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig_feedback_resource_partition.log\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/fig_feedback_resource_partition.pdf\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/final_page_3.png\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.aux\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.log\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/manuscript_before.tex\n?? overleaf/revision_notes/20261005_181712_fig1_shared_resources/style_reference.png\n?? overleaf/revision_notes/20261005_183353_remarks_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261005_183353_remarks_concise/final_page-03.png\n?? overleaf/revision_notes/20261005_183353_remarks_concise/final_page-04.png\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.aux\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.log\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_183353_remarks_concise/manuscript_before.tex\n?? overleaf/revision_notes/20261005_introduction_focus/final_page-01.png\n?? overleaf/revision_notes/20261005_introduction_focus/final_page-02.png\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.aux\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.bbl\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.log\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.pdf\n?? overleaf/revision_notes/20261005_introduction_focus/manuscript_before.tex\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/CHANGELOG.md\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/final_page_12.png\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.aux\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.bbl\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.log\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/manuscript_before.tex\n?? overleaf/revision_notes/20261006_094542_sscc_attribution/refs_before.bib\n?? overleaf/revision_notes/20261006_115018_architecture_overview/CHANGELOG.md\n?? overleaf/revision_notes/20261006_115018_architecture_overview/fig2_before.png\n?? overleaf/revision_notes/20261006_115018_architecture_overview/final_page-03.png\n?? overleaf/revision_notes/20261006_115018_architecture_overview/final_page-04.png\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.aux\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.log\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_115018_architecture_overview/manuscript_before.tex\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_before.pdf\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_before.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_before.tex\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_code_aligned.aux\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_code_aligned.log\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/fig_ue_encoder_code_aligned.pdf\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/figure_preview.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/final_page-04.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/final_page-05.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/final_page-06.png\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.aux\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.bbl\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.log\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_120544_ue_encoder_concise/manuscript_before.tex\n?? overleaf/revision_notes/20261006_130412_bs_exposition/CHANGELOG.md\n?? overleaf/revision_notes/20261006_130412_bs_exposition/final_page-06.png\n?? overleaf/revision_notes/20261006_130412_bs_exposition/final_page-07.png\n?? overleaf/revision_notes/20261006_130412_bs_exposition/final_page-08.png\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.aux\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.bbl\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.log\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.pdf\n?? overleaf/revision_notes/20261006_130412_bs_exposition/manuscript_before.tex\n?? overleaf/revision_notes/20261006_155613_training_structure/CHANGELOG.md\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261006_155613_training_structure/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-08.png\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-09.png\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-10.png\n?? overleaf/revision_notes/20261006_155613_training_structure/final_page-11.png\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/CHANGELOG.md\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/final_page-09.png\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/final_page-10.png\n?? overleaf/revision_notes/20261006_184127_simulation_setup_audit/final_page-11.png\n?? overleaf/revision_notes/20261007_113410_results_focus/CHANGELOG.md\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_113410_results_focus/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-11.png\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-12.png\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-13.png\n?? overleaf/revision_notes/20261007_113410_results_focus/final_page-14.png\n?? overleaf/revision_notes/20261007_121143_robustness_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_121143_robustness_concise/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_121143_robustness_concise/final_page-14.png\n?? overleaf/revision_notes/20261007_121143_robustness_concise/final_page-15.png\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/CHANGELOG.md\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/final_page-14.png\n?? overleaf/revision_notes/20261007_143002_csi_cdl_scope/final_page-15.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/CHANGELOG.md\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-14.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-15.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-16.png\n?? overleaf/revision_notes/20261007_154116_ablation_complexity_concise/final_page-17.png\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/CHANGELOG.md\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.aux\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.bbl\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.log\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.pdf\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/TWC_progress_updated_analog_superposition.tex\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/final_page-15.png\n?? overleaf/revision_notes/20261007_155537_conclusion_figure_scale/final_page-16.png\n?? overleaf/revision_notes/ablation_review_bundle/CODEX_NEXT_TASK.txt\n?? overleaf/revision_notes/ablation_review_bundle/TRAINING_AND_DATA_AUDIT.md\n?? overleaf/revision_notes/ablation_review_bundle/ablation_summary.csv\n?? overleaf/revision_notes/ablation_review_bundle/audit_checks.json\n?? overleaf/revision_notes/ablation_review_bundle/paper_ablation_paired_by_allocation.csv\n?? overleaf/revision_notes/ablation_review_bundle/paper_ablation_paired_overall.csv\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/ablation_k4_d128/ablation_results.json\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/ablation_k4_d128/ablation_samples.csv.gz\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/ablation_k4_d128/ablation_summary.csv\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/paper_ablation_k4_d128/ablation_results.json\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/paper_ablation_k4_d128/ablation_samples.csv.gz\n?? overleaf/revision_notes/ablation_review_bundle/raw_evaluation/paper_ablation_k4_d128/ablation_summary.csv\n?? overleaf/revision_notes/ablation_review_bundle/raw_training/collection_manifest.json\n?? overleaf/revision_notes/ablation_review_bundle/training_runs_verified.csv\n?? overleaf/revision_tools/plot_k4_fb_snr_revision.py\n?? \"overleaf/twc (1).tex\"\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/archive_manifest.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/manifest.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/metadata_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/paired_deltas_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/results_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/soft_codeword_summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/spatial_parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261030/summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/manifest.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/metadata_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/paired_deltas_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/results_k4_as_spatial_v1.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/soft_codeword_summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/spatial_parameters_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evaluations/20261031/summary_k4_as_spatial_v1.csv\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/batch_summary.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/environment_and_old_controls.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/last_batch.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/new_model_checks.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_frozen_ue_20261030.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_frozen_ue_20261031.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_joint_20261030.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/evidence/train_joint_20261031.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261030/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261030/status.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261031/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_frozen_ue_20261031/status.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261030/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261030/status.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261031/config.json\n?? paper/data/as_spatial_verified/batch_5a5238688ee546d1b53b70cdeec21ec3/training/train_joint_20261031/status.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/archive_manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/metadata_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/results_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261030/summary_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/metadata_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/results_k4_swin_adaptation_v1.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/evaluations/20261031/summary_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/comparison_summary.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_evaluation_manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261030_summary_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_evaluation_manifest.json\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_paired_deltas_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_parameters_k4_swin_adaptation_v1.csv\n?? paper/data/k4_swin_adaptation_verified/batch_bd522e10976d427885d99ba1ae7f2fa9/report/seed20261031_summary_k4_swin_adaptation_v1.csv",
+    "tracked_status": " M .gitignore\n D diagnose_cross_cdl_condition.py\n D old/diagnostic_eval.py\n D old/train_adaptive_8ue.py\n D old/train_csinet_baseline_8ue.py\n D old/train_swin_baseline_8ue.py",
+    "tracked_deletions": [
+      "diagnose_cross_cdl_condition.py",
+      "old/diagnostic_eval.py",
+      "old/train_adaptive_8ue.py",
+      "old/train_csinet_baseline_8ue.py",
+      "old/train_swin_baseline_8ue.py"
+    ]
+  },
+  "protected_and_tracked_state_unchanged": true,
+  "candidates": [
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_data.cpython-312.pyc",
+      "size_bytes": 6278,
+      "mtime_ns": 1793803201406726210,
+      "file_id": [
+        66306,
+        62128592
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_neural.cpython-312.pyc",
+      "size_bytes": 4876,
+      "mtime_ns": 1793803201408478021,
+      "file_id": [
+        66306,
+        62128571
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/train_twc_v1_k8_codec_stage_c.cpython-312.pyc",
+      "size_bytes": 23953,
+      "mtime_ns": 1793832630335770816,
+      "file_id": [
+        66306,
+        62128631
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 24576,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_ce_chain.cpython-312.pyc",
+      "size_bytes": 5983,
+      "mtime_ns": 1793803201408014326,
+      "file_id": [
+        66306,
+        62128566
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/train_twc_v1_k8_codec_warmup.cpython-312.pyc",
+      "size_bytes": 17598,
+      "mtime_ns": 1793874854218143153,
+      "file_id": [
+        66306,
+        62128650
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 20480,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/diagnose_twc_v1_k8_paired_link.cpython-312.pyc",
+      "size_bytes": 24259,
+      "mtime_ns": 1793969412033628011,
+      "file_id": [
+        66306,
+        62128717
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 24576,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/diagnose_twc_v1_k8_stage_c_lambda.cpython-312.pyc",
+      "size_bytes": 12294,
+      "mtime_ns": 1793832630336702355,
+      "file_id": [
+        66306,
+        62128632
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 16384,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/evaluate_twc_v1_k8_paired_validation.cpython-312.pyc",
+      "size_bytes": 23554,
+      "mtime_ns": 1793961130211494248,
+      "file_id": [
+        66306,
+        62128706
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 24576,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_codec_link.cpython-312.pyc",
+      "size_bytes": 8016,
+      "mtime_ns": 1793826794260807875,
+      "file_id": [
+        66306,
+        62128583
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_link.cpython-312.pyc",
+      "size_bytes": 6977,
+      "mtime_ns": 1793798661996488716,
+      "file_id": [
+        66306,
+        62128568
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_ls_screen.cpython-312.pyc",
+      "size_bytes": 9173,
+      "mtime_ns": 1793803201407478413,
+      "file_id": [
+        66306,
+        62128585
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 12288,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "configs/__pycache__/twc_v1_k8_codec_warmup_config.cpython-312.pyc",
+      "size_bytes": 920,
+      "mtime_ns": 1793826794262228730,
+      "file_id": [
+        66306,
+        63594049
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 4096,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "configs/__pycache__/twc_v1_k8_codec_stage_c_config.cpython-312.pyc",
+      "size_bytes": 833,
+      "mtime_ns": 1793832630336888653,
+      "file_id": [
+        66306,
+        63594050
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 4096,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "configs/__pycache__/twc_v1_k8_protocol_config.cpython-312.pyc",
+      "size_bytes": 6997,
+      "mtime_ns": 1793803201401536225,
+      "file_id": [
+        66306,
+        63594048
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "configs/__pycache__/__init__.cpython-312.pyc",
+      "size_bytes": 152,
+      "mtime_ns": 1793798251795247535,
+      "file_id": [
+        66306,
+        63594044
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 4096,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "models/__pycache__/twc_v1_k8_joint_decoder.cpython-312.pyc",
+      "size_bytes": 34027,
+      "mtime_ns": 1793874854224559772,
+      "file_id": [
+        66306,
+        62128633
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 36864,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "models/__pycache__/twc_v1_k8_neural.cpython-312.pyc",
+      "size_bytes": 39934,
+      "mtime_ns": 1793874854222209961,
+      "file_id": [
+        66306,
+        62128582
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 40960,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "models/__pycache__/baseline_common.cpython-312.pyc",
+      "size_bytes": 9289,
+      "mtime_ns": 1793799703484935432,
+      "file_id": [
+        66306,
+        62128573
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 12288,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "models/__pycache__/swin_precoder.cpython-312.pyc",
+      "size_bytes": 17015,
+      "mtime_ns": 1793799703486087937,
+      "file_id": [
+        66306,
+        62128574
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 20480,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_link.cpython-312.pyc",
+      "size_bytes": 31608,
+      "mtime_ns": 1793826794258064922,
+      "file_id": [
+        66306,
+        62128616
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 32768,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/gpu_setup.cpython-312.pyc",
+      "size_bytes": 1485,
+      "mtime_ns": 1793799703486493665,
+      "file_id": [
+        66306,
+        62128576
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 4096,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/channel_generator.cpython-312.pyc",
+      "size_bytes": 4216,
+      "mtime_ns": 1793799703489059117,
+      "file_id": [
+        66306,
+        62128577
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_protocol.cpython-312.pyc",
+      "size_bytes": 21845,
+      "mtime_ns": 1793798661993763046,
+      "file_id": [
+        66306,
+        62128564
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 24576,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_system.cpython-312.pyc",
+      "size_bytes": 13818,
+      "mtime_ns": 1793874854219420152,
+      "file_id": [
+        66306,
+        62128621
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 16384,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/sionna_rng.cpython-312.pyc",
+      "size_bytes": 15474,
+      "mtime_ns": 1793874854290747798,
+      "file_id": [
+        66306,
+        62128609
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 16384,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_downlink.cpython-312.pyc",
+      "size_bytes": 6599,
+      "mtime_ns": 1793874854226210050,
+      "file_id": [
+        66306,
+        62128651
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_calibration.cpython-312.pyc",
+      "size_bytes": 5941,
+      "mtime_ns": 1793826794258697192,
+      "file_id": [
+        66306,
+        62128614
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 8192,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/metrics.cpython-312.pyc",
+      "size_bytes": 3632,
+      "mtime_ns": 1793799704965876531,
+      "file_id": [
+        66306,
+        62128579
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 4096,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/layers.cpython-312.pyc",
+      "size_bytes": 3231,
+      "mtime_ns": 1793799704965534341,
+      "file_id": [
+        66306,
+        62128578
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 4096,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_replayable_data.cpython-312.pyc",
+      "size_bytes": 16063,
+      "mtime_ns": 1793803201406125671,
+      "file_id": [
+        66306,
+        62128591
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 16384,
+      "allocation_method": "st_blocks"
+    },
+    {
+      "path": "utils/__pycache__/__init__.cpython-312.pyc",
+      "size_bytes": 538,
+      "mtime_ns": 1793799703486260924,
+      "file_id": [
+        66306,
+        62128575
+      ],
+      "hard_links": 1,
+      "allocated_estimate_bytes": 4096,
+      "allocation_method": "st_blocks"
+    }
+  ],
+  "deleted": [],
+  "removed_directories": [],
+  "skipped": [
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_data.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_neural.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/train_twc_v1_k8_codec_stage_c.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_ce_chain.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/train_twc_v1_k8_codec_warmup.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/diagnose_twc_v1_k8_paired_link.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/diagnose_twc_v1_k8_stage_c_lambda.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/evaluate_twc_v1_k8_paired_validation.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_codec_link.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_link.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "__pycache__/preflight_twc_v1_k8_ls_screen.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "configs/__pycache__/twc_v1_k8_codec_warmup_config.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "configs/__pycache__/twc_v1_k8_codec_stage_c_config.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "configs/__pycache__/twc_v1_k8_protocol_config.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "configs/__pycache__/__init__.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "models/__pycache__/twc_v1_k8_joint_decoder.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "models/__pycache__/twc_v1_k8_neural.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "models/__pycache__/baseline_common.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "models/__pycache__/swin_precoder.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_link.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/gpu_setup.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/channel_generator.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_protocol.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_system.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/sionna_rng.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_downlink.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_calibration.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/metrics.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/layers.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/twc_v1_k8_replayable_data.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    },
+    {
+      "path": "utils/__pycache__/__init__.cpython-312.pyc",
+      "reason": "Open/held or exclusive-access status uncertain"
+    }
+  ],
+  "disk_before": {
+    "total": 1966736678912,
+    "used": 1094053195776,
+    "free": 772703232000
+  },
+  "disk_after": {
+    "total": 1966736678912,
+    "used": 1094053208064,
+    "free": 772703219712
+  },
+  "observed_free_delta_bytes": -12288,
+  "logical_deleted_bytes": 0,
+  "unique_unlinked_file_bytes": 0,
+  "reclaimable_allocation_estimate_bytes": 0,
+  "space_note": "Hard links counted once and only when every link was removed; free-space delta includes concurrent system writes, not proof of exact attributable recovery.",
+  "heavy_candidates": [
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_decoder_screen_v1",
+      "logical_bytes": 1752236938,
+      "unique_file_bytes": 1752236938,
+      "files": 97,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    },
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_codec_warmup",
+      "logical_bytes": 1742599638,
+      "unique_file_bytes": 1742599638,
+      "files": 43,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    },
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_rzf_matched_training_v1",
+      "logical_bytes": 1229621018,
+      "unique_file_bytes": 1229621018,
+      "files": 71,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    },
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_task_loss_screen_v1",
+      "logical_bytes": 1223738061,
+      "unique_file_bytes": 1223738061,
+      "files": 40,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    },
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ordered_encoder_screen_v2",
+      "logical_bytes": 1190582972,
+      "unique_file_bytes": 1190582972,
+      "files": 39,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    },
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_schedule_screen_v1",
+      "logical_bytes": 1159907331,
+      "unique_file_bytes": 1159907331,
+      "files": 36,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    },
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_ce",
+      "logical_bytes": 9155827,
+      "unique_file_bytes": 9155827,
+      "files": 10,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    },
+    {
+      "path": "/home/r50037942/project/03_PRECODER/runs/twc_v1_k8_rzf_probe_v1",
+      "logical_bytes": 5656614,
+      "unique_file_bytes": 5656614,
+      "files": 20,
+      "truncated": false,
+      "action": "retain",
+      "classification": "current source/recovery or unique historical evidence",
+      "reason": "Protected K8 source chain; size/name alone does not prove a disposable smoke or duplicate",
+      "reclaimable_bytes_authorized": 0,
+      "weights_hashed": false
+    }
+  ],
+  "only_cache_files_deleted": true,
+  "checkpoints_outputs_archives_locks_untouched": true,
+  "report_path": "/home/r50037942/project/03_PRECODER/cleanup_reports/cleanup_20261109T104012_630211Z_21842d1b.json"
+}
