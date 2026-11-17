@@ -33,7 +33,8 @@ PRIORITY = {
     'sum_rate_bps_hz', 'dl_nmse_linear', 'soft_nmse_linear', 'direction_error',
     'interference_power_mean', 'desired_signal_power_mean', 'dl_leakage_penalty',
     'ul_all_nominal_scaled_actual_error_power',
-    'ul_nmse_linear', 'gram_error', 'energy_ratio', 'ce_mse'}
+    'ul_nmse_linear', 'gram_error', 'energy_ratio', 'ce_mse',
+    'min_user_rate_bps_hz', 'key_energy_fraction', 'pair_coupling', 'low_gamma_sum_rate', 'loss'}
 KEEP_COLUMNS = ('variant', 'comparison', 'trajectory', 'step', 'CE_total_updates', 'role',
     'scope', 'gamma_db', 'metric', 'n_samples', 'mean', 'batch_ci95_low', 'batch_ci95_high')
 ID_COLUMNS = {'variant', 'arm', 'role', 'gamma_db', 'sample_index', 'batch_index', 'within_batch'}
