@@ -1,0 +1,30 @@
+{
+  "audited_at_utc": "2026-11-17T09:47:37.563747+00:00",
+  "draft_release_count": 0,
+  "existing_result_branches": {},
+  "expected_report_refs": {
+    "results/twc_v1_k8_ce_refine_v1/9e9d46c5e8f7": null,
+    "results/twc_v1_k8_low_snr_interference_v1/63d630146f51": null
+  },
+  "main_commit": "eee870a1cf3cd229c919c54c8ee99da21ff6ad1b",
+  "main_last_commit_files": [
+    ".gitignore",
+    "cleanup_reports/20261104_105448_+0100/cleanup_manifest.json",
+    "cleanup_reports/20261104_105508_+0100/cleanup_manifest.json",
+    "cleanup_reports/20261104_110601_+0100/source_review.json",
+    "cleanup_reports/PROTECTED_PATHS.json",
+    "cleanup_reports/cleanup_20261109T104012_630211Z_21842d1b.json",
+    "cleanup_reports/incoming_dedup_1794231385003702408.jsonl"
+  ],
+  "main_message": "你的提交说明",
+  "main_runs_paths": [],
+  "main_tree_truncated": false,
+  "main_weight_paths": [],
+  "production_checkpoints_loaded": false,
+  "release_count": 0,
+  "releases": [],
+  "repository": "Charlie-Su-55/03_PRECODER",
+  "scope": "Current main, current branch refs and authenticated release list; not an audit of deleted historical refs, local SSH files or dangling Git objects",
+  "ssh_access_performed": false,
+  "upload_retry_performed": false
+}
