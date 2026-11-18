@@ -21,7 +21,7 @@
 - FDMA：每 UE 24 个独占复坐标。Hybrid G4：4 个两人组，每 UE 4 个独占 key ＋ 40 个组内共享坐标。
 - 反馈 γ ∈ {0,5,10,15,20,25} dB，`N0 = 0.25·10^(−γ/10)`，0.25 是每 UE 每 RE 的平均能量。下行 SNR 固定 25 dB。
 - 下行固定 RZF `alpha=.03`，每 tone 总功率 1。信道为 Sionna CDL-C，UL/DL 独立生成，每 UE 平均功率已归一化，8 个 UE 共用同一个 γ。
-- CE：pilot-only（rank8 Fourier-LS 初值＋残差 U-Net），UE 当前没有 γ 输入。
+- CE：pilot-only（rank8 Fourier-LS 初值＋残差 U-Net，CE 网络有 γ 特征）。final 系列 UE 编码器有 γ 输入（zero-init FiLM＋逐 slot 增益），审计显示作用很小（≤0.015 bps/Hz）。
 
 ## 实验与证据纪律
 
