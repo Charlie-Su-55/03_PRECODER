@@ -34,7 +34,8 @@ PRIORITY = {
     'interference_power_mean', 'desired_signal_power_mean', 'dl_leakage_penalty',
     'ul_all_nominal_scaled_actual_error_power',
     'ul_nmse_linear', 'gram_error', 'energy_ratio', 'ce_mse',
-    'min_user_rate_bps_hz', 'key_energy_fraction', 'pair_coupling', 'low_gamma_sum_rate', 'loss'}
+    'min_user_rate_bps_hz', 'key_energy_fraction', 'pair_coupling', 'low_gamma_sum_rate', 'loss',
+    'true_ul_coupling', 'sum_rate_dl10', 'sum_rate_dl15', 'sum_rate_dl20', 'sum_rate_dl30'}
 KEEP_COLUMNS = ('variant', 'comparison', 'trajectory', 'step', 'CE_total_updates', 'role',
     'scope', 'gamma_db', 'metric', 'n_samples', 'mean', 'batch_ci95_low', 'batch_ci95_high')
 ID_COLUMNS = {'variant', 'arm', 'role', 'gamma_db', 'sample_index', 'batch_index', 'within_batch'}
@@ -200,8 +201,10 @@ def git(*args, data=None, env=None):
     return result.stdout.decode().strip()
 
 
-def push(namespace, export_id, data):
-    ref = f'refs/heads/results-digest/{namespace}/{export_id}'
+def push(namespace, export_id, data, tag=None):
+    if tag is not None and not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,30}', tag):
+        raise SystemExit('STOP: --tag must be lowercase letters, digits and dashes')
+    ref = f'refs/heads/results-digest/{namespace}/{export_id}' + (f'-{tag}' if tag else '')
     if git('ls-remote', 'origin', ref):
         raise SystemExit('STOP: remote branch already exists; nothing overwritten: ' + ref)
     blob = git('hash-object', '-w', '--stdin', data=data)
@@ -224,6 +227,7 @@ def main(argv=None):
                         help='compressed size limit for optional tiers (default %(default)s)')
     parser.add_argument('--push', action='store_true', help='push; default only prints the plan')
     parser.add_argument('--write', type=Path, help='also write digest.json to this path')
+    parser.add_argument('--tag', help='suffix for a second digest of the same report (new branch <export_id>-<tag>)')
     args = parser.parse_args(argv)
     namespace, export_id, tier1, optional = build(args.report_dir)
     data, packed = assemble(tier1, optional, int(args.budget_kib * 1024))
@@ -237,7 +241,7 @@ def main(argv=None):
     if args.write:
         args.write.write_bytes(data)
     if args.push:
-        push(namespace, export_id, data)
+        push(namespace, export_id, data, args.tag)
     return 0
 
 
