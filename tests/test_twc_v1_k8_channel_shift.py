@@ -25,8 +25,9 @@ def fake_positions():
 
 class ShiftTests(unittest.TestCase):
     def test_grid_and_ramp_shift_angle(self):
-        h, v, nh, nv = cs.antenna_grid(fake_positions())
+        h, v, nh, nv = cs.antenna_grid(fake_positions().float())
         self.assertEqual((nh, nv), (8, 4))
+        self.assertEqual((h.device.type, v.device.type), ('cpu', 'cpu'))
         self.assertEqual(h.tolist()[:9], [0, 1, 2, 3, 4, 5, 6, 7, 0])
         self.assertEqual(sorted(set(v.tolist())), [0, 1, 2, 3])
         ramp = cs.rotation_phase((h, v, nh, nv), 2, 'final', 0, 3, 'cpu')
