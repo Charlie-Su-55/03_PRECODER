@@ -53,7 +53,8 @@ def _seed(*parts):
 def antenna_grid(positions):
     """positions [Nt,3] in metres -> integer (horizontal, vertical) indices in units of lambda/2."""
     import torch
-    pos = torch.as_tensor(positions, dtype=torch.float64).reshape(-1, 3)
+    # Sionna returns the positions on the GPU; the grid and the ramp are built on the CPU.
+    pos = torch.as_tensor(positions).detach().to('cpu', torch.float64).reshape(-1, 3)
     axes = []
     for axis in range(3):
         values = torch.unique(torch.round(pos[:, axis]*1e6)/1e6)
