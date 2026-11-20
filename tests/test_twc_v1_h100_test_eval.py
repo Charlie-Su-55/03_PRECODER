@@ -104,6 +104,8 @@ class H100TestEval(unittest.TestCase):
             eb.main([str(src)])
             with self.assertRaises(SystemExit):
                 eb.main([str(src)])
+            eb.main([str(src), '--variants', 'other', '--tag', 'oth'])
+        self.assertTrue((self.root/'runs'/'ns_batch_means'/'reports'/'attempt_abc-oth'/'batch_means.csv').is_file())
         out = self.root/'runs'/'ns_batch_means'/'reports'/'attempt_abc'
         rows = list(csv.DictReader(open(out/'batch_means.csv')))
         self.assertEqual([(x['variant'], x['batch_index'], float(x['mean'])) for x in rows],
