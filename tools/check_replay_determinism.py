@@ -8,7 +8,11 @@ configuration) is printed. Nothing is written to disk; no model is loaded.
 
 Run the same command on two machines and compare the printed lines.
   exact_sha  : bit-identical tensors
-  q4_sha     : identical after rounding to 1e-4 (tolerates last-bit float differences)
+  q4_sha     : identical after rounding to 1e-4 (fragile: ~1e6 values, a 1e-7 difference
+               already flips some roundings, so a q4 mismatch alone proves little)
+  stats      : energy, max |H|, three fixed random projections and 12 scattered entries,
+               printed to many digits; these agree to ~1e-6 relative when only the last
+               float bits differ, and differ in the leading digits if the channels differ.
 """
 from __future__ import annotations
 
@@ -44,6 +48,16 @@ def exact(*tensors):
     return digest.hexdigest()[:16]
 
 
+def stats(H_dl, H_ul):
+    import torch
+    x = torch.cat([torch.view_as_real(H_dl).flatten(), torch.view_as_real(H_ul).flatten()]).cpu().double()
+    g = torch.Generator().manual_seed(20261120)
+    proj = [float(torch.dot(x, torch.randn(x.numel(), generator=g, dtype=torch.float64))) for _ in range(3)]
+    idx = torch.linspace(0, x.numel()-1, 12).long()
+    return dict(energy=f'{float((x*x).sum()):.9e}', max_abs=f'{float(x.abs().max()):.7f}',
+                proj=[f'{v:.7e}' for v in proj], scattered=[f'{float(v):.6f}' for v in x[idx]])
+
+
 def main():
     device = rt.base().configure_cuda()
     import torch
@@ -62,6 +76,7 @@ def main():
                               channel_q4=q4(s['H_dl'], s['H_ul']),
                               noise_exact=exact(noise, polarity), noise_q4=q4(noise, polarity),
                               H_dl_first=[round(float(v), 6) for v in torch.view_as_real(h).flatten()])))
+        print(json.dumps(dict(frame=b, **stats(s['H_dl'], s['H_ul']))))
     print('DONE read-only, nothing written')
 
 
