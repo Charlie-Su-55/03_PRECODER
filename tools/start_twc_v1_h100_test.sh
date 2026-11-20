@@ -6,9 +6,11 @@ test "$(id -un)" = jupyter-r50037942 || { echo 'STOP: run on the H100 (account j
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 test -n "${CONDA_PREFIX:-}" || { echo 'STOP: conda activate precoder first.' >&2; exit 1; }
 py="$CONDA_PREFIX/bin/python"
-command -v tmux >/dev/null || { echo 'STOP: tmux not found.' >&2; exit 1; }
-if tmux has-session -t '=h100_test' 2>/dev/null; then
+if command -v tmux >/dev/null && tmux has-session -t '=h100_test' 2>/dev/null; then
   echo 'STOP: tmux session h100_test already exists: tmux attach -t h100_test' >&2; exit 1
+fi
+if pgrep -u "$(id -u)" -f 'evaluate_twc_v1_h100_test.py' >/dev/null; then
+  echo 'STOP: an H100 test evaluation is already running.' >&2; exit 1
 fi
 for f in evaluate_twc_v1_h100_test.py evaluate_twc_v1_k8_test.py train_twc_v1_k8_grouped.py train_twc_v1_k8_decoder_cmp.py \
          grouped_runtime.py final_runtime.py k16_runtime.py train_twc_v1_k16.py models/twc_v1_k8_detr_decoder.py \
@@ -31,9 +33,12 @@ test -z "$(ls runs/twc_v1_k16_test_v1/reports 2>/dev/null)" || { echo 'STOP: a K
 nvidia-smi --query-gpu=name,memory.used,utilization.gpu --format=csv,noheader
 mkdir -p runs/twc_v1_k8_test_h100_v1
 log="runs/twc_v1_k8_test_h100_v1/console_$(date +%Y%m%d_%H%M%S).log"
-tmux new-session -d -s h100_test \
-  "set -o pipefail; '$py' -B -u evaluate_twc_v1_h100_test.py --evaluate-once k8 2>&1 | tee -a '$log' && \
-   '$py' -B -u evaluate_twc_v1_h100_test.py --evaluate-once k16 2>&1 | tee -a '$log'; \
-   echo EXIT=\$? | tee -a '$log'; exec bash"
-echo "Started tmux session h100_test. Log: $log"
+cmd="'$py' -B -u evaluate_twc_v1_h100_test.py --evaluate-once k8 && '$py' -B -u evaluate_twc_v1_h100_test.py --evaluate-once k16; echo EXIT=\$?"
+if command -v tmux >/dev/null; then
+  tmux new-session -d -s h100_test "bash -c \"$cmd\" 2>&1 | tee -a '$log'; exec bash"
+  echo "Started tmux session h100_test. Log: $log"
+else
+  nohup bash -c "$cmd" >>"$log" 2>&1 < /dev/null &
+  echo "Started in background (nohup, no tmux), PID $!. Log: $log"
+fi
 echo "Watch: tail -f $log"
