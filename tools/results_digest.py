@@ -37,7 +37,7 @@ PRIORITY = {
     'min_user_rate_bps_hz', 'key_energy_fraction', 'pair_coupling', 'low_gamma_sum_rate', 'loss',
     'true_ul_coupling', 'sum_rate_dl10', 'sum_rate_dl15', 'sum_rate_dl20', 'sum_rate_dl30'}
 KEEP_COLUMNS = ('variant', 'comparison', 'trajectory', 'step', 'CE_total_updates', 'role',
-    'scope', 'gamma_db', 'metric', 'n_samples', 'mean', 'batch_ci95_low', 'batch_ci95_high')
+    'scope', 'gamma_db', 'batch_index', 'metric', 'n_samples', 'mean', 'batch_ci95_low', 'batch_ci95_high')
 ID_COLUMNS = {'variant', 'arm', 'role', 'gamma_db', 'sample_index', 'batch_index', 'within_batch'}
 IP = re.compile(r'\b(?:\d{1,3}\.){3}\d{1,3}\b')
 DEFAULT_BUDGET_KIB = 24
@@ -159,7 +159,7 @@ def build(report):
     if (report/'export_manifest.json').is_file():
         tier1['export_manifest'] = compact(json.loads((report/'export_manifest.json').read_text()))
     summary = read_csv(report/'summary.csv') if (report/'summary.csv').is_file() else []
-    for name in ('summary.csv', 'comparisons.csv', 'curve_summary.csv'):
+    for name in ('summary.csv', 'comparisons.csv', 'curve_summary.csv', 'batch_means.csv'):
         if (report/name).is_file():
             rows = summary if name == 'summary.csv' else read_csv(report/name)
             tier1[name.removesuffix('.csv')] = table(rows, priority_only=True)
