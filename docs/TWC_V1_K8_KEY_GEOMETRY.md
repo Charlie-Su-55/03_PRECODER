@@ -49,10 +49,27 @@ and perfect_csi_rzf, plus UL NMSE of the frozen CE and the true UL coupling.
 Caveat to report with the results: the CE was trained on CDL-C without offsets and stays
 frozen for both arms; the UL NMSE column shows how much it degrades.
 
+## Machine plan (updated 2026-11-27 21:00)
+
+- H100: fdma_geo and hybrid_geo (started 11:48, 5 processes at first; q0, q2, q8 stopped at
+  ~1k updates at ~14:00 because the machine's total throughput is fixed at ~0.69 updates/s).
+  After the geometry terminals: geometry evaluation, then q8 resumed from its checkpoint.
+- New machine (RTX 5090, account rong): q0, then q2, from scratch, one after another
+  (`tools/queue_twc_v1_k8_key_ablation_new.sh q0 q2`), each followed by its validation report.
+  These are the runs that count for q0 and q2; the partial H100 directories of q0 and q2 are
+  left untouched and never resumed or evaluated.
+- Training channels are generated on each machine from the same seeds; across machines they
+  agree up to float32 rounding (determinism check of 2026-11-20).
+
 ## Commands (H100)
 
-    bash tools/start_twc_v1_k8_review_runs.sh                 # q0 q8 fdma_geo hybrid_geo
-    bash tools/start_twc_v1_k8_review_runs.sh q2              # optional third key arm
+    bash tools/start_twc_v1_k8_review_runs.sh fdma_geo hybrid_geo
+    bash tools/start_twc_v1_k8_review_runs.sh q8              # after the geometry terminals
+
+## Commands (new machine)
+
+    bash tools/setup_shared_ce.sh            # check; add --copy if the shared CE is missing
+    bash tools/queue_twc_v1_k8_key_ablation_new.sh q0 q2
 
 After the terminals exist:
 
