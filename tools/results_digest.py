@@ -120,10 +120,20 @@ def table(rows, *, priority_only):
                                        for r in selected])
 
 
-def recompute_points(samples_path, summary_rows):
+def keep(row, match):
+    """Row filter for --match: the variant or comparison name must match the regular expression."""
+    if match is None:
+        return True
+    name = row.get('variant') or row.get('comparison') or ''
+    return bool(match.search(name))
+
+
+def recompute_points(samples_path, summary_rows, match=None):
     """Independent check: per (variant, role, gamma, metric) means from raw samples."""
     sums, counts = {}, {}
     for row in read_csv(samples_path):
+        if not keep(row, match):
+            continue
         for metric in PRIORITY & set(row):
             if row[metric] == '':
                 continue
@@ -144,7 +154,8 @@ def recompute_points(samples_path, summary_rows):
         matched_summary_points=matched, max_relative_mean_difference=number(worst))
 
 
-def build(report):
+def build(report, skip=(), match=None):
+    """skip: table files left out of the digest (their SHA256 stays listed); match: regex on variant/comparison."""
     report = Path(report).resolve()
     if not report.is_dir():
         raise SystemExit('STOP: report directory not found: ' + str(report))
@@ -159,12 +170,15 @@ def build(report):
     if (report/'export_manifest.json').is_file():
         tier1['export_manifest'] = compact(json.loads((report/'export_manifest.json').read_text()))
     summary = read_csv(report/'summary.csv') if (report/'summary.csv').is_file() else []
+    summary = [r for r in summary if keep(r, match)]
+    if skip or match is not None:
+        tier1['filter'] = dict(skipped_files=sorted(skip), match=None if match is None else match.pattern)
     for name in ('summary.csv', 'comparisons.csv', 'curve_summary.csv', 'batch_means.csv'):
-        if (report/name).is_file():
-            rows = summary if name == 'summary.csv' else read_csv(report/name)
+        if (report/name).is_file() and name not in skip:
+            rows = summary if name == 'summary.csv' else [r for r in read_csv(report/name) if keep(r, match)]
             tier1[name.removesuffix('.csv')] = table(rows, priority_only=True)
     if (report/'samples.csv.gz').is_file() and summary:
-        tier1['audit_recomputed_from_samples'] = recompute_points(report/'samples.csv.gz', summary)
+        tier1['audit_recomputed_from_samples'] = recompute_points(report/'samples.csv.gz', summary, match)
     tier2 = {}
     for name in ('provenance.json', 'calibration.json'):
         if (report/name).is_file():
@@ -228,8 +242,13 @@ def main(argv=None):
     parser.add_argument('--push', action='store_true', help='push; default only prints the plan')
     parser.add_argument('--write', type=Path, help='also write digest.json to this path')
     parser.add_argument('--tag', help='suffix for a second digest of the same report (new branch <export_id>-<tag>)')
+    parser.add_argument('--skip', action='append', default=[], help='table file to leave out, e.g. batch_means.csv')
+    parser.add_argument('--match', help='regex; keep only rows whose variant or comparison name matches')
     args = parser.parse_args(argv)
-    namespace, export_id, tier1, optional = build(args.report_dir)
+    match = re.compile(args.match) if args.match else None
+    if (args.skip or match) and not args.tag and args.push:
+        raise SystemExit('STOP: a filtered digest needs --tag')
+    namespace, export_id, tier1, optional = build(args.report_dir, tuple(args.skip), match)
     data, packed = assemble(tier1, optional, int(args.budget_kib * 1024))
     document = json.loads(data)
     print(f'namespace={namespace} export_id={export_id} raw={len(data)/1024:.1f}KiB '

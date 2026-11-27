@@ -55,6 +55,22 @@ class ResultsDigestTest(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
+    def test_skip_and_match_filters(self):
+        import re
+        _write(self.report/'batch_means.csv', [dict(variant='a', role='final', gamma_db=0., batch_index=0,
+            metric='sum_rate_bps_hz', mean=1.)])
+        _, _, tier1, _ = digest.build(self.report, ('batch_means.csv',), re.compile('^b$'))
+        self.assertNotIn('batch_means', tier1)
+        self.assertIn('batch_means.csv', tier1['files'])
+        self.assertEqual({r[0] for r in tier1['summary']['rows']}, {'b'})
+        self.assertEqual(tier1['audit_recomputed_from_samples']['conditions'], 2)
+        self.assertEqual(tier1['filter'], dict(skipped_files=['batch_means.csv'], match='^b$'))
+        _, _, plain, _ = digest.build(self.report)
+        self.assertIn('batch_means', plain)
+        self.assertNotIn('filter', plain)
+        with self.assertRaises(SystemExit):
+            digest.main([str(self.report), '--match', 'b', '--push'])
+
     def test_digest_contents_audit_and_redaction(self):
         namespace, export_id, tier1, optional = digest.build(self.report)
         self.assertEqual((namespace, export_id), ('ns_v1', 'abc123'))
